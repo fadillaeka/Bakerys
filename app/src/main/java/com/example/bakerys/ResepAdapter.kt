@@ -7,17 +7,23 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.card.MaterialCardView
 
+// 1. Data Model
+data class ResepModel(
+    val judul: String,
+    val deskripsi: String,
+    var isFavorite: Boolean = false
+)
+
+// 2. Adapter
 class ResepAdapter(private val listResep: List<ResepModel>) :
     RecyclerView.Adapter<ResepAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val cardContainer: MaterialCardView = itemView.findViewById(R.id.cardContainer)
-        val imgKue: ImageView = itemView.findViewById(R.id.imgKue)
-        val btnFavorite: ImageView = itemView.findViewById(R.id.btnFavorite)
-        val tvJudulKue: TextView = itemView.findViewById(R.id.tvJudulKue)
-        val tvWaktuLevel: TextView = itemView.findViewById(R.id.tvWaktuLevel)
+        val imgKue: ImageView? = itemView.findViewById(R.id.imgKue)
+        val btnFavorite: ImageView? = itemView.findViewById(R.id.btnFavorite)
+        val tvJudulKue: TextView? = itemView.findViewById(R.id.tvJudulKue)
+        val tvWaktuLevel: TextView? = itemView.findViewById(R.id.tvWaktuLevel)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -29,24 +35,24 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = listResep[position]
 
-        // 1. Tampilkan teks
-        holder.tvJudulKue.text = item.judul
-        holder.tvWaktuLevel.text = item.deskripsi
+        // Tampilkan Teks
+        holder.tvJudulKue?.text = item.judul
+        holder.tvWaktuLevel?.text = item.deskripsi
 
-        // 2. Logika warna awal tombol favorit
+        // Set Warna Awal Tombol Love
         if (item.isFavorite) {
-            holder.btnFavorite.setColorFilter(Color.parseColor("#D32F2F")) // Merah
+            holder.btnFavorite?.setColorFilter(Color.parseColor("#D32F2F")) // Merah
         } else {
-            holder.btnFavorite.setColorFilter(Color.parseColor("#8C7A6B")) // Cokelat/Abu
+            holder.btnFavorite?.setColorFilter(Color.parseColor("#8C7A6B")) // Abu/Cokelat
         }
 
-        // 3. Logika klik ikon favorit (Merah <-> Cokelat)
-        holder.btnFavorite.setOnClickListener {
+        // Klik Tombol Love -> Ubah Warna
+        holder.btnFavorite?.setOnClickListener {
             item.isFavorite = !item.isFavorite
             if (item.isFavorite) {
-                holder.btnFavorite.setColorFilter(Color.parseColor("#D32F2F"))
+                holder.btnFavorite?.setColorFilter(Color.parseColor("#D32F2F"))
             } else {
-                holder.btnFavorite.setColorFilter(Color.parseColor("#8C7A6B"))
+                holder.btnFavorite?.setColorFilter(Color.parseColor("#8C7A6B"))
             }
         }
     }
