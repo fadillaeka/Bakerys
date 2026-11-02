@@ -22,11 +22,6 @@ class BerandaFragment : Fragment() {
             rvTren.layoutManager = GridLayoutManager(requireContext(), 2)
             // Data tiruan untuk kue yang sedang tren
             val dataTren = listOf(
-<<<<<<< Updated upstream
-                ResepModel("Classic Choco Brownies", "Cokelat lumer dengan tekstur lembut di dalam."),
-                ResepModel("Creamy Cheese Tart", "Tart keju gurih dengan crust renyah."),
-                ResepModel("Matcha Roll Cake", "Kue gulung lembut aroma jepang.")
-=======
                 ResepModel(
                     judul = "Chocolate Lava Cakes",
                     deskripsi = "Easy • 45m",
@@ -57,7 +52,6 @@ class BerandaFragment : Fragment() {
                     deskripsi = "Easy • 1h 20m",
                     gambar = R.drawable.classic_choco_brownies
                 )
->>>>>>> Stashed changes
             )
 
             rvTren.adapter = ResepAdapter(dataTren)
