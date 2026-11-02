@@ -256,24 +256,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Judul Bagian Tren -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Kue yang sedang tren"
-            android:textColor="#3E2723"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="12dp"
-            android:text="Dari oven kami ke koleksi yang anda simpan."
-            android:textColor="#8D6E63"
-            android:textSize="12sp" />
-
         <!-- RecyclerView untuk daftar kartu resep 2 kolom -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvKueTren"
