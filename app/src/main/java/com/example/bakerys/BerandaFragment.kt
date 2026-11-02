@@ -22,9 +22,21 @@ class BerandaFragment : Fragment() {
             rvTren.layoutManager = GridLayoutManager(requireContext(), 2)
             // Data tiruan untuk kue yang sedang tren
             val dataTren = listOf(
-                ResepModel("Classic Choco Brownies", "Cokelat lumer dengan tekstur lembut di dalam."),
-                ResepModel("Creamy Cheese Tart", "Tart keju gurih dengan crust renyah."),
-                ResepModel("Matcha Roll Cake", "Kue gulung lembut aroma jepang.")
+                ResepModel(
+                    judul = "Classic Choco Brownies",
+                    deskripsi = "Cokelat lumer dengan tekstur...",
+                    gambar = R.drawable.classic_choco_brownies
+                ),
+                ResepModel(
+                    judul = "Creamy Cheese Tart",
+                    deskripsi = "Tart keju gurih...",
+                    gambar = R.drawable.chese_tart
+                ),
+                ResepModel(
+                    judul = "Matcha Roll Cake",
+                    deskripsi = "Kue gulung lembut...",
+                    gambar = R.drawable.matcha_roll
+                )
             )
 
             rvTren.adapter = ResepAdapter(dataTren)
