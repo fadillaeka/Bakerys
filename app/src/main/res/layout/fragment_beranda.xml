@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFF9F8"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:paddingBottom="40dp">
+
+        <!-- Header Atas (Judul Beranda & Ikon Notifikasi) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/bakery_mark"
+                android:contentDescription="Logo" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="12dp"
+                android:text="Beranda"
+                android:textColor="#3E2723"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/bg_circle_peach"
+                android:padding="8dp"
+                android:src="@drawable/bell"
+                app:tint="#802C3E"
+                android:contentDescription="Notifikasi" />
+        </LinearLayout>
+
+        <!-- Sapaan (Greeting) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Baking Mudah Untuk Semua"
+            android:textColor="#802C3E"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Selamat Pagi, Baker"
+            android:textColor="#3E2723"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="16dp"
+            android:text="Kue manis apa yang akan kamu buat hari ini?"
+            android:textColor="#8D6E63"
+            android:textSize="13sp" />
+
+        <!-- Kolom Pencarian (Search Bar) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_input_field"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@android:drawable/ic_menu_search"
+                app:tint="#8D6E63"
+                android:contentDescription="Cari" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="12dp"
+                android:text="Cari sourdough, kue, kue kering..."
+                android:textColor="#A08882"
+                android:textSize="13sp" />
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/search_filters"
+                android:contentDescription="Filter" />
+        </LinearLayout>
+
+        <!-- Kategori Horizontal (Semua, Sourdough, Kue, dll) -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- Chip 1 (Aktif - Maroon) -->
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:layout_marginEnd="8dp"
+                    android:backgroundTint="#802C3E"
+                    android:text="✦ Semua"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    app:cornerRadius="18dp" />
+
+                <!-- Chip 2 -->
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:layout_marginEnd="8dp"
+                    android:backgroundTint="#FCEBE5"
+                    android:text="Sourdough"
+                    android:textAllCaps="false"
+                    android:textColor="#3E2723"
+                    android:textSize="12sp"
+                    app:cornerRadius="18dp"
+                    app:strokeColor="#EED5CE"
+                    app:strokeWidth="1dp" />
+
+                <!-- Chip 3 -->
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:layout_marginEnd="8dp"
+                    android:backgroundTint="#FCEBE5"
+                    android:text="Kue"
+                    android:textAllCaps="false"
+                    android:textColor="#3E2723"
+                    android:textSize="12sp"
+                    app:cornerRadius="18dp"
+                    app:strokeColor="#EED5CE"
+                    app:strokeWidth="1dp" />
+
+                <!-- Chip 4 -->
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:backgroundTint="#FCEBE5"
+                    android:text="Kue Kering"
+                    android:textAllCaps="false"
+                    android:textColor="#3E2723"
+                    android:textSize="12sp"
+                    app:cornerRadius="18dp"
+                    app:strokeColor="#EED5CE"
+                    app:strokeWidth="1dp" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- Kartu Unggulan (Bake of the Day / Dubai Chewy Cookies) -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="#FCEAA8"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="210dp">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/dubai"
+                        android:contentDescription="Bake of the day" />
+
+                    <!-- Badge Bake of the Day -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="12dp"
+                        app:cardBackgroundColor="#FFF9F8"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="2dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp"
+                            android:text="✨ Bake of the Day"
+                            android:textColor="#802C3E"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </com.google.android.material.card.MaterialCardView>
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⏱️ 1h 15m active  •  Intermediate"
+                        android:textColor="#802C3E"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Dubai Chewy Cookies"
+                        android:textColor="#3E2723"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Terbuat dari marshmallow yang dilelehkan dan dicampur dengan bubuk kakao, menghasilkan tekstur yang kenyal dan elastis."
+                        android:textColor="#5D4037"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Judul Bagian Tren -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kue yang sedang tren"
+            android:textColor="#3E2723"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="12dp"
+            android:text="Dari oven kami ke koleksi yang anda simpan."
+            android:textColor="#8D6E63"
+            android:textSize="12sp" />
+
+        <!-- RecyclerView untuk daftar kartu resep 2 kolom -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvKueTren"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:spanCount="2"
+            tools:listitem="@layout/item_resipe_card"
+            tools:itemCount="4"/>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

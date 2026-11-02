@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet_top_rounded"
+    android:backgroundTint="#FCEBE5"
+    android:orientation="vertical"
+    android:paddingHorizontal="24dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="28dp">
+
+    <!-- Tombol Tutup (X) di Pojok Kanan Atas -->
+    <ImageView
+        android:id="@+id/btnCloseComment"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_gravity="end"
+        android:layout_marginBottom="8dp"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        app:tint="#3E2723"
+        android:contentDescription="Tutup" />
+
+    <!-- Daftar Komentar (RecyclerView) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvComments"
+        android:layout_width="match_parent"
+        android:layout_height="340dp"
+        android:layout_marginBottom="16dp"
+        android:nestedScrollingEnabled="true"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/item_komentar"
+        tools:itemCount="6" />
+
+    <!-- Bar Kirim Komentar di Bagian Bawah -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <!-- Lingkaran Profil Kecil di Samping Input -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            app:cardBackgroundColor="#B8383B"
+            app:cardCornerRadius="19dp"
+            app:cardElevation="0dp" />
+
+        <!-- Kotak Input Teks Komentar -->
+        <EditText
+            android:id="@+id/etAddComment"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/bg_ffd2be_input"
+            android:hint="Tambahkan Komentar"
+            android:paddingHorizontal="16dp"
+            android:textColor="#3E2723"
+            android:textColorHint="#8D6E63"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+</LinearLayout>

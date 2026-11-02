@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="24dp"
+    app:cardBackgroundColor="#E6B8B8"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="8dp"
+    app:strokeColor="#D7B5AE"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Tombol Tutup (X) di Kanan Atas -->
+        <ImageView
+            android:id="@+id/btnCloseTimer"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="end"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            app:tint="#802C3E"
+            android:contentDescription="Tutup" />
+
+        <!-- Teks Hitung Mundur (Timer 05:00) -->
+        <TextView
+            android:id="@+id/tvTimerCountdown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="24dp"
+            android:text="05:00"
+            android:textColor="#3E2723"
+            android:textSize="48sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium" />
+
+        <!-- Tombol Restart -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRestartTimer"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="12dp"
+            android:backgroundTint="#FFF9F8"
+            android:text="Restart"
+            android:textAllCaps="false"
+            android:textColor="#802C3E"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="24dp"
+            app:elevation="0dp" />
+
+        <!-- Tombol Start / Pause -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStartTimer"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:backgroundTint="#FFF9F8"
+            android:text="Start"
+            android:textAllCaps="false"
+            android:textColor="#802C3E"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="24dp"
+            app:elevation="0dp" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

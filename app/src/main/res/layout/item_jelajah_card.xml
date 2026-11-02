@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    app:cardBackgroundColor="#FCEBE5"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="16dp">
+
+        <!-- Foto Resep Utama -->
+        <ImageView
+            android:id="@+id/ivJelajahThumb"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/no_bake_pumpkin_cheesecake_bars"
+            android:contentDescription="Foto Resep" />
+
+        <!-- Baris Ikon Aksi (Like, Comment, Bookmark) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="8dp">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginEnd="16dp"
+                android:src="@drawable/ic_heart_filled"
+                app:tint="#3E2723"
+                android:contentDescription="Suka" />
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginEnd="16dp"
+                android:src="@drawable/ic_comment_outline"
+                app:tint="#3E2723"
+                android:contentDescription="Komentar" />
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_bookmark_card"
+                app:tint="#3E2723"
+                android:contentDescription="Simpan" />
+        </LinearLayout>
+
+        <!-- Judul Resep -->
+        <TextView
+            android:id="@+id/tvJelajahTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="16dp"
+            android:text="No-Bake Pumpkin Cheesecake Bars"
+            android:textColor="#3E2723"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- Deskripsi Singkat Resep -->
+        <TextView
+            android:id="@+id/tvJelajahDesc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:paddingHorizontal="16dp"
+            android:text="Resep No-Bake Pumpkin Cheesecake Bars ini terdiri dari lapisan dasar biskuit graham dengan isian cheesecake labu yang lembut dan krim kocok manis."
+            android:textColor="#5D4037"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

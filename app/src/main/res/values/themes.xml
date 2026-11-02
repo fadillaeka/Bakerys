@@ -1,0 +1,17 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Bakerys" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    </style>
+
+    <style name="Theme.Bakerys" parent="Base.Theme.Bakerys" />
+
+    <!-- Style untuk indikator aktif Bottom Navigation (Bentuk Pill / Lonjong) -->
+    <style name="CustomActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <!-- Warna latar belakang saat aktif -->
+        <item name="android:color">#F3C3CA</item>
+        <!-- Membuat sudutnya melengkung penuh -->
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.Material3.Corner.Full</item>
+    </style>
+</resources>

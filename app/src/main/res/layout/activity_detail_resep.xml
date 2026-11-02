@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFF9F8"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- 1. Foto Resep di Bagian Paling Atas -->
+        <ImageView
+            android:id="@+id/ivDetailThumb"
+            android:layout_width="match_parent"
+            android:layout_height="260dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/no_bake_pumpkin_cheesecake_bars"
+            android:contentDescription="Thumbnail Resep" />
+
+        <!-- 2. Bagian Atas (Latar Cream #FFF9F8) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Judul Resep -->
+            <TextView
+                android:id="@+id/tvDetailTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No-Bake Pumpkin Cheesecake Bars"
+                android:textColor="#3E2723"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <!-- Author / Pembuat -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Oleh (Author)"
+                android:textColor="#8D6E63"
+                android:textSize="12sp" />
+
+            <!-- Badge Waktu -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:cardBackgroundColor="#802C3E"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp"
+                    android:text="⏱️ 30 Menit"
+                    android:textColor="#FFF9F8"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Tentang Resep -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Tentang Resep"
+                android:textColor="#3E2723"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Resep No-Bake Pumpkin Cheesecake Bars ini terdiri dari lapisan dasar biskuit graham dengan isian cheesecake labu yang lembut dan krim kocok manis ."
+                android:textColor="#5D4037"
+                android:textSize="13sp" />
+
+            <!-- Judul Bahan - Bahan -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Bahan - Bahan"
+                android:textColor="#3E2723"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="12dp"
+                android:background="#D7B5AE" />
+
+            <!-- Tombol Tab Bahan -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTabBahanUtama"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:backgroundTint="#802C3E"
+                    android:insetLeft="0dp"
+                    android:insetRight="0dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingHorizontal="2dp"
+                    android:text="Bahan Utama"
+                    android:textAllCaps="false"
+                    android:textColor="#FFF9F8"
+                    android:textSize="14sp"
+                    app:cornerRadius="24dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTabTakaranSendok"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginHorizontal="2dp"
+                    android:backgroundTint="#FCEBE5"
+                    android:insetLeft="0dp"
+                    android:insetRight="0dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingHorizontal="2dp"
+                    android:text="Takaran Sendok"
+                    android:textAllCaps="false"
+                    android:textColor="#802C3E"
+                    android:textSize="14sp"
+                    app:cornerRadius="24dp"
+                    app:strokeColor="#D7B5AE"
+                    app:strokeWidth="1dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTabTakaranGram"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:backgroundTint="#FCEBE5"
+                    android:insetLeft="0dp"
+                    android:insetRight="0dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingHorizontal="2dp"
+                    android:text="Takaran Gram"
+                    android:textAllCaps="false"
+                    android:textColor="#802C3E"
+                    android:textSize="14sp"
+                    app:cornerRadius="24dp"
+                    app:strokeColor="#D7B5AE"
+                    app:strokeWidth="1dp" />
+            </LinearLayout>
+
+            <!-- Kotak Bahan Utama (2 Kolom) -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="#FCEBE5"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#D7B5AE"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <!-- Kolom Kiri -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView android:text="• remahan biskuit graham" android:textColor="#3E2723" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="6dp"/>
+                        <TextView android:text="• mentega" android:textColor="#3E2723" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="6dp"/>
+                        <TextView android:text="• gula pasir" android:textColor="#3E2723" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="6dp"/>
+                        <TextView android:text="• labu" android:textColor="#3E2723" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="6dp"/>
+                        <TextView android:text="• keju krim" android:textColor="#3E2723" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="6dp"/>
+                        <TextView android:text="• gula merah" android:textColor="#3E2723" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    </LinearLayout>
+
+                    <!-- Kolom Kanan -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="8dp">
+                        <TextView android:text="• teh bumbu pai labu" android:textColor="#3E2723" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="6dp"/>
+                        <TextView android:text="• cokelat putih" android:textColor="#3E2723" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="6dp"/>
+                        <TextView android:text="• krim kental" android:textColor="#3E2723" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="6dp"/>
+                        <TextView android:text="• gula halus" android:textColor="#3E2723" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="6dp"/>
+                        <TextView android:text="• teh ekstrak vanila" android:textColor="#3E2723" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Badge Bahan Pengganti -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                app:cardBackgroundColor="#802C3E"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="0dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:text="Bahan Pengganti"
+                    android:textColor="#FFF9F8"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Kotak Bahan Pengganti -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                app:cardBackgroundColor="#FCEBE5"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#D7B5AE"
+                app:strokeWidth="1dp" />
+
+        </LinearLayout>
+
+        <!-- 3. Bagian Bawah (Latar Maroon #802C3E) untuk Langkah Memasak -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#802C3E"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:paddingBottom="24dp">
+
+            <!-- Header Langkah Memasak & Ikon Jam -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Langkah Memasak →"
+                    android:textColor="#FFF9F8"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <!-- Ikon Jam / Timer -->
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_menu_recent_history"
+                    app:tint="#FFF9F8"
+                    android:contentDescription="Timer" />
+            </LinearLayout>
+
+            <!-- Langkah 1 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+                <TextView android:layout_width="28dp" android:layout_height="28dp" android:background="@drawable/bg_circle_peach" android:gravity="center" android:text="1" android:textColor="#802C3E" android:textStyle="bold" android:textSize="13sp" />
+                <View android:layout_width="0dp" android:layout_height="45dp" android:layout_weight="1" android:layout_marginStart="12dp" android:background="@drawable/bg_ffd2be_input" />
+            </LinearLayout>
+
+            <!-- Langkah 2 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+                <TextView android:layout_width="28dp" android:layout_height="28dp" android:background="@drawable/bg_circle_peach" android:gravity="center" android:text="2" android:textColor="#802C3E" android:textStyle="bold" android:textSize="13sp" />
+                <View android:layout_width="0dp" android:layout_height="45dp" android:layout_weight="1" android:layout_marginStart="12dp" android:background="@drawable/bg_ffd2be_input" />
+            </LinearLayout>
+
+            <!-- Langkah 3 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+                <TextView android:layout_width="28dp" android:layout_height="28dp" android:background="@drawable/bg_circle_peach" android:gravity="center" android:text="3" android:textColor="#802C3E" android:textStyle="bold" android:textSize="13sp" />
+                <View android:layout_width="0dp" android:layout_height="45dp" android:layout_weight="1" android:layout_marginStart="12dp" android:background="@drawable/bg_ffd2be_input" />
+            </LinearLayout>
+
+            <!-- Langkah 4 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+                <TextView android:layout_width="28dp" android:layout_height="28dp" android:background="@drawable/bg_circle_peach" android:gravity="center" android:text="4" android:textColor="#802C3E" android:textStyle="bold" android:textSize="13sp" />
+                <View android:layout_width="0dp" android:layout_height="45dp" android:layout_weight="1" android:layout_marginStart="12dp" android:background="@drawable/bg_ffd2be_input" />
+            </LinearLayout>
+
+            <!-- Langkah 5 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <TextView android:layout_width="28dp" android:layout_height="28dp" android:background="@drawable/bg_circle_peach" android:gravity="center" android:text="5" android:textColor="#802C3E" android:textStyle="bold" android:textSize="13sp" />
+                <View android:layout_width="0dp" android:layout_height="45dp" android:layout_weight="1" android:layout_marginStart="12dp" android:background="@drawable/bg_ffd2be_input" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- 4. Bottom Navigation Bar di Bagian Bawah Persis Seperti Figma -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="65dp"
+            android:background="#FFF9F8"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
+
+            <!-- Beranda (Aktif) -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <LinearLayout
+                    android:layout_width="60dp"
+                    android:layout_height="28dp"
+                    android:background="@drawable/bg_circle_peach"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/house"
+                        app:tint="#802C3E"
+                        android:contentDescription="Beranda" />
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Beranda"
+                    android:textColor="#802C3E"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Unggah -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@android:drawable/ic_menu_upload"
+                    app:tint="#8D6E63"
+                    android:contentDescription="Unggah" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Unggah"
+                    android:textColor="#8D6E63"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <!-- Jelajah -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@android:drawable/ic_menu_compass"
+                    app:tint="#8D6E63"
+                    android:contentDescription="Jelajah" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Jelajah"
+                    android:textColor="#8D6E63"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <!-- Profil -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_person_outline"
+                    app:tint="#8D6E63"
+                    android:contentDescription="Profil" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Profil"
+                    android:textColor="#8D6E63"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
