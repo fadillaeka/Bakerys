@@ -1,3 +1,4 @@
+package com.example.bakerys
 data class Recipe(
     val id: Int,
     val title: String,
