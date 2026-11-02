@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 data class ResepModel(
     val judul: String,
     val deskripsi: String,
+    val gambar: Int,
     var isFavorite: Boolean = false
 )
 
@@ -35,18 +36,19 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = listResep[position]
 
-        // Tampilkan Teks
         holder.tvJudulKue?.text = item.judul
         holder.tvWaktuLevel?.text = item.deskripsi
 
-        // Set Warna Awal Tombol Love
+        // Pasang gambar kue secara dinamik
+        holder.imgKue?.setImageResource(item.gambar)
+
+        // Logik butang favorit
         if (item.isFavorite) {
-            holder.btnFavorite?.setColorFilter(Color.parseColor("#D32F2F")) // Merah
+            holder.btnFavorite?.setColorFilter(Color.parseColor("#D32F2F"))
         } else {
-            holder.btnFavorite?.setColorFilter(Color.parseColor("#8C7A6B")) // Abu/Cokelat
+            holder.btnFavorite?.setColorFilter(Color.parseColor("#8C7A6B"))
         }
 
-        // Klik Tombol Love -> Ubah Warna
         holder.btnFavorite?.setOnClickListener {
             item.isFavorite = !item.isFavorite
             if (item.isFavorite) {
