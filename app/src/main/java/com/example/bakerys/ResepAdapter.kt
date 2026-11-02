@@ -3,19 +3,21 @@ package com.example.bakerys
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 // Data Model untuk Resep
 data class ResepModel(
     val judul: String,
-    val deskripsi: String
+    val deskripsi: String,
     var isFavorite: Boolean = false
 )
 
 class ResepAdapter(private val listResep: List<ResepModel>) : RecyclerView.Adapter<ResepAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val btnFavorite: ImageView = itemView.findViewById(R.id.btnFavorite)
         // Disesuaikan dengan ID di item_resipe_card.xml
         val tvJudul: TextView = view.findViewById(R.id.tvJudulKue)
         val tvDeskripsi: TextView = view.findViewById(R.id.tvWaktuLevel)
