@@ -24,7 +24,7 @@
         android:layout_width="140dp"
         android:layout_height="140dp"
         android:layout_marginTop="40dp"
-        android:src="@drawable/logo_bakerys"
+        android:src="@mipmap/ic_launcher_foreground"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

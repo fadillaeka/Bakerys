@@ -45,7 +45,7 @@
                 android:layout_height="36dp"
                 android:background="@drawable/bg_circle_peach"
                 android:padding="8dp"
-                android:src="@drawable/bell"
+                android:src="@drawable/ic_bell"
                 app:tint="#802C3E"
                 android:contentDescription="Notifikasi" />
         </LinearLayout>
