@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
@@ -18,8 +19,7 @@ class BerandaFragment : Fragment() {
 
         val rvTren = view.findViewById<RecyclerView>(R.id.rvKueTren)
         if (rvTren != null) {
-            rvTren.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-
+            rvTren.layoutManager = GridLayoutManager(requireContext(), 2)
             // Data tiruan untuk kue yang sedang tren
             val dataTren = listOf(
                 ResepModel("Classic Choco Brownies", "Cokelat lumer dengan tekstur lembut di dalam."),

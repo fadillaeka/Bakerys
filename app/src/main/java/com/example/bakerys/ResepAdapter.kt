@@ -10,14 +10,15 @@ import androidx.recyclerview.widget.RecyclerView
 data class ResepModel(
     val judul: String,
     val deskripsi: String
+    var isFavorite: Boolean = false
 )
 
 class ResepAdapter(private val listResep: List<ResepModel>) : RecyclerView.Adapter<ResepAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         // Disesuaikan dengan ID di item_resipe_card.xml
-        val tvJudul: TextView = view.findViewById(R.id.tvCardTitle)
-        val tvDeskripsi: TextView = view.findViewById(R.id.tvCardDesc)
+        val tvJudul: TextView = view.findViewById(R.id.tvJudulKue)
+        val tvDeskripsi: TextView = view.findViewById(R.id.tvWaktuLevel)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
