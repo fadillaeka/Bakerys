@@ -43,7 +43,7 @@ class JelajahFragment : Fragment() {
                 id = 2,
                 title = "Caramel Apple Magic Fridge Cake",
                 description = "Dibuat dengan menyusun biskuit atau biskuit graham secara berlapis dengan adonan krim, lalu didinginkan di kulkas hingga tekstur biskuitnya melunak dan menyatu seperti kue spons.",
-                imageResId = R.drawable.caramel_apple_magic_fridge_cake
+                imageResId = R.drawable.caramel
             )
         )
 
