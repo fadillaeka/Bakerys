@@ -11,13 +11,6 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
 // 1. Data Model
-data class ResepModel(
-    val judul: String,
-    val deskripsi: String,
-    val gambar: Int,
-    var isFavorite: Boolean = false,
-    var isDisukai: Boolean = false
-)
 
 // 2. Adapter
 class ResepAdapter(private val listResep: List<ResepModel>) :
@@ -43,8 +36,7 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
         holder.tvWaktuLevel?.text = item.deskripsi
 
         // Pasang gambar kue secara dinamik
-        holder.imgKue?.setImageResource(item.gambar)
-
+        holder.imgKue?.setImageResource(item.gambar ?: R.drawable.dubai)
         // Logika tombol favorit (warna ikon)
         if (item.isFavorite) {
             holder.btnFavorite?.setColorFilter(Color.parseColor("#FF3B30"))
