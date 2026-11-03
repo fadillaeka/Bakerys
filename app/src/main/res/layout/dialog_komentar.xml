@@ -58,10 +58,23 @@
             android:layout_marginStart="12dp"
             android:background="@drawable/bg_ffd2be_input"
             android:hint="Tambahkan Komentar"
+            android:imeOptions="actionSend"
+            android:inputType="text"
             android:paddingHorizontal="16dp"
             android:textColor="#3E2723"
             android:textColorHint="#8D6E63"
             android:textSize="13sp" />
+
+        <!-- Tombol Kirim Komentar -->
+        <ImageView
+            android:id="@+id/btnSendComment"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="Kirim Komentar"
+            android:padding="4dp"
+            android:src="@android:drawable/ic_menu_send"
+            app:tint="#B8383B" />
     </LinearLayout>
 
 </LinearLayout>

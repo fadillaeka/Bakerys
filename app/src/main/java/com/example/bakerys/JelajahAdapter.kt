@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.example.bakerys.R
 
@@ -38,20 +39,34 @@ class JelajahAdapter(
         holder.tvTitle.text = recipe.title
         holder.tvDesc.text = recipe.description
 
+        // Update tampilan status awal Like
         updateLikeUI(holder.btnLike, recipe.isLiked)
 
+        // Event Klik Item Utama (Kartu)
         holder.itemView.setOnClickListener {
             onItemClick(recipe)
         }
 
+        // Event Klik Tombol LIKE
         holder.btnLike.setOnClickListener {
             recipe.isLiked = !recipe.isLiked
             updateLikeUI(holder.btnLike, recipe.isLiked)
+        }
+
+        // Event Klik Tombol KOMEN (Memanggil KomentarBottomSheet)
+        holder.btnComment.setOnClickListener {
+            val activity = holder.itemView.context as? FragmentActivity
+            activity?.let {
+                // Kirimkan recipe.comments milik resep di posisi ini
+                val commentSheet = KomentarBottomSheet(recipe.comments)
+                commentSheet.show(it.supportFragmentManager, "KomentarBottomSheet")
+            }
         }
     }
 
     override fun getItemCount(): Int = recipeList.size
 
+    // Fungsi untuk mengubah ikon & warna saat di-like / batal like
     private fun updateLikeUI(imageView: ImageView, isLiked: Boolean) {
         if (isLiked) {
             imageView.setImageResource(R.drawable.ic_heart_filled)
