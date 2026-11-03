@@ -28,8 +28,7 @@ class DisukaiAdapter(private val listDisukai: MutableList<ResepModel>) :
         val item = listDisukai[position]
         holder.tvJudul.text = item.judul
         holder.tvDeskripsi.text = item.deskripsi
-        holder.ivGambar.setImageResource(item.gambar)
-
+        holder.ivGambar.setImageResource(item.gambar ?: R.drawable.dubai)
         // Aksi ketika ikon hati diklik (Unlike / Hapus dari daftar disukai)
         holder.ivHeart.setOnClickListener {
             val currentPosition = holder.adapterPosition
