@@ -8,9 +8,16 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 class KomentarBottomSheet(
     private val commentsList: MutableList<CommentItem>
@@ -60,6 +67,25 @@ class KomentarBottomSheet(
 
                 etComment?.text?.clear()
                 rvComments?.smoothScrollToPosition(adapter.itemCount - 1)
+            }
+        }
+
+        fun kirimKomentar(resepId: Long, teksKomentar: String) {
+            lifecycleScope.launch {
+                try {
+                    val currentUserId = SupabaseClient.instance.auth.currentUserOrNull()?.id ?: return@launch
+
+                    val dataKomentar = buildJsonObject {
+                        put("user_id", currentUserId)
+                        put("resep_id", resepId)
+                        put("isi_komentar", teksKomentar)
+                    }
+
+                    SupabaseClient.instance.from("komentar").insert(dataKomentar)
+                    Toast.makeText(requireContext(), "Komentar terkirim!", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(requireContext(), "Gagal kirim komentar: ${e.message}", Toast.LENGTH_LONG).show()
+                }
             }
         }
 

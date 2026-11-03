@@ -1,84 +1,118 @@
 package com.example.bakerys
 
-import android.content.Context
-import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.bakerys.databinding.ActivityEditProfileBinding
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 
 class EditProfileActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityEditProfileBinding
-    private var imageUri: Uri? = null
-
-    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) {
-            imageUri = uri
-            binding.ivFotoProfil.setImageURI(uri)
-            Toast.makeText(this, "Foto berhasil dipilih!", Toast.LENGTH_SHORT).show()
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = ActivityEditProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Muat foto tersimpan secara aman tanpa membuat aplikasi crash
-        loadSavedImage()
+        // 1. Tampilkan data profil saat ini dari Supabase
+        loadProfileData()
 
-        binding.btnUbahFoto.setOnClickListener {
-            pickImageLauncher.launch("image/*")
-        }
-
-        binding.cardUbahFoto.setOnClickListener {
-            pickImageLauncher.launch("image/*")
-        }
-
+        // 2. Tombol Simpan Perubahan
         binding.btnSimpan.setOnClickListener {
-            if (imageUri != null) {
-                val sharedPref = getSharedPreferences("BakerysPrefs", Context.MODE_PRIVATE)
-                sharedPref.edit().putString("profile_image_uri", imageUri.toString()).apply()
-            }
-            Toast.makeText(this, "Perubahan profil disimpan", Toast.LENGTH_SHORT).show()
-            finish()
+            simpanPerubahanProfil()
         }
 
+        // 3. Tombol Kembali
         binding.btnKembali.setOnClickListener {
             finish()
         }
     }
 
-    private fun loadSavedImage() {
-        val sharedPref = getSharedPreferences("BakerysPrefs", Context.MODE_PRIVATE)
-        val savedUriStr = sharedPref.getString("profile_image_uri", null)
-        if (!savedUriStr.isNullOrEmpty()) {
+    private fun loadProfileData() {
+        lifecycleScope.launch {
             try {
-                val uri = Uri.parse(savedUriStr)
-                imageUri = uri
-                val inputStream = contentResolver.openInputStream(uri)
-                val drawable = Drawable.createFromStream(inputStream, uri.toString())
-                if (drawable != null) {
-                    binding.ivFotoProfil.setImageDrawable(drawable)
+                val currentUser = SupabaseClient.instance.auth.currentUserOrNull()
+                if (currentUser != null) {
+                    val userId = currentUser.id
+
+                    val result = SupabaseClient.instance.from("users")
+                        .select {
+                            filter {
+                                eq("id", userId)
+                            }
+                        }.decodeList<JsonObject>()
+
+                    if (result.isNotEmpty()) {
+                        val userObj = result.first()
+                        // Mengambil dari kolom 'nama_lengkap'
+                        val namaLengkap = userObj["nama_lengkap"]?.jsonPrimitive?.content ?: ""
+                        val username = userObj["username"]?.jsonPrimitive?.content ?: ""
+                        val bio = userObj["bio"]?.jsonPrimitive?.content ?: ""
+
+                        binding.etFullNameEdit.setText(namaLengkap)
+                        binding.etUsernameEdit.setText(username)
+                        binding.etBioEdit.setText(bio)
+                    } else {
+                        binding.etUsernameEdit.setText(
+                            currentUser.email?.substringBefore("@") ?: ""
+                        )
+                    }
+
+                    binding.etEmailEdit.setText(currentUser.email ?: "")
                 }
             } catch (e: Exception) {
-                // Mencegah crash jika izin file galeri dari emulator sudah kadaluarsa
-                e.printStackTrace()
+                Toast.makeText(
+                    this@EditProfileActivity,
+                    "Gagal memuat data: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
-    private fun cropAndZoomToSubject(bitmap: android.graphics.Bitmap): android.graphics.Bitmap {
-        val width = bitmap.width
-        val height = bitmap.height
 
-        val cropSize = (kotlin.math.min(width, height) * 0.45).toInt()
+    private fun simpanPerubahanProfil() {
+        val fullNameBaru = binding.etFullNameEdit.text.toString().trim()
+        val usernameBaru = binding.etUsernameEdit.text.toString().trim()
+        val bioBaru = binding.etBioEdit.text.toString().trim()
 
-        val startX = (width - cropSize) / 2
-        val startY = ((height - cropSize) * 0.85).toInt().coerceIn(0, height - cropSize)
+        if (usernameBaru.isEmpty()) {
+            Toast.makeText(this, "Username tidak boleh kosong!", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-        return android.graphics.Bitmap.createBitmap(bitmap, startX, startY, cropSize, cropSize)
+        lifecycleScope.launch {
+            try {
+                val currentUser = SupabaseClient.instance.auth.currentUserOrNull() ?: return@launch
+                val userId = currentUser.id
+
+                // Gunakan update() agar hanya kolom ini saja yang diubah di database
+                val updatedData = buildJsonObject {
+                    put("nama_lengkap", fullNameBaru)
+                    put("username", usernameBaru)
+                    put("bio", bioBaru)
+                }
+
+                SupabaseClient.instance.from("users").update(updatedData) {
+                    filter {
+                        eq("id", userId)
+                    }
+                }
+
+                Toast.makeText(this@EditProfileActivity, "Profil berhasil diperbarui!", Toast.LENGTH_SHORT).show()
+                finish()
+            } catch (e: Exception) {
+                android.util.Log.e("EDIT_PROFILE_ERROR", "Error: ${e.message}")
+                Toast.makeText(this@EditProfileActivity, "Gagal memperbarui: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 }
