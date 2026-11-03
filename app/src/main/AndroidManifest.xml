@@ -9,8 +9,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Bakerys">
 
-        <!-- 1. JADIKAN WELCOME ACTIVITY SEBAGAI HALAMAN UTAMA (LAUNCHER) -->
-        <!-- Activity yang pertama kali terbuka (WelcomeActivity) wajib exported="true" -->
+        <!-- 1. HALAMAN UTAMA (LAUNCHER) -->
         <activity
             android:name=".WelcomeActivity"
             android:exported="true">
@@ -20,12 +19,7 @@
             </intent-filter>
         </activity>
 
-        <!-- MainActivity tanpa intent-filter di-set exported="false" -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
-
-        <!-- 2. MAIN ACTIVITY DAN ACTIVITY LAINNYA SET EXPORTED = FALSE -->
+        <!-- 2. ACTIVITY LAINNYA (EXPORTED = FALSE) -->
         <activity
             android:name=".MainActivity"
             android:exported="false" />

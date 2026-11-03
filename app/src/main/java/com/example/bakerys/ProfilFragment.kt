@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -40,6 +41,9 @@ class ProfilFragment : Fragment() {
 
         // 1. Load preferensi tersimpan saat fragment dibuka
         loadSavedPreferences()
+
+        // Load Foto Profil yang tersimpan
+        loadProfileImage()
 
         // 2. Listener Tombol Edit Profile
         binding.btnEditProfile.setOnClickListener {
@@ -86,6 +90,42 @@ class ProfilFragment : Fragment() {
         setupPreferensiListeners()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Memuat ulang foto profil setiap kali kembali ke halaman Profil
+        loadProfileImage()
+    }
+
+    private fun loadProfileImage() {
+        val savedUriStr = sharedPreferences.getString("profile_image_uri", null)
+        if (savedUriStr != null) {
+            try {
+                val uri = Uri.parse(savedUriStr)
+                val inputStream = requireContext().contentResolver.openInputStream(uri)
+                val drawable = android.graphics.drawable.Drawable.createFromStream(inputStream, uri.toString())
+                if (drawable != null) {
+                    binding.ivFotoProfil.setImageDrawable(drawable)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    // Fungsi zoom foto
+    private fun cropAndZoomToSubject(bitmap: android.graphics.Bitmap): android.graphics.Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+
+        // Ambil 45% saja dari ukuran foto (semakin kecil angkanya, semakin ter-zoom/besar orangnya)
+        val cropSize = (kotlin.math.min(width, height) * 0.45).toInt()
+
+        // Geser kotak potong tepat ke area orang (bawah tengah)
+        val startX = (width - cropSize) / 2
+        val startY = ((height - cropSize) * 0.85).toInt().coerceIn(0, height - cropSize)
+
+        return android.graphics.Bitmap.createBitmap(bitmap, startX, startY, cropSize, cropSize)
+    }
     private fun setupPreferensiListeners() {
         // --- Satuan Pengukuran ---
         binding.btnMetric.setOnClickListener {
