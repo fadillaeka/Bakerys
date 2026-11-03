@@ -25,31 +25,34 @@ class JelajahFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // ID disesuaikan dengan android:id="@+id/rvJelajah"
         rvJelajah = view.findViewById(R.id.rvJelajah)
 
         setupRecyclerView()
     }
 
-    private fun setupRecyclerView() {
-        val sampleRecipes = listOf(
-            Recipe(
-                id = 1,
-                title = "No-Bake Pumpkin Cheesecake Bars",
-                description = "Resep No-Bake Pumpkin Cheesecake Bars ini terdiri dari lapisan dasar biskuit graham dengan isian cheesecake labu yang lembut dan krim kocok manis.",
-                imageResId = R.drawable.no_bake_pumpkin_cheesecake_bars
-            ),
-            Recipe(
-                id = 2,
-                title = "Caramel Apple Magic Fridge Cake",
-                description = "Dibuat dengan menyusun biskuit atau biskuit graham secara berlapis dengan adonan krim, lalu didinginkan di kulkas hingga tekstur biskuitnya melunak dan menyatu seperti kue spons.",
-                imageResId = R.drawable.caramel
-            )
-        )
-
-        jelajahAdapter = JelajahAdapter(sampleRecipes) { recipe ->
-            Toast.makeText(requireContext(), "Membuka: ${recipe.title}", Toast.LENGTH_SHORT).show()
+    override fun onResume() {
+        super.onResume()
+        // Refresh tampilan agar status ikon heart & bookmark selalu update jika kembali ke tab Jelajah
+        if (::jelajahAdapter.isInitialized) {
+            jelajahAdapter.notifyDataSetChanged()
         }
+    }
+
+    private fun setupRecyclerView() {
+        jelajahAdapter = JelajahAdapter(
+            recipeList = RecipeRepository.recipeList,
+            onItemClick = { recipe ->
+                Toast.makeText(requireContext(), "Membuka: ${recipe.title}", Toast.LENGTH_SHORT).show()
+            },
+            onBookmarkClick = { recipe ->
+                // Update status bookmark di RecipeRepository utama
+                val repoRecipe = RecipeRepository.recipeList.find { it.id == recipe.id }
+                repoRecipe?.isBookmarked = recipe.isBookmarked
+
+                val statusText = if (recipe.isBookmarked) "Tersimpan" else "Dihapus dari simpanan"
+                Toast.makeText(requireContext(), "${recipe.title} $statusText", Toast.LENGTH_SHORT).show()
+            }
+        )
 
         rvJelajah.layoutManager = LinearLayoutManager(requireContext())
         rvJelajah.adapter = jelajahAdapter

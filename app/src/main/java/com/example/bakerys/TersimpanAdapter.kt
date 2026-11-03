@@ -7,39 +7,38 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-data class TersimpanModel(
-    val judul: String,
-    val gambar: Int,
-    var isBookmarked: Boolean = true
-)
-
 class TersimpanAdapter(
-    private val listTersimpan: List<TersimpanModel>,
-    private val onItemClick: (TersimpanModel) -> Unit
-) : RecyclerView.Adapter<TersimpanAdapter.ViewHolder>() {
+    private val bookmarkedList: MutableList<Recipe>,
+    private val onItemClick: (Recipe) -> Unit,
+    private val onRemoveBookmark: (Recipe, Int) -> Unit
+) : RecyclerView.Adapter<TersimpanAdapter.TersimpanViewHolder>() {
 
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val ivTersimpanThumb: ImageView = itemView.findViewById(R.id.ivTersimpanThumb)
-        val tvTersimpanTitle: TextView = itemView.findViewById(R.id.tvTersimpanTitle)
-        val ivBookmark: ImageView = itemView.findViewById(R.id.ivBookmark)
+    inner class TersimpanViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val ivThumb: ImageView = itemView.findViewById(R.id.ivTersimpanThumb)
+        val tvTitle: TextView = itemView.findViewById(R.id.tvTersimpanTitle)
+        val btnRemove: ImageView = itemView.findViewById(R.id.btnRemoveBookmark)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TersimpanViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_tersimpan_card, parent, false)
-        return ViewHolder(view)
+        return TersimpanViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = listTersimpan[position]
+    override fun onBindViewHolder(holder: TersimpanViewHolder, position: Int) {
+        val recipe = bookmarkedList[position]
 
-        holder.tvTersimpanTitle.text = item.judul
-        holder.ivTersimpanThumb.setImageResource(item.gambar)
+        holder.ivThumb.setImageResource(recipe.imageResId)
+        holder.tvTitle.text = recipe.title
 
         holder.itemView.setOnClickListener {
-            onItemClick(item)
+            onItemClick(recipe)
+        }
+
+        holder.btnRemove.setOnClickListener {
+            onRemoveBookmark(recipe, holder.bindingAdapterPosition)
         }
     }
 
-    override fun getItemCount(): Int = listTersimpan.size
+    override fun getItemCount(): Int = bookmarkedList.size
 }

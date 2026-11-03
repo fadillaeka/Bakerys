@@ -9,11 +9,11 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
-import com.example.bakerys.R
 
 class JelajahAdapter(
     private val recipeList: List<Recipe>,
-    private val onItemClick: (Recipe) -> Unit
+    private val onItemClick: (Recipe) -> Unit,
+    private val onBookmarkClick: (Recipe) -> Unit
 ) : RecyclerView.Adapter<JelajahAdapter.JelajahViewHolder>() {
 
     inner class JelajahViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -39,25 +39,27 @@ class JelajahAdapter(
         holder.tvTitle.text = recipe.title
         holder.tvDesc.text = recipe.description
 
-        // Update tampilan status awal Like
         updateLikeUI(holder.btnLike, recipe.isLiked)
+        updateBookmarkUI(holder.btnBookmark, recipe.isBookmarked)
 
-        // Event Klik Item Utama (Kartu)
         holder.itemView.setOnClickListener {
             onItemClick(recipe)
         }
 
-        // Event Klik Tombol LIKE
         holder.btnLike.setOnClickListener {
             recipe.isLiked = !recipe.isLiked
             updateLikeUI(holder.btnLike, recipe.isLiked)
         }
 
-        // Event Klik Tombol KOMEN (Memanggil KomentarBottomSheet)
+        holder.btnBookmark.setOnClickListener {
+            recipe.isBookmarked = !recipe.isBookmarked
+            updateBookmarkUI(holder.btnBookmark, recipe.isBookmarked)
+            onBookmarkClick(recipe) // Memicu update ke RecipeRepository
+        }
+
         holder.btnComment.setOnClickListener {
             val activity = holder.itemView.context as? FragmentActivity
             activity?.let {
-                // Kirimkan recipe.comments milik resep di posisi ini
                 val commentSheet = KomentarBottomSheet(recipe.comments)
                 commentSheet.show(it.supportFragmentManager, "KomentarBottomSheet")
             }
@@ -66,13 +68,22 @@ class JelajahAdapter(
 
     override fun getItemCount(): Int = recipeList.size
 
-    // Fungsi untuk mengubah ikon & warna saat di-like / batal like
     private fun updateLikeUI(imageView: ImageView, isLiked: Boolean) {
         if (isLiked) {
             imageView.setImageResource(R.drawable.ic_heart_filled)
             imageView.imageTintList = null
         } else {
             imageView.setImageResource(R.drawable.ic_heart_outline)
+            imageView.imageTintList = ColorStateList.valueOf(Color.parseColor("#3E2723"))
+        }
+    }
+
+    private fun updateBookmarkUI(imageView: ImageView, isBookmarked: Boolean) {
+        if (isBookmarked) {
+            imageView.setImageResource(R.drawable.ic_bookmark_card)
+            imageView.imageTintList = ColorStateList.valueOf(Color.parseColor("#791E2A"))
+        } else {
+            imageView.setImageResource(R.drawable.ic_bookmark_card)
             imageView.imageTintList = ColorStateList.valueOf(Color.parseColor("#3E2723"))
         }
     }

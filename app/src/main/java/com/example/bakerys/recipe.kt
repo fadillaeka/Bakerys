@@ -6,5 +6,6 @@ data class Recipe(
     val description: String,
     val imageResId: Int,
     var isLiked: Boolean = false,
-    val comments: MutableList<CommentItem> = mutableListOf() // Daftar komentar spesifik tiap resep
+    var isBookmarked: Boolean = false, // Status tersimpan
+    val comments: MutableList<CommentItem> = mutableListOf()
 )

@@ -1,51 +1,71 @@
 package com.example.bakerys
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.bakerys.databinding.FragmentTersimpanBinding
+import androidx.recyclerview.widget.RecyclerView
 
 class TersimpanFragment : Fragment() {
 
-    private var _binding: FragmentTersimpanBinding? = null
-    private val binding get() = _binding!!
+    private lateinit var rvTersimpan: RecyclerView
+    private lateinit var adapter: TersimpanAdapter
+    private var bookmarkedList: MutableList<Recipe> = mutableListOf()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentTersimpanBinding.inflate(inflater, container, false)
-        return binding.root
+    ): View? {
+        val view = inflater.inflate(R.layout.activity_tersimpan, container, false)
+
+        val btnBack = view.findViewById<ImageView>(R.id.btnBack)
+        btnBack?.setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
+        rvTersimpan = view.findViewById(R.id.rvTersimpan)
+        rvTersimpan.layoutManager = LinearLayoutManager(context)
+
+        return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        val listTersimpan = listOf(
-            TersimpanModel("Cookies", R.drawable.cookies),
-            TersimpanModel("Lava Chocolate Cake", R.drawable.lava_cakes),
-            TersimpanModel("Rainbow", R.drawable.rainbow)
-        )
-
-        binding.rvTersimpan.layoutManager = LinearLayoutManager(requireContext())
-
-        // Membuka DetailResepActivity saat kartu diklik
-        binding.rvTersimpan.adapter = TersimpanAdapter(listTersimpan) { item ->
-            val intent = Intent(requireContext(), DetailResepActivity::class.java).apply {
-                putExtra("EXTRA_JUDUL", item.judul)
-                putExtra("EXTRA_GAMBAR", item.gambar)
-            }
-            startActivity(intent)
-        }
+        refreshSavedData()
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    override fun onResume() {
+        super.onResume()
+        // Panggil refresh data setiap kali layar TersimpanFragment aktif/tampil kembali
+        refreshSavedData()
+    }
+
+    private fun refreshSavedData() {
+        // Ambil resep terbaru langsung dari RecipeRepository yang status isBookmarked = true
+        bookmarkedList = RecipeRepository.recipeList.filter { it.isBookmarked }.toMutableList()
+
+        adapter = TersimpanAdapter(
+            bookmarkedList = bookmarkedList,
+            onItemClick = { recipe ->
+                // Aksi saat item resep diklik
+            },
+            onRemoveBookmark = { recipe, position ->
+                if (position in 0 until bookmarkedList.size) {
+                    // Update status di object asli repository
+                    val repoRecipe = RecipeRepository.recipeList.find { it.id == recipe.id }
+                    repoRecipe?.isBookmarked = false
+
+                    bookmarkedList.removeAt(position)
+                    adapter.notifyItemRemoved(position)
+                    adapter.notifyItemRangeChanged(position, bookmarkedList.size)
+                }
+            }
+        )
+
+        rvTersimpan.adapter = adapter
     }
 }

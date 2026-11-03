@@ -41,27 +41,12 @@ class ProfilFragment : Fragment() {
         // 1. Load preferensi tersimpan saat fragment dibuka
         loadSavedPreferences()
 
-        // 2. Listener tombol navigasi
+        // 2. Listener Tombol Edit Profile
         binding.btnEditProfile.setOnClickListener {
             startActivity(Intent(requireContext(), EditProfileActivity::class.java))
-
-            binding.btnLogout.setOnClickListener {
-                Toast.makeText(requireContext(), "Berhasil Log Out", Toast.LENGTH_SHORT).show()
-
-                // 1. Ambil reference Activity utama (MainActivity)
-                val currentActivity = activity ?: return@setOnClickListener
-
-                // 2. Buat Intent ke WelcomeActivity
-                val intent = Intent(currentActivity, WelcomeActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                }
-
-                // 3. Jalankan Intent dari Activity penampung dan tutup Activity penampung
-                currentActivity.startActivity(intent)
-                currentActivity.finish()
-            }
         }
 
+        // 3. Listener Navigasi ke TersimpanFragment (Resep Disimpan)
         binding.btnResepDisimpan.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, TersimpanFragment())
@@ -69,6 +54,7 @@ class ProfilFragment : Fragment() {
                 .commit()
         }
 
+        // 4. Listener Navigasi ke DraftFragment
         binding.btnDraftResep.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, DraftFragment())
@@ -76,16 +62,19 @@ class ProfilFragment : Fragment() {
                 .commit()
         }
 
+        // 5. Listener Log Out
         binding.btnLogout.setOnClickListener {
             Toast.makeText(requireContext(), "Berhasil Log Out", Toast.LENGTH_SHORT).show()
 
-            val intent = Intent(requireActivity(), WelcomeActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            requireActivity().finish()
+            val currentActivity = activity ?: return@setOnClickListener
+            val intent = Intent(currentActivity, WelcomeActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            }
+            currentActivity.startActivity(intent)
+            currentActivity.finish()
         }
 
-        // 3. Listener Aksi Klik Preferensi Pemanggangan
+        // 6. Listener Aksi Klik Preferensi Pemanggangan
         setupPreferensiListeners()
     }
 

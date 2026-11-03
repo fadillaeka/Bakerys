@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Foto Resep di Sebelah Kiri dengan Sudut Melengkung -->
+        <!-- Foto Resep di Sebelah Kiri -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardImage"
             android:layout_width="120dp"
@@ -34,7 +34,7 @@
                 android:contentDescription="Foto Resep" />
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Judul Resep di Samping Kanan Foto -->
+        <!-- Judul Resep -->
         <TextView
             android:id="@+id/tvTersimpanTitle"
             android:layout_width="0dp"
@@ -46,21 +46,19 @@
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintStart_toEndOf="@id/cardImage"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/cardImage"
-            app:layout_constraintBottom_toTopOf="@id/ivBookmark"
-            app:layout_constraintVertical_bias="0.1" />
+            app:layout_constraintEnd_toStartOf="@id/btnRemoveBookmark"
+            app:layout_constraintTop_toTopOf="@id/cardImage" />
 
-        <!-- Ikon Bookmark di Pojok Kanan Bawah Kartu -->
+        <!-- Ikon Bookmark di Pojok Kanan Bawah -->
         <ImageView
-            android:id="@+id/ivBookmark"
+            android:id="@+id/btnRemoveBookmark"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_bookmark_card"
             app:tint="#802C3E"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:contentDescription="Tersimpan" />
+            android:contentDescription="Hapus Simpan" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>
