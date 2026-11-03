@@ -38,7 +38,12 @@ class BerandaFragment : Fragment() {
         ResepModel(judul = "Fudgy Brownies", deskripsi = "Easy • 1h 20m", gambar = R.drawable.classic_choco_brownies),
         ResepModel(judul = "Cheesecake Bars", deskripsi = "Medium • 3h 30m", gambar = R.drawable.no_bake_pumpkin_cheesecake_bars),
 
-        ResepModel(judul = "Classic Cookies", deskripsi = "Easy • 35m", gambar = R.drawable.cookies)
+        ResepModel(judul = "Classic Cookies", deskripsi = "Easy • 35m", gambar = R.drawable.cookies),
+        ResepModel(judul = "Kue Kering Nastar Klasik", deskripsi = "Easy • 50m", gambar = R.drawable.nastar),
+        ResepModel(judul = "Butter Cookies", deskripsi = "Easy • 60m", gambar = R.drawable.butter),
+        ResepModel(judul = "Kastengel Keju Spesial", deskripsi = "Easy • 45m", gambar = R.drawable.kastangel_keju),
+        ResepModel(judul = "Classic Lidah Kucing", deskripsi = "Easy • 40m", gambar = R.drawable.kucing),
+        ResepModel(judul = "Kue Kuping Gajah Renyah", deskripsi = "Easy • 45m", gambar = R.drawable.gajah), // Ganti R.drawable.kuping_gajah jika gambarnya sudah ada
     )
 
     override fun onCreateView(
@@ -81,8 +86,8 @@ class BerandaFragment : Fragment() {
             }
             override fun afterTextChanged(s: Editable?) {}
         })
-            // Fitur Klik Ikon Filter (Mengurutkan resep)
-            val btnFilterIcon = view.findViewById<ImageView>(R.id.btnFilterIcon)
+        // Fitur Klik Ikon Filter (Mengurutkan resep)
+        val btnFilterIcon = view.findViewById<ImageView>(R.id.btnFilterIcon)
         btnFilterIcon?.setOnClickListener { viewAnchor ->
             val popup = android.widget.PopupMenu(requireContext(), viewAnchor)
             popup.menu.add(0, 1, 0, "Urutkan: Terbaru ke Terlama")
@@ -146,14 +151,21 @@ class BerandaFragment : Fragment() {
             updateDataResep(dataKue)
         }
 
-        // Tombol KUE KERING (Card Dubai Disembunyikan)
+        // Tombol KUE KERING
+        // Tombol KUE KERING
         btnKueKering?.setOnClickListener {
             aturWarnaTombolAktif(btnKueKering, daftarTombol)
             etSearch.setText("")
             cardBakeOfTheDay.visibility = View.GONE
             val dataKueKering = semuaDataResep.filter {
                 it.judul.contains("Cookie", ignoreCase = true) ||
-                        it.judul.contains("Cookies", ignoreCase = true)
+                        it.judul.contains("Cookies", ignoreCase = true) ||
+                        it.judul.contains("Nastar", ignoreCase = true) ||
+                        it.judul.contains("Kering", ignoreCase = true) ||
+                        it.judul.contains("Butter", ignoreCase = true) ||
+                        it.judul.contains("Kastengel", ignoreCase = true) ||
+                        it.judul.contains("Lidah", ignoreCase = true) ||
+                        it.judul.contains("Kuping", ignoreCase = true)
             }
             updateDataResep(dataKueKering)
         }
