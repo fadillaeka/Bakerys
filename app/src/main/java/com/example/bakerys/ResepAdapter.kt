@@ -10,16 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
-// 1. Data Model
-data class ResepModel(
-    val judul: String,
-    val deskripsi: String,
-    val gambar: Int,
-    var isFavorite: Boolean = false,
-    var isDisukai: Boolean = false
-)
-
-// 2. Adapter
+// 1. Adapter
 class ResepAdapter(private val listResep: List<ResepModel>) :
     RecyclerView.Adapter<ResepAdapter.ViewHolder>() {
 

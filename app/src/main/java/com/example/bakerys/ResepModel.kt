@@ -1,4 +1,9 @@
 package com.example.bakerys
 
-class ResepModel {
-}
+data class ResepModel(
+    val judul: String,
+    val deskripsi: String,
+    val gambar: Int,
+    var isFavorite: Boolean = false,
+    var isDisukai: Boolean = false
+)
