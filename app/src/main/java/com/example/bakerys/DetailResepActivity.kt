@@ -48,7 +48,7 @@ class DetailResepActivity : AppCompatActivity() {
     }
 
     // =========================================================================
-    // 1. DUBAI CHEWY COOKIES (VERSI KUNAFA RUMAHAN)
+    // 1. DUBAI CHEWY COOKIES
     // =========================================================================
     private fun muatResepDubaiCookies() {
         binding.tvLangkah1.text = "Lelehkan cokelat putih couverture dengan metode tim. Campurkan dengan kunafa panggang, pasta pistachio, dan pistachio cincang hingga merata."
