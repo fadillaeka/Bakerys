@@ -1,5 +1,6 @@
 package com.example.bakerys
 
+import android.content.Intent
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
@@ -56,6 +57,16 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
             } else {
                 holder.btnFavorite?.setColorFilter(Color.parseColor("#8C7A6B"))
             }
+        }
+
+        // --- AKSI KLIK KARTU UNTUK MEMBUKA DETAIL RESEP ---
+        holder.itemView.setOnClickListener {
+            val context = holder.itemView.context
+            val intent = Intent(context, DetailResepActivity::class.java).apply {
+                putExtra("EXTRA_JUDUL", item.judul)
+                putExtra("EXTRA_GAMBAR", item.gambar)
+            }
+            context.startActivity(intent)
         }
     }
 
