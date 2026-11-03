@@ -16,7 +16,7 @@ class BerandaFragment : Fragment() {
     private lateinit var rvTren: RecyclerView
     private lateinit var adapterResep: ResepAdapter
 
-    // Daftar lengkap semua resep (6 item Sourdough + item lainnya)
+    // Daftar lengkap semua resep
     private val semuaDataResep = listOf(
         ResepModel(
             judul = "San Francisco Sourdough",
@@ -57,6 +57,16 @@ class BerandaFragment : Fragment() {
             judul = "Caramel Apple Magic Fridge Cake",
             deskripsi = "Medium • 1h 10m",
             gambar = R.drawable.caramel
+        ),
+        ResepModel(
+            judul = "Rainbow Cake",
+            deskripsi = "Easy • 55m",
+            gambar = R.drawable.rainbow
+        ),
+        ResepModel(
+            judul = "Dubai Chewy Cookies",
+            deskripsi = "Intermediate • 1h 15m",
+            gambar = R.drawable.cookies
         )
     )
 
@@ -79,11 +89,15 @@ class BerandaFragment : Fragment() {
         val btnKue = view.findViewById<MaterialButton>(R.id.btnKategoriKue)
         val btnKueKering = view.findViewById<MaterialButton>(R.id.btnKategoriKueKering)
 
+        // Inisialisasi Card Bake of the Day
+        val cardBakeOfTheDay = view.findViewById<View>(R.id.cardBakeOfTheDay)
+
         val daftarTombol = listOfNotNull(btnSemua, btnSourdough, btnKue, btnKueKering)
 
         btnSemua?.setOnClickListener {
             aturWarnaTombolAktif(btnSemua, daftarTombol)
             updateDataResep(semuaDataResep)
+            cardBakeOfTheDay?.visibility = View.VISIBLE
         }
 
         btnSourdough?.setOnClickListener {
@@ -94,18 +108,28 @@ class BerandaFragment : Fragment() {
                         it.judul.contains("loaf", ignoreCase = true)
             }
             updateDataResep(dataSourdough)
+            cardBakeOfTheDay?.visibility = View.GONE
         }
 
         btnKue?.setOnClickListener {
             aturWarnaTombolAktif(btnKue, daftarTombol)
-            val dataKue = semuaDataResep.filter { it.judul.contains("Cake", ignoreCase = true) }
+            val dataKue = semuaDataResep.filter {
+                it.judul.contains("Cake", ignoreCase = true) ||
+                        it.judul.contains("Kue", ignoreCase = true) ||
+                        it.judul.contains("Bars", ignoreCase = true)
+            }
             updateDataResep(dataKue)
+            cardBakeOfTheDay?.visibility = View.GONE
         }
 
         btnKueKering?.setOnClickListener {
             aturWarnaTombolAktif(btnKueKering, daftarTombol)
-            val dataKueKering = semuaDataResep.filter { it.judul.contains("Cookies", ignoreCase = true) }
+            val dataKueKering = semuaDataResep.filter {
+                it.judul.contains("Cookies", ignoreCase = true) ||
+                        it.judul.contains("Kering", ignoreCase = true)
+            }
             updateDataResep(dataKueKering)
+            cardBakeOfTheDay?.visibility = View.GONE
         }
 
         return view
