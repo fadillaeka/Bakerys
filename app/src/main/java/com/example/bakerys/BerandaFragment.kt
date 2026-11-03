@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -74,6 +75,29 @@ class BerandaFragment : Fragment() {
             }
             override fun afterTextChanged(s: Editable?) {}
         })
+            // Fitur Klik Ikon Filter (Mengurutkan resep)
+            val btnFilterIcon = view.findViewById<ImageView>(R.id.btnFilterIcon)
+        btnFilterIcon?.setOnClickListener { viewAnchor ->
+            val popup = android.widget.PopupMenu(requireContext(), viewAnchor)
+            popup.menu.add(0, 1, 0, "Urutkan: Terbaru ke Terlama")
+            popup.menu.add(0, 2, 1, "Urutkan: Terlama ke Terbaru")
+            popup.menu.add(0, 3, 2, "Reset ke Default")
+
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    1 -> {
+                        updateDataResep(semuaDataResep.reversed())
+                        true
+                    }
+                    2, 3 -> {
+                        updateDataResep(semuaDataResep)
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popup.show()
+        }
 
         val btnSemua = view.findViewById<MaterialButton>(R.id.btnKategoriSemua)
         val btnSourdough = view.findViewById<MaterialButton>(R.id.btnKategoriSourdough)

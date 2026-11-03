@@ -109,6 +109,7 @@
                 android:imeOptions="actionSearch" />
 
             <ImageView
+                android:id="@+id/btnFilterIcon"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:src="@drawable/search_filters"
@@ -186,7 +187,7 @@
             </LinearLayout>
         </HorizontalScrollView>
 
-        <!-- Kartu Unggulan (Bake of the Day / Dubai Chewy Cookies) -->
+        <!-- Kartu Bake of the Day  -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardBakeOfTheDay"
             android:layout_width="match_parent"
