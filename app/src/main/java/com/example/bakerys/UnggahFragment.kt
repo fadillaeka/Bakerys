@@ -1,22 +1,40 @@
 package com.example.bakerys
 
+import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.postgrest.from
-import kotlinx.coroutines.launch
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
+import com.google.android.material.card.MaterialCardView
 
 class UnggahFragment : Fragment() {
+
+    private var imageUri: Uri? = null
+    private var draftIdEdit: Int? = null
+
+    private lateinit var ivPreviewFoto: ImageView
+    private lateinit var btnUploadFoto: MaterialCardView
+    private lateinit var etCaption: EditText
+    private lateinit var btnPublikasikan: Button
+    private lateinit var btnSimpanDraft: Button
+
+    private val pickImageLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            imageUri = uri
+            ivPreviewFoto.setImageURI(uri)
+            ivPreviewFoto.scaleType = ImageView.ScaleType.CENTER_CROP
+            ivPreviewFoto.imageTintList = null
+            Toast.makeText(requireContext(), "Foto berhasil dipilih!", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -28,66 +46,110 @@ class UnggahFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1. Inisialisasi ID sesuai XML
-        val etJudul = view.findViewById<EditText>(R.id.etJudul)
-        val etDeskripsi = view.findViewById<EditText>(R.id.etDeskripsi)
-        val btnUnggah = view.findViewById<Button>(R.id.btnPublikasikan)
-            ?: view.findViewById<View>(R.id.btnSimpan)
+        btnUploadFoto = view.findViewById(R.id.btnUploadFoto)
+        ivPreviewFoto = view.findViewById(R.id.ivPreviewFoto)
+        etCaption = view.findViewById(R.id.etCaption)
+        btnPublikasikan = view.findViewById(R.id.btnPublikasikan)
+        btnSimpanDraft = view.findViewById(R.id.btnSimpanDraft)
 
-        // 2. Event Klik Tombol Publikasikan
-        btnUnggah?.setOnClickListener {
-            val judulText = etJudul?.text?.toString()?.trim() ?: ""
-            val deskripsiText = etDeskripsi?.text?.toString()?.trim() ?: ""
+        btnUploadFoto.setOnClickListener {
+            pickImageLauncher.launch("image/*")
+        }
 
-            if (judulText.isEmpty()) {
-                Toast.makeText(requireContext(), "Judul resep tidak boleh kosong!", Toast.LENGTH_SHORT).show()
+        // --- BACA DATA DRAFT YANG DIKIRIM ---
+        arguments?.let { bundle ->
+            if (bundle.containsKey("DRAFT_ID")) {
+                draftIdEdit = bundle.getInt("DRAFT_ID")
+                val draftTitle = bundle.getString("DRAFT_TITLE", "")
+                val draftUriString = bundle.getString("DRAFT_IMAGE_URI")
+                val draftImageRes = bundle.getInt("DRAFT_IMAGE_RES", 0)
+
+                // Set Caption
+                etCaption.setText(draftTitle)
+
+                // Set Foto dari Draft
+                if (!draftUriString.isNullOrEmpty()) {
+                    imageUri = Uri.parse(draftUriString)
+                    ivPreviewFoto.setImageURI(imageUri)
+                    ivPreviewFoto.scaleType = ImageView.ScaleType.CENTER_CROP
+                    ivPreviewFoto.imageTintList = null
+                } else if (draftImageRes != 0) {
+                    ivPreviewFoto.setImageResource(draftImageRes)
+                    ivPreviewFoto.scaleType = ImageView.ScaleType.CENTER_CROP
+                    ivPreviewFoto.imageTintList = null
+                }
+            }
+        }
+
+        // 1. Publikasikan ke Jelajah
+        btnPublikasikan.setOnClickListener {
+            val caption = etCaption.text.toString().trim()
+
+            if (caption.isEmpty()) {
+                etCaption.error = "Caption postingan tidak boleh kosong"
                 return@setOnClickListener
             }
 
-            unggahResepKeSupabase(judulText, deskripsiText, etJudul, etDeskripsi)
+            val newId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
+
+            val postinganBaru = Recipe(
+                id = newId,
+                title = caption,
+                description = "",
+                imageUri = imageUri,
+                imageResId = if (imageUri == null) R.drawable.dubai else null
+            )
+
+            // Tambahkan ke feed Jelajah
+            RecipeRepository.tambahPostingan(postinganBaru)
+
+            // Hapus dari draft jika postingan ini berasal dari draft
+            draftIdEdit?.let { id ->
+                RecipeRepository.draftList.removeAll { it.id == id }
+                draftIdEdit = null
+            }
+
+            NotifikasiBottomSheet.tambahNotif("Postingan kamu berhasil dipublikasikan!")
+            Toast.makeText(requireContext(), "Postingan terbit di Jelajah!", Toast.LENGTH_SHORT).show()
+            resetForm()
+        }
+
+        // 2. Simpan Sebagai Draft
+        btnSimpanDraft.setOnClickListener {
+            val caption = etCaption.text.toString().trim()
+
+            if (caption.isEmpty()) {
+                etCaption.error = "Caption postingan tidak boleh kosong"
+                return@setOnClickListener
+            }
+
+            val newId = draftIdEdit ?: (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
+
+            val draftBaru = Recipe(
+                id = newId,
+                title = caption,
+                description = "",
+                imageUri = imageUri,
+                imageResId = if (imageUri == null) R.drawable.dubai else null
+            )
+
+            // Update jika draft lama, atau tambah jika baru
+            draftIdEdit?.let { id ->
+                RecipeRepository.draftList.removeAll { it.id == id }
+            }
+            RecipeRepository.tambahDraft(draftBaru)
+
+            Toast.makeText(requireContext(), "Draft berhasil diperbarui!", Toast.LENGTH_SHORT).show()
+            resetForm()
         }
     }
 
-    private fun unggahResepKeSupabase(
-        judul: String,
-        deskripsi: String,
-        etJudul: EditText?,
-        etDeskripsi: EditText?
-    ) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                // Ambil ID User dari Auth / Session
-                val currentUser = SupabaseClient.instance.auth.currentUserOrNull()
-                val currentSession = SupabaseClient.instance.auth.currentSessionOrNull()
-                val userId = currentUser?.id ?: currentSession?.user?.id
-
-                Log.d("UNGGAH_DEBUG", "User ID saat unggah: $userId")
-
-                if (userId.isNullOrEmpty()) {
-                    Toast.makeText(requireContext(), "Silakan login terlebih dahulu!", Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-
-                // Buat objek JSON data resep
-                val resepData = buildJsonObject {
-                    put("user_id", userId)
-                    put("judul", judul)
-                    put("deskripsi", deskripsi)
-                }
-
-                // Insert ke tabel "resep" di Supabase
-                SupabaseClient.instance.from("resep").insert(resepData)
-
-                Toast.makeText(requireContext(), "Resep berhasil diunggah!", Toast.LENGTH_SHORT).show()
-
-                // Bersihkan form setelah sukses
-                etJudul?.setText("")
-                etDeskripsi?.setText("")
-
-            } catch (e: Exception) {
-                Log.e("UNGGAH_DEBUG", "Error Unggah: ${e.message}", e)
-                Toast.makeText(requireContext(), "Gagal mengunggah: ${e.message}", Toast.LENGTH_LONG).show()
-            }
-        }
+    private fun resetForm() {
+        etCaption.setText("")
+        imageUri = null
+        draftIdEdit = null
+        arguments?.clear()
+        ivPreviewFoto.setImageResource(android.R.drawable.ic_menu_camera)
+        ivPreviewFoto.scaleType = ImageView.ScaleType.CENTER
     }
 }

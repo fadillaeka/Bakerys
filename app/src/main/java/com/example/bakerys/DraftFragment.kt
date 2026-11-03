@@ -4,45 +4,46 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.bakerys.databinding.FragmentDraftBinding
+import androidx.recyclerview.widget.RecyclerView
 
 class DraftFragment : Fragment() {
 
-    private var _binding: FragmentDraftBinding? = null
-    private val binding get() = _binding!!
+    private lateinit var rvDraft: RecyclerView
+    private lateinit var draftAdapter: JelajahAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentDraftBinding.inflate(inflater, container, false)
-        return binding.root
+    ): View? {
+        return inflater.inflate(R.layout.fragment_draft, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Data dummy khusus Draft sesuai gambar referensimu
-        val listDraft = listOf(
-            DraftModel("No-Bake Pumpkin\nCheesecake Bars", R.drawable.no_bake_pumpkin_cheesecake_bars),
-            DraftModel("Rainbow Cake", R.drawable.rainbow),
-            DraftModel("Caramel Apple Magic\nFridge Cake", R.drawable.caramel),
-            DraftModel("Chocolate Lava Cake", R.drawable.classic_choco_brownies)
-        )
+        rvDraft = view.findViewById(R.id.rvDraft)
+        rvDraft.layoutManager = LinearLayoutManager(requireContext())
 
-        // Menggunakan DraftAdapter khusus agar kartu item_draft_card terbaca
-        binding.rvDraft.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvDraft.adapter = DraftAdapter(listDraft) { item ->
-            Toast.makeText(requireContext(), "Membuka: ${item.judul}", Toast.LENGTH_SHORT).show()
-        }
+        // Inisialisasi adapter dengan aksi klik item untuk pindah ke UnggahFragment
+        draftAdapter = JelajahAdapter(
+            recipeList = RecipeRepository.draftList,
+            onItemClick = { recipe ->
+                // Panggil fungsi di MainActivity untuk pindah ke UnggahFragment membawa data draft
+                (activity as? MainActivity)?.bukaUnggahDenganData(recipe)
+            },
+            onBookmarkClick = { }
+        )
+        rvDraft.adapter = draftAdapter
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    override fun onResume() {
+        super.onResume()
+        // Refresh otomatis saat tab Draft dibuka
+        if (::draftAdapter.isInitialized) {
+            draftAdapter.notifyDataSetChanged()
+        }
     }
 }

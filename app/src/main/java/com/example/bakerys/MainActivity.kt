@@ -1,3 +1,7 @@
+@file:OptIn(
+    io.github.jan.supabase.annotations.SupabaseExperimental::class,
+    kotlinx.serialization.InternalSerializationApi::class
+)
 package com.example.bakerys
 
 import android.content.Intent
@@ -12,8 +16,6 @@ import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-
-@kotlinx.serialization.InternalSerializationApi
 
 class MainActivity : AppCompatActivity() {
 
@@ -91,7 +93,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // FUNGSI INSERT DATA LANGSUNG KE SUPABASE (Tanpa Butuh Plugin Serialization)
+    // FUNGSI INSERT DATA LANGSUNG KE SUPABASE
     fun tambahDataDatabase(namaResep: String, deskripsiResep: String) {
         lifecycleScope.launch {
             try {
@@ -118,7 +120,8 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
-    // Tambahkan di dalam MainActivity
+
+    // MEMBUKA DRAFT DENGAN DATA KE UNGGAH FRAGMENT
     fun bukaUnggahDenganData(recipe: Recipe) {
         val fragment = UnggahFragment().apply {
             arguments = Bundle().apply {
@@ -132,10 +135,10 @@ class MainActivity : AppCompatActivity() {
 
         // Ganti fragment aktif ke UnggahFragment
         supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, fragment) // Sesuaikan ID container fragment di activity_main.xml kamu
+            .replace(R.id.fragment_container, fragment)
             .commit()
 
-        // Sesuaikan BottomNavigationView agar tab Unggah terpilih (jika ada)
-        // binding.bottomNavigation.selectedItemId = R.id.nav_unggah
+        // Pindahkan indikator tab bottom navigation ke "Unggah"
+        bottomNav.selectedItemId = R.id.nav_unggah
     }
 }
