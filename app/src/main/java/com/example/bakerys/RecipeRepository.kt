@@ -47,4 +47,15 @@ object RecipeRepository {
     fun getBookmarkedRecipes(): MutableList<Recipe> {
         return recipeList.filter { it.isBookmarked }.toMutableList()
     }
+    // Tambahkan di dalam object RecipeRepository
+    fun tambahPostingan(recipe: Recipe) {
+        recipeList.add(0, recipe) // Masukkan postingan baru ke baris paling atas Jelajah
+    }
+
+    // Jika kamu punya list khusus draft di RecipeRepository/DraftRepository:
+    val draftList = mutableListOf<Recipe>()
+
+    fun tambahDraft(recipe: Recipe) {
+        draftList.add(0, recipe)
+    }
 }

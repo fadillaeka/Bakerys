@@ -9,6 +9,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
+import kotlin.collections.emptyList
 
 class JelajahAdapter(
     private val recipeList: List<Recipe>,
@@ -35,32 +36,49 @@ class JelajahAdapter(
     override fun onBindViewHolder(holder: JelajahViewHolder, position: Int) {
         val recipe = recipeList[position]
 
-        holder.ivThumb.setImageResource(recipe.imageResId)
         holder.tvTitle.text = recipe.title
         holder.tvDesc.text = recipe.description
 
+        // Utamakan foto galeri jika ada (imageUri)
+        if (recipe.imageUri != null) {
+            holder.ivThumb.setImageURI(recipe.imageUri)
+        } else if (recipe.imageResId != null) {
+            holder.ivThumb.setImageResource(recipe.imageResId)
+        } else {
+            holder.ivThumb.setImageResource(R.drawable.dubai)
+        }
+
+        // Update status UI Like & Bookmark
         updateLikeUI(holder.btnLike, recipe.isLiked)
         updateBookmarkUI(holder.btnBookmark, recipe.isBookmarked)
 
+        // Listener Klik Item
         holder.itemView.setOnClickListener {
             onItemClick(recipe)
         }
 
+        // Listener Tombol Like
         holder.btnLike.setOnClickListener {
             recipe.isLiked = !recipe.isLiked
             updateLikeUI(holder.btnLike, recipe.isLiked)
+            NotifikasiBottomSheet.tambahNotif("Seseorang menyukai postingan Anda.")
         }
 
+        // Listener Tombol Bookmark
         holder.btnBookmark.setOnClickListener {
             recipe.isBookmarked = !recipe.isBookmarked
             updateBookmarkUI(holder.btnBookmark, recipe.isBookmarked)
-            onBookmarkClick(recipe) // Memicu update ke RecipeRepository
+            onBookmarkClick(recipe)
+            NotifikasiBottomSheet.tambahNotif("Seseorang menambahkan postingan Anda ke favorit.")
         }
 
+        // Listener Tombol Komentar
         holder.btnComment.setOnClickListener {
+            NotifikasiBottomSheet.tambahNotif("Seseorang mengomentari postingan Anda.")
             val activity = holder.itemView.context as? FragmentActivity
             activity?.let {
-                val commentSheet = KomentarBottomSheet(recipe.comments)
+                // Mengirim emptyList() agar tidak error constructor
+                val commentSheet = KomentarBottomSheet(mutableListOf())
                 commentSheet.show(it.supportFragmentManager, "KomentarBottomSheet")
             }
         }

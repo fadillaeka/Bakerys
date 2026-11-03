@@ -111,4 +111,24 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
+    // Tambahkan di dalam MainActivity
+    fun bukaUnggahDenganData(recipe: Recipe) {
+        val fragment = UnggahFragment().apply {
+            arguments = Bundle().apply {
+                putInt("DRAFT_ID", recipe.id)
+                putString("DRAFT_TITLE", recipe.title)
+                putString("DRAFT_DESC", recipe.description)
+                recipe.imageUri?.let { putString("DRAFT_IMAGE_URI", it.toString()) }
+                recipe.imageResId?.let { putInt("DRAFT_IMAGE_RES", it) }
+            }
+        }
+
+        // Ganti fragment aktif ke UnggahFragment
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, fragment) // Sesuaikan ID container fragment di activity_main.xml kamu
+            .commit()
+
+        // Sesuaikan BottomNavigationView agar tab Unggah terpilih (jika ada)
+        // binding.bottomNavigation.selectedItemId = R.id.nav_unggah
+    }
 }

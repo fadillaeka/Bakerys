@@ -21,7 +21,7 @@ class TimerDialog : DialogFragment() {
     private var isTimerRunning = false
 
     // Uji coba di emulator gunakan 5 * 1000, Uji coba 5 detik. Jika sudah oke, ganti ke 5 * 60 * 1000 (5 menit)
-    private val startTimeInMillis: Long = 5 * 1000
+    private val startTimeInMillis: Long = 5 * 60 * 1000
     private var timeLeftInMillis: Long = startTimeInMillis
 
     private var mediaPlayer: MediaPlayer? = null

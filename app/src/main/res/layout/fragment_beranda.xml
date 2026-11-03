@@ -40,6 +40,7 @@
                 android:textStyle="bold" />
 
             <ImageView
+                android:id="@+id/btnNotifikasi"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:background="@drawable/bg_circle_peach"
@@ -62,7 +63,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:text="Selamat Pagi, Baker"
+            android:text="Halo, Baker"
             android:textColor="#3E2723"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -93,16 +94,23 @@
                 app:tint="#8D6E63"
                 android:contentDescription="Cari" />
 
-            <TextView
+            <EditText
+                android:id="@+id/etSearch"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:layout_marginStart="12dp"
-                android:text="Cari sourdough, kue, kue kering..."
-                android:textColor="#A08882"
-                android:textSize="13sp" />
+                android:background="@null"
+                android:hint="Cari sourdough, kue, kue kering..."
+                android:textColorHint="#A08882"
+                android:textColor="#3E2723"
+                android:textSize="13sp"
+                android:inputType="text"
+                android:maxLines="1"
+                android:imeOptions="actionSearch" />
 
             <ImageView
+                android:id="@+id/btnFilterIcon"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:src="@drawable/search_filters"
@@ -180,8 +188,9 @@
             </LinearLayout>
         </HorizontalScrollView>
 
-        <!-- Kartu Unggulan (Bake of the Day / Dubai Chewy Cookies) -->
+        <!-- Kartu Bake of the Day  -->
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardBakeOfTheDay"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
@@ -219,10 +228,13 @@
                             android:layout_height="wrap_content"
                             android:paddingHorizontal="10dp"
                             android:paddingVertical="4dp"
-                            android:text="✨ Bake of the Day"
+                            android:text="Bake of the Day"
                             android:textColor="#802C3E"
                             android:textSize="11sp"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            android:drawableStart="@drawable/sparkles"
+                            android:drawablePadding="6dp"
+                            android:gravity="center_vertical"/>
                     </com.google.android.material.card.MaterialCardView>
                 </FrameLayout>
 
@@ -270,6 +282,7 @@
             app:spanCount="2"
             tools:listitem="@layout/item_resipe_card"
             tools:itemCount="4"/>
+
         <!-- Teks Quote / Catatan Kaki di Bawah RecyclerView -->
         <LinearLayout
             android:layout_width="match_parent"

@@ -47,7 +47,7 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
 
         // Logika tombol favorit (warna ikon)
         if (item.isFavorite) {
-            holder.btnFavorite?.setColorFilter(Color.parseColor("#802C3E"))
+            holder.btnFavorite?.setColorFilter(Color.parseColor("#FF3B30"))
         } else {
             holder.btnFavorite?.setColorFilter(Color.parseColor("#8C7A6B"))
         }
@@ -57,15 +57,11 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
             item.isFavorite = !item.isFavorite
 
             if (item.isFavorite) {
-                holder.btnFavorite?.setColorFilter(Color.parseColor("#802C3E"))
-
-                // TAMBAHKAN INI: Kirim data resep ke DisukaiFragment
+                holder.btnFavorite?.setColorFilter(Color.parseColor("#FF3B30"))
                 DisukaiFragment.tambahKeDisukai(item)
                 Toast.makeText(holder.itemView.context, "${item.judul} ditambahkan ke Disukai", Toast.LENGTH_SHORT).show()
             } else {
                 holder.btnFavorite?.setColorFilter(Color.parseColor("#8C7A6B"))
-
-                // TAMBAHKAN INI: Hapus data resep dari DisukaiFragment jika di-unlike
                 DisukaiFragment.daftarResepDisukai.removeAll { it.judul == item.judul }
                 Toast.makeText(holder.itemView.context, "${item.judul} dihapus dari Disukai", Toast.LENGTH_SHORT).show()
             }
@@ -77,6 +73,15 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
             val intent = Intent(context, DetailResepActivity::class.java).apply {
                 putExtra("EXTRA_JUDUL", item.judul)
                 putExtra("EXTRA_GAMBAR", item.gambar)
+
+                // Format durasi dinamis agar tidak default ke 50 menit
+                val durasiFormat = if (item.deskripsi.contains("•")) {
+                    "⏱️ " + item.deskripsi.split("•").last().trim()
+                } else {
+                    "⏱️ " + item.deskripsi
+                }
+                putExtra("EXTRA_WAKTU", durasiFormat)
+                putExtra("EXTRA_TENTANG", "Resep olahan lezat ${item.judul} yang mudah dan praktis dibuat di rumah.")
             }
             context.startActivity(intent)
         }
