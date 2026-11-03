@@ -282,7 +282,7 @@
                         android:id="@+id/btnTimer"
                         android:layout_width="28dp"
                         android:layout_height="28dp"
-                        android:src="@drawable/ic_bell"
+                        android:src="@drawable/ic_timer"
                         app:tint="#FFF9F8"
                         android:contentDescription="Timer" />
                 </LinearLayout>

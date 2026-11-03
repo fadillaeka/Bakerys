@@ -29,8 +29,7 @@ class DetailResepActivity : AppCompatActivity() {
         setupBottomNavigation()
 
         binding.btnTimer.setOnClickListener {
-            Toast.makeText(this, "Timer Memasak Dimulai!", Toast.LENGTH_SHORT).show()
-        }
+            TimerDialog().show(supportFragmentManager, "TimerDialog")        }
     }
 
     private fun setupBottomNavigation() {
