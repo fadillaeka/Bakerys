@@ -9,6 +9,8 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
+
+@kotlinx.serialization.InternalSerializationApi
 class TersimpanFragment : Fragment() {
 
     private lateinit var rvTersimpan: RecyclerView

@@ -125,6 +125,7 @@
                 android:textSize="12sp"/>
 
             <EditText
+                android:id="@+id/etFullNameEdit"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginBottom="20dp"
@@ -145,6 +146,7 @@
                 android:textSize="12sp"/>
 
             <EditText
+                android:id="@+id/etUsernameEdit"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginBottom="20dp"
@@ -165,6 +167,7 @@
                 android:textSize="12sp"/>
 
             <EditText
+                android:id="@+id/etEmailEdit"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginBottom="20dp"
@@ -185,6 +188,7 @@
                 android:textSize="12sp"/>
 
             <EditText
+                android:id="@+id/etBioEdit"
                 android:layout_width="match_parent"
                 android:layout_height="110dp"
                 android:background="@drawable/bg_ffd2be_input"

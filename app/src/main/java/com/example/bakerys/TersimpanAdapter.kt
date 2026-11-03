@@ -7,6 +7,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
+
+@kotlinx.serialization.InternalSerializationApi
 class TersimpanAdapter(
     private val bookmarkedList: MutableList<Recipe>,
     private val onItemClick: (Recipe) -> Unit,
@@ -37,7 +39,7 @@ class TersimpanAdapter(
         }
 
         holder.btnRemove.setOnClickListener {
-            onRemoveBookmark(recipe, holder.bindingAdapterPosition)
+            onRemoveBookmark(recipe, holder.adapterPosition)
         }
     }
 
