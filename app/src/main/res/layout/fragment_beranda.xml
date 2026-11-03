@@ -39,7 +39,9 @@
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
+            <!-- Ikon Lonceng Notifikasi (Sudah diberi ID btnNotifikasi) -->
             <ImageView
+                android:id="@+id/btnNotifikasi"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:background="@drawable/bg_circle_peach"
@@ -62,7 +64,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:text="Selamat Pagi, Baker"
+            android:text="Halo, Baker"
             android:textColor="#3E2723"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -93,14 +95,18 @@
                 app:tint="#8D6E63"
                 android:contentDescription="Cari" />
 
-            <TextView
+            <EditText
+                android:id="@+id/etSearch"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:layout_marginStart="12dp"
-                android:text="Cari sourdough, kue, kue kering..."
-                android:textColor="#A08882"
-                android:textSize="13sp" />
+                android:background="@null"
+                android:hint="Cari sourdough, kue, kue kering..."
+                android:textColor="#3E2723"
+                android:textColorHint="#A08882"
+                android:textSize="13sp"
+                android:inputType="text" />
 
             <ImageView
                 android:layout_width="20dp"
@@ -109,7 +115,7 @@
                 android:contentDescription="Filter" />
         </LinearLayout>
 
-        <!-- Kategori Horizontal (Semua, Sourdough, Kue, dll) -->
+        <!-- Kategori Horizontal -->
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -121,7 +127,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <!-- Chip 1 (Semua) -->
+                <!-- Chip 1 (Aktif - Maroon) -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnKategoriSemua"
                     android:layout_width="wrap_content"
@@ -134,7 +140,7 @@
                     android:textSize="12sp"
                     app:cornerRadius="18dp" />
 
-                <!-- Chip 2 (Sourdough) -->
+                <!-- Chip 2 -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnKategoriSourdough"
                     android:layout_width="wrap_content"
@@ -149,7 +155,7 @@
                     app:strokeColor="#EED5CE"
                     app:strokeWidth="1dp" />
 
-                <!-- Chip 3 (Kue) -->
+                <!-- Chip 3 -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnKategoriKue"
                     android:layout_width="wrap_content"
@@ -164,7 +170,7 @@
                     app:strokeColor="#EED5CE"
                     app:strokeWidth="1dp" />
 
-                <!-- Chip 4 (Kue Kering) -->
+                <!-- Chip 4 -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnKategoriKueKering"
                     android:layout_width="wrap_content"
@@ -181,9 +187,8 @@
         </HorizontalScrollView>
 
         <!-- Kartu Unggulan (Bake of the Day / Dubai Chewy Cookies) -->
-        <!-- Kartu Unggulan (Bake of the Day / Dubai Chewy Cookies) -->
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardBakeOfTheDay"
+            android:id="@+id/cardBakeOfDay"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
@@ -272,6 +277,7 @@
             app:spanCount="2"
             tools:listitem="@layout/item_resipe_card"
             tools:itemCount="4"/>
+
         <!-- Teks Quote / Catatan Kaki di Bawah RecyclerView -->
         <LinearLayout
             android:layout_width="match_parent"

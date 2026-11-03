@@ -47,17 +47,20 @@ class JelajahAdapter(
         }
 
         holder.btnLike.setOnClickListener {
+            NotifikasiBottomSheet.tambahNotif("Seseorang menyukai resep Anda.")
             recipe.isLiked = !recipe.isLiked
             updateLikeUI(holder.btnLike, recipe.isLiked)
         }
 
         holder.btnBookmark.setOnClickListener {
+            NotifikasiBottomSheet.tambahNotif("Seseorang menambahkan resep Anda ke favorit.")
             recipe.isBookmarked = !recipe.isBookmarked
             updateBookmarkUI(holder.btnBookmark, recipe.isBookmarked)
-            onBookmarkClick(recipe) // Memicu update ke RecipeRepository
+            onBookmarkClick(recipe)
         }
 
         holder.btnComment.setOnClickListener {
+            NotifikasiBottomSheet.tambahNotif("Seseorang mengomentari resep Anda.")
             val activity = holder.itemView.context as? FragmentActivity
             activity?.let {
                 val commentSheet = KomentarBottomSheet(recipe.comments)
