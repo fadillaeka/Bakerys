@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="14dp"
+    app:cardBackgroundColor="#FCEBE5"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:strokeColor="#EED5CE"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <!-- Gambar Resep -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="85dp"
+            android:layout_height="85dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:id="@+id/ivDisukaiGambar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/cookies"
+                android:contentDescription="Gambar Resep" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Judul & Deskripsi Resep -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvDisukaiJudul"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Nama Resep"
+                android:textColor="#3E2723"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvDisukaiDeskripsi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Easy • 45m"
+                android:textColor="#8D6E63"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Ikon Suka (Hati/Like) di Pojok Kanan Bawah Kartu -->
+        <ImageView
+            android:id="@+id/ivDisukaiHeart"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_gravity="bottom"
+            android:src="@drawable/ic_heart_filled"
+            app:tint="#802C3E"
+            android:contentDescription="Suka" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

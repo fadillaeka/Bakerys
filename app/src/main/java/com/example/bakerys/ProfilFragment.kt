@@ -62,6 +62,14 @@ class ProfilFragment : Fragment() {
                 .commit()
         }
 
+        // 4.5. Listener Navigasi ke DisukaiFragment (MENU DISUKAI BARU)
+        binding.btnDisukai.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, DisukaiFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+
         // 5. Listener Log Out
         binding.btnLogout.setOnClickListener {
             Toast.makeText(requireContext(), "Berhasil Log Out", Toast.LENGTH_SHORT).show()
