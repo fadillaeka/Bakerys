@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -22,7 +23,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-@kotlinx.serialization.InternalSerializationApi
+@OptIn(kotlinx.serialization.InternalSerializationApi::class)
 class ProfilFragment : Fragment() {
 
     private var _binding: FragmentProfilBinding? = null
@@ -94,16 +95,32 @@ class ProfilFragment : Fragment() {
         }
 
         // 4. Listener Preferensi Pemanggangan
-        setupPreferensiListeners(view)
+        setupPreferensiListeners()
     }
 
     override fun onResume() {
         super.onResume()
-        // Mengisi & merefresh data profil dari Supabase setiap kali fragment ini aktif/kembali dari Edit Profile
+        // Mengisi & merefresh data profil dari lokal & Supabase setiap kali fragment ini aktif
         loadProfilUser()
     }
 
     private fun loadProfilUser() {
+        // 1. Muat Foto Profil & Data Teks dari SharedPreferences Lokal (Instan)
+        val savedUriStr = sharedPreferences.getString("profile_image_uri", null)
+        if (!savedUriStr.isNullOrEmpty()) {
+            try {
+                binding.ivFotoProfil.setImageURI(Uri.parse(savedUriStr))
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        val localNama = sharedPreferences.getString("profile_name", null)
+        val localBio = sharedPreferences.getString("profile_bio", null)
+        if (!localNama.isNullOrEmpty()) binding.tvNamaUser.text = localNama
+        if (!localBio.isNullOrEmpty()) binding.tvBioUser.text = localBio
+
+        // 2. Sinkronkan dengan Supabase DB
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val currentUser = SupabaseClient.instance.auth.currentUserOrNull() ?: return@launch
@@ -138,17 +155,10 @@ class ProfilFragment : Fragment() {
                     }
                 }
 
-                val rootView = view ?: return@launch
-                val tvNama = rootView.findViewById<TextView>(R.id.tvNamaUser)
-                    ?: rootView.findViewById<TextView>(R.id.tvNamaUser)
-                    ?: rootView.findViewById<TextView>(R.id.etUsernameReg)
-
-                val tvBio = rootView.findViewById<TextView>(R.id.tvBioUser)
-                    ?: rootView.findViewById<TextView>(R.id.tvBioUser)
-                    ?: rootView.findViewById<TextView>(R.id.etBioEdit)
-
-                tvNama?.text = username
-                tvBio?.text = bioText
+                if (_binding != null) {
+                    binding.tvNamaUser.text = username
+                    binding.tvBioUser.text = bioText
+                }
 
             } catch (e: Exception) {
                 android.util.Log.e("BAKERYS_DEBUG", "Error load profil: ${e.message}")
@@ -156,74 +166,45 @@ class ProfilFragment : Fragment() {
         }
     }
 
-    private fun setupPreferensiListeners(rootView: View) {
-        val btnMetric = rootView.findViewById<LinearLayout>(R.id.btnMetric)
-        val tvMetric = rootView.findViewById<TextView>(R.id.tvMetric)
-        val btnImperial = rootView.findViewById<LinearLayout>(R.id.btnImperial)
-        val tvImperial = rootView.findViewById<TextView>(R.id.tvImperial)
-
-        val btnCelcius = rootView.findViewById<LinearLayout>(R.id.btnCelcius)
-        val tvCelcius = rootView.findViewById<TextView>(R.id.tvCelcius)
-        val btnFahrenheit = rootView.findViewById<LinearLayout>(R.id.btnFahrenheit)
-        val tvFahrenheit = rootView.findViewById<TextView>(R.id.tvFahrenheit)
-
-        btnMetric?.setOnClickListener {
-            if (tvMetric != null && btnImperial != null && tvImperial != null) {
-                setOptionSelected(btnMetric, tvMetric, btnImperial, tvImperial)
-            }
+    private fun setupPreferensiListeners() {
+        binding.btnMetric.setOnClickListener {
+            setOptionSelected(binding.btnMetric, binding.tvMetric, binding.btnImperial, binding.tvImperial)
             savePreference("unit_preference", "metric")
             Toast.makeText(requireContext(), "Satuan diubah ke Metric (Gram/ml)", Toast.LENGTH_SHORT).show()
         }
 
-        btnImperial?.setOnClickListener {
-            if (tvImperial != null && btnMetric != null && tvMetric != null) {
-                setOptionSelected(btnImperial, tvImperial, btnMetric, tvMetric)
-            }
+        binding.btnImperial.setOnClickListener {
+            setOptionSelected(binding.btnImperial, binding.tvImperial, binding.btnMetric, binding.tvMetric)
             savePreference("unit_preference", "imperial")
             Toast.makeText(requireContext(), "Satuan diubah ke Sendok (Cangkir/ons)", Toast.LENGTH_SHORT).show()
         }
 
-        btnCelcius?.setOnClickListener {
-            if (tvCelcius != null && btnFahrenheit != null && tvFahrenheit != null) {
-                setOptionSelected(btnCelcius, tvCelcius, btnFahrenheit, tvFahrenheit)
-            }
+        binding.btnCelcius.setOnClickListener {
+            setOptionSelected(binding.btnCelcius, binding.tvCelcius, binding.btnFahrenheit, binding.tvFahrenheit)
             savePreference("temp_preference", "celcius")
             Toast.makeText(requireContext(), "Standar suhu diubah ke Celcius (°C)", Toast.LENGTH_SHORT).show()
         }
 
-        btnFahrenheit?.setOnClickListener {
-            if (tvFahrenheit != null && btnCelcius != null && tvCelcius != null) {
-                setOptionSelected(btnFahrenheit, tvFahrenheit, btnCelcius, tvCelcius)
-            }
+        binding.btnFahrenheit.setOnClickListener {
+            setOptionSelected(binding.btnFahrenheit, binding.tvFahrenheit, binding.btnCelcius, binding.tvCelcius)
             savePreference("temp_preference", "fahrenheit")
             Toast.makeText(requireContext(), "Standar suhu diubah ke Fahrenheit (°F)", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun loadSavedPreferences() {
-        val rootView = view ?: return
-        val btnMetric = rootView.findViewById<LinearLayout>(R.id.btnMetric)
-        val tvMetric = rootView.findViewById<TextView>(R.id.tvMetric)
-        val btnImperial = rootView.findViewById<LinearLayout>(R.id.btnImperial)
-        val tvImperial = rootView.findViewById<TextView>(R.id.tvImperial)
-
-        val btnCelcius = rootView.findViewById<LinearLayout>(R.id.btnCelcius)
-        val tvCelcius = rootView.findViewById<TextView>(R.id.tvCelcius)
-        val btnFahrenheit = rootView.findViewById<LinearLayout>(R.id.btnFahrenheit)
-        val tvFahrenheit = rootView.findViewById<TextView>(R.id.tvFahrenheit)
-
         val savedUnit = sharedPreferences.getString("unit_preference", "metric")
-        if (savedUnit == "imperial" && btnImperial != null && tvImperial != null && btnMetric != null && tvMetric != null) {
-            setOptionSelected(btnImperial, tvImperial, btnMetric, tvMetric)
-        } else if (btnMetric != null && tvMetric != null && btnImperial != null && tvImperial != null) {
-            setOptionSelected(btnMetric, tvMetric, btnImperial, tvImperial)
+        if (savedUnit == "imperial") {
+            setOptionSelected(binding.btnImperial, binding.tvImperial, binding.btnMetric, binding.tvMetric)
+        } else {
+            setOptionSelected(binding.btnMetric, binding.tvMetric, binding.btnImperial, binding.tvImperial)
         }
 
         val savedTemp = sharedPreferences.getString("temp_preference", "celcius")
-        if (savedTemp == "fahrenheit" && btnFahrenheit != null && tvFahrenheit != null && btnCelcius != null && tvCelcius != null) {
-            setOptionSelected(btnFahrenheit, tvFahrenheit, btnCelcius, tvCelcius)
-        } else if (btnCelcius != null && tvCelcius != null && btnFahrenheit != null && tvFahrenheit != null) {
-            setOptionSelected(btnCelcius, tvCelcius, btnFahrenheit, tvFahrenheit)
+        if (savedTemp == "fahrenheit") {
+            setOptionSelected(binding.btnFahrenheit, binding.tvFahrenheit, binding.btnCelcius, binding.tvCelcius)
+        } else {
+            setOptionSelected(binding.btnCelcius, binding.tvCelcius, binding.btnFahrenheit, binding.tvFahrenheit)
         }
     }
 

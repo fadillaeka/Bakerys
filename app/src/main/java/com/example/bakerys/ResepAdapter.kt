@@ -1,3 +1,7 @@
+@file:OptIn(
+    io.github.jan.supabase.annotations.SupabaseExperimental::class,
+    kotlinx.serialization.InternalSerializationApi::class
+)
 package com.example.bakerys
 
 import android.content.Intent

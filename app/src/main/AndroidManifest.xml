@@ -22,7 +22,7 @@
         <!-- 2. ACTIVITY LAINNYA (EXPORTED = FALSE) -->
         <activity
             android:name=".MainActivity"
-            android:exported="false" />
+            android:exported="true" />
 
         <activity
             android:name=".DetailResepActivity"
