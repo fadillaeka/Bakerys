@@ -61,7 +61,7 @@ class JelajahAdapter(
         holder.btnLike.setOnClickListener {
             recipe.isLiked = !recipe.isLiked
             updateLikeUI(holder.btnLike, recipe.isLiked)
-            NotifikasiBottomSheet.tambahNotif("Seseorang menyukai resep Anda.")
+            NotifikasiBottomSheet.tambahNotif("Seseorang menyukai postingan Anda.")
         }
 
         // Listener Tombol Bookmark
@@ -69,12 +69,12 @@ class JelajahAdapter(
             recipe.isBookmarked = !recipe.isBookmarked
             updateBookmarkUI(holder.btnBookmark, recipe.isBookmarked)
             onBookmarkClick(recipe)
-            NotifikasiBottomSheet.tambahNotif("Seseorang menambahkan resep Anda ke favorit.")
+            NotifikasiBottomSheet.tambahNotif("Seseorang menambahkan postingan Anda ke favorit.")
         }
 
         // Listener Tombol Komentar
         holder.btnComment.setOnClickListener {
-            NotifikasiBottomSheet.tambahNotif("Seseorang mengomentari resep Anda.")
+            NotifikasiBottomSheet.tambahNotif("Seseorang mengomentari postingan Anda.")
             val activity = holder.itemView.context as? FragmentActivity
             activity?.let {
                 // Mengirim emptyList() agar tidak error constructor
