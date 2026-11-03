@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="280dp"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="8dp"
+    app:cardBackgroundColor="#802C3E"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingTop="28dp"
+        android:paddingBottom="28dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <!-- Lingkaran Krem dengan Ikon Centang -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            app:cardCornerRadius="32dp"
+            app:cardBackgroundColor="#FCE5DB"
+            app:strokeWidth="0dp"
+            app:cardElevation="0dp"
+            android:layout_marginBottom="20dp">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_check_thick"
+                app:tint="#802C3E" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Teks Pendaftaran Berhasil -->
+        <TextView
+            android:id="@+id/tvSuccessMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pendaftaran Berhasil! saatnya masuk ke akun kamu lalu bikin kue favoritmu🧁"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:lineSpacingExtra="3dp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Tombol Kembali Ke Login -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnKembaliLogin"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:text="Kembali Ke Login"
+            android:textColor="#802C3E"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textAllCaps="false"
+            app:backgroundTint="#FCE5DB"
+            app:cornerRadius="24dp"
+            app:elevation="0dp" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

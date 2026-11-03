@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import kotlin.jvm.java
+import com.example.bakerys.RegisterActivity
 
 class WelcomeActivity : AppCompatActivity() {
 
@@ -11,20 +13,18 @@ class WelcomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_welcome)
 
-        // Gunakan View biasa agar tidak crash terlepas apapun tipe button-nya (Button / MaterialButton)
         val btnLogin = findViewById<View>(R.id.btnLoginWelcome)
         val btnDaftar = findViewById<View>(R.id.btnDaftarWelcome)
 
-        // Klik Login -> Masuk ke MainActivity
+        // Klik Login -> Masuk ke LoginActivity
         btnLogin?.setOnClickListener {
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
         }
 
-        // Klik Daftar -> Masuk ke Register Activity (atau MainActivity)
+        // Klik Daftar -> Masuk ke RegisterActivity
         btnDaftar?.setOnClickListener {
-            // Sesuaikan jika punya RegisterActivity, jika belum pakai MainActivity dulu
-            val intent = Intent(this, MainActivity::class.java)
+            val intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
         }
     }
