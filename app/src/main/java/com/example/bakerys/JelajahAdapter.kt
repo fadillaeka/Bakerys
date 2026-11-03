@@ -1,11 +1,14 @@
 package com.example.bakerys
 
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.bakerys.R
 
 class JelajahAdapter(
     private val recipeList: List<Recipe>,
@@ -16,6 +19,10 @@ class JelajahAdapter(
         val ivThumb: ImageView = itemView.findViewById(R.id.ivJelajahThumb)
         val tvTitle: TextView = itemView.findViewById(R.id.tvJelajahTitle)
         val tvDesc: TextView = itemView.findViewById(R.id.tvJelajahDesc)
+
+        val btnLike: ImageView = itemView.findViewById(R.id.btnLike)
+        val btnComment: ImageView = itemView.findViewById(R.id.btnComment)
+        val btnBookmark: ImageView = itemView.findViewById(R.id.btnBookmark)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): JelajahViewHolder {
@@ -31,10 +38,27 @@ class JelajahAdapter(
         holder.tvTitle.text = recipe.title
         holder.tvDesc.text = recipe.description
 
+        updateLikeUI(holder.btnLike, recipe.isLiked)
+
         holder.itemView.setOnClickListener {
             onItemClick(recipe)
+        }
+
+        holder.btnLike.setOnClickListener {
+            recipe.isLiked = !recipe.isLiked
+            updateLikeUI(holder.btnLike, recipe.isLiked)
         }
     }
 
     override fun getItemCount(): Int = recipeList.size
+
+    private fun updateLikeUI(imageView: ImageView, isLiked: Boolean) {
+        if (isLiked) {
+            imageView.setImageResource(R.drawable.ic_heart_filled)
+            imageView.imageTintList = null
+        } else {
+            imageView.setImageResource(R.drawable.ic_heart_outline)
+            imageView.imageTintList = ColorStateList.valueOf(Color.parseColor("#3E2723"))
+        }
+    }
 }
