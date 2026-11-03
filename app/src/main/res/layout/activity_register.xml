@@ -123,59 +123,67 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Overlay Pop-up Sukses Daftar -->
     <FrameLayout
         android:id="@+id/overlaySuccessReg"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#66000000"
-        android:elevation="10dp"
-        android:visibility="gone">
+        android:visibility="gone"
+        android:gravity="center"
+        android:padding="24dp">
 
         <com.google.android.material.card.MaterialCardView
-            android:layout_width="320dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            app:cardBackgroundColor="#C75C70"
             app:cardCornerRadius="24dp"
-            app:cardElevation="8dp">
+            app:cardElevation="8dp"
+            app:cardBackgroundColor="#D65B70"> <!-- Warna latar belakang pop-up pink/merah muda -->
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
                 android:orientation="vertical"
-                android:padding="32dp">
+                android:gravity="center"
+                android:padding="24dp">
 
+                <!-- Ikon Centang -->
                 <ImageView
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
-                    android:background="@drawable/bg_circle_peach"
-                    android:padding="20dp"
+                    android:id="@+id/ivSuccessCheck"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
                     android:src="@drawable/ic_check_thick"
-                    app:tint="#802C3E" />
+                    app:tint="#FCE5DB"
+                    android:layout_marginBottom="16dp" />
 
+                <!-- Teks Pesan Pop-up -->
                 <TextView
+                    android:id="@+id/tvSuccessMessage"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:gravity="center"
-                    android:text="Pendaftaran berhasil! Selamat\ndatang di bakery's, saatnya bikin\nkue favoritmu 🧁"
+                    android:text="Pendaftaran berhasil! Selamat datang di bakery's, saatnya bikin kue favoritmu🧁"
                     android:textColor="#FFFFFF"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:lineSpacingExtra="4dp"
+                    android:layout_marginBottom="20dp" />
 
+                <!-- Tombol Kembali Ke Login -->
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnKembaliKeLogin"
+                    android:id="@+id/btnKembaliLogin"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:backgroundTint="#A64456"
                     android:text="Kembali Ke Login"
-                    android:textAllCaps="false"
                     android:textColor="#FFFFFF"
-                    app:cornerRadius="16dp"
-                    app:strokeColor="#802C3E"
-                    app:strokeWidth="1dp" />
+                    android:textAllCaps="false"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp"
+                    app:strokeColor="#FFFFFF"
+                    app:strokeWidth="1.5dp"
+                    app:backgroundTint="#B54559"
+                    app:cornerRadius="20dp" />
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
     </FrameLayout>
