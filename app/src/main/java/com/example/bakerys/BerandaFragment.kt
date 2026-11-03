@@ -16,8 +16,38 @@ class BerandaFragment : Fragment() {
     private lateinit var rvTren: RecyclerView
     private lateinit var adapterResep: ResepAdapter
 
-    // Daftar lengkap semua resep (kamu bisa tambahkan properti kategori di ResepModel nantinya)
+    // Daftar lengkap semua resep (6 item Sourdough + item lainnya)
     private val semuaDataResep = listOf(
+        ResepModel(
+            judul = "San Francisco Sourdough",
+            deskripsi = "Easy • 45m",
+            gambar = R.drawable.sourdough1
+        ),
+        ResepModel(
+            judul = "country loaf sourdough",
+            deskripsi = "Medium • 1h 10m",
+            gambar = R.drawable.sourdough2
+        ),
+        ResepModel(
+            judul = "Borodinsky Bread",
+            deskripsi = "Medium • 3h 30m",
+            gambar = R.drawable.borondisky
+        ),
+        ResepModel(
+            judul = "Baguette Sourdough",
+            deskripsi = "Medium • 2h 00m",
+            gambar = R.drawable.baguete
+        ),
+        ResepModel(
+            judul = "Plain Sourdough",
+            deskripsi = "Easy • 55m",
+            gambar = R.drawable.plainsourdough
+        ),
+        ResepModel(
+            judul = "Walnut & Raisin Bread",
+            deskripsi = "Easy • 1h 20m",
+            gambar = R.drawable.walnut
+        ),
         ResepModel(
             judul = "Chocolate Lava Cakes",
             deskripsi = "Easy • 45m",
@@ -27,26 +57,6 @@ class BerandaFragment : Fragment() {
             judul = "Caramel Apple Magic Fridge Cake",
             deskripsi = "Medium • 1h 10m",
             gambar = R.drawable.caramel
-        ),
-        ResepModel(
-            judul = "Rainbow Cake",
-            deskripsi = "Easy • 55m",
-            gambar = R.drawable.rainbow
-        ),
-        ResepModel(
-            judul = "Cheseecake Bars",
-            deskripsi = "Medium • 3h 30m",
-            gambar = R.drawable.no_bake_pumpkin_cheesecake_bars
-        ),
-        ResepModel(
-            judul = "Cookies",
-            deskripsi = "Easy • 35m",
-            gambar = R.drawable.cookies
-        ),
-        ResepModel(
-            judul = "Fudgy Brownies",
-            deskripsi = "Easy • 1h 20m",
-            gambar = R.drawable.classic_choco_brownies
         )
     )
 
@@ -63,15 +73,14 @@ class BerandaFragment : Fragment() {
         adapterResep = ResepAdapter(semuaDataResep)
         rvTren.adapter = adapterResep
 
-        // Inisialisasi Tombol Kategori (Pastikan ID di fragment_beranda.xml sudah sesuai)
+        // Inisialisasi Tombol Kategori
         val btnSemua = view.findViewById<MaterialButton>(R.id.btnKategoriSemua)
         val btnSourdough = view.findViewById<MaterialButton>(R.id.btnKategoriSourdough)
         val btnKue = view.findViewById<MaterialButton>(R.id.btnKategoriKue)
         val btnKueKering = view.findViewById<MaterialButton>(R.id.btnKategoriKueKering)
 
-        val daftarTombol = listOf(btnSemua, btnSourdough, btnKue, btnKueKering)
+        val daftarTombol = listOfNotNull(btnSemua, btnSourdough, btnKue, btnKueKering)
 
-        // Aksi klik tombol Kategori
         btnSemua?.setOnClickListener {
             aturWarnaTombolAktif(btnSemua, daftarTombol)
             updateDataResep(semuaDataResep)
@@ -79,21 +88,22 @@ class BerandaFragment : Fragment() {
 
         btnSourdough?.setOnClickListener {
             aturWarnaTombolAktif(btnSourdough, daftarTombol)
-            // Contoh filter untuk Sourdough (bisa disesuaikan dengan kriteria datamu)
-            val dataSourdough = semuaDataResep.filter { it.judul.contains("Sourdough", ignoreCase = true) }
+            val dataSourdough = semuaDataResep.filter {
+                it.judul.contains("Sourdough", ignoreCase = true) ||
+                        it.judul.contains("Bread", ignoreCase = true) ||
+                        it.judul.contains("loaf", ignoreCase = true)
+            }
             updateDataResep(dataSourdough)
         }
 
         btnKue?.setOnClickListener {
             aturWarnaTombolAktif(btnKue, daftarTombol)
-            // Contoh filter untuk Kue (seperti Cake/Lava Cake/Rainbow Cake)
-            val dataKue = semuaDataResep.filter { it.judul.contains("Cake", ignoreCase = true) || it.judul.contains("Brownies", ignoreCase = true) }
+            val dataKue = semuaDataResep.filter { it.judul.contains("Cake", ignoreCase = true) }
             updateDataResep(dataKue)
         }
 
         btnKueKering?.setOnClickListener {
             aturWarnaTombolAktif(btnKueKering, daftarTombol)
-            // Contoh filter untuk Kue Kering / Cookies
             val dataKueKering = semuaDataResep.filter { it.judul.contains("Cookies", ignoreCase = true) }
             updateDataResep(dataKueKering)
         }
@@ -101,7 +111,6 @@ class BerandaFragment : Fragment() {
         return view
     }
 
-    // Fungsi untuk mengubah warna chip (aktif jadi maroon, lainnya peach)
     private fun aturWarnaTombolAktif(btnAktif: MaterialButton, semuaTombol: List<MaterialButton>) {
         for (btn in semuaTombol) {
             btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FCEBE5"))
@@ -115,7 +124,6 @@ class BerandaFragment : Fragment() {
         btnAktif.strokeWidth = 0
     }
 
-    // Fungsi untuk memperbarui data resep di RecyclerView secara dinamis
     private fun updateDataResep(newData: List<ResepModel>) {
         adapterResep = ResepAdapter(newData)
         rvTren.adapter = adapterResep

@@ -34,10 +34,7 @@ class DetailResepActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
-        // Menggunakan ID bottom_nav_main bawaan XML kamu
         val bottomNav = binding.bottomNavMain
-
-        // Tandai menu Beranda sebagai pilihan aktif saat pertama masuk
         bottomNav.selectedItemId = R.id.nav_beranda
 
         bottomNav.setOnItemSelectedListener { item ->
@@ -63,7 +60,6 @@ class DetailResepActivity : AppCompatActivity() {
         }
     }
 
-    // Fungsi untuk membuka MainActivity membawa target Fragment
     private fun bukaMainActivityDenganTarget(target: String) {
         val intent = Intent(this, MainActivity::class.java).apply {
             putExtra("EXTRA_NAV_TARGET", target)
@@ -82,10 +78,12 @@ class DetailResepActivity : AppCompatActivity() {
     }
 
     private fun setupTabBahanListeners() {
+        // Tampilkan bahan utama secara default
+        tampilkanBahanUtama()
+
         binding.btnTabBahanUtama.setOnClickListener {
             setActiveTab(binding.btnTabBahanUtama, binding.btnTabTakaranSendok, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• Remahan biskuit graham\n• Mentega cair\n• Gula pasir\n• Labu kuning\n• Keju krim\n• Gula merah"
-            binding.tvBahanKanan.text = "• Bumbu pai labu\n• Cokelat putih\n• Krim kental\n• Gula halus\n• Ekstrak vanila"
+            tampilkanBahanUtama()
         }
 
         binding.btnTabTakaranSendok.setOnClickListener {
@@ -99,6 +97,11 @@ class DetailResepActivity : AppCompatActivity() {
             binding.tvBahanKiri.text = "• 150 gr biskuit graham\n• 75 gr mentega cair\n• 30 gr gula pasir\n• 425 gr puree labu\n• 225 gr keju krim\n• 15 gr gula merah"
             binding.tvBahanKanan.text = "• 10 gr bumbu pai labu\n• 225 gr cokelat putih\n• 180 ml krim kental\n• 30 gr gula halus\n• 5 ml ekstrak vanila"
         }
+    }
+
+    private fun tampilkanBahanUtama() {
+        binding.tvBahanKiri.text = "• Remahan biskuit graham\n• Mentega cair\n• Gula pasir\n• Labu kuning\n• Keju krim\n• Gula merah"
+        binding.tvBahanKanan.text = "• Bumbu pai labu\n• Cokelat putih\n• Krim kental\n• Gula halus\n• Ekstrak vanila"
     }
 
     private fun setActiveTab(selected: MaterialButton, unselected1: MaterialButton, unselected2: MaterialButton) {
