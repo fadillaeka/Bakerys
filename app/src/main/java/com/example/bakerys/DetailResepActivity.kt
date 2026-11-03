@@ -42,7 +42,7 @@ class DetailResepActivity : AppCompatActivity() {
 
         setupBottomNavigation()
 
-        binding.btnTimer.setOnClickListener {
+        binding.btnSetAlarm.setOnClickListener {
             TimerDialog().show(supportFragmentManager, "TimerDialog")
         }
     }

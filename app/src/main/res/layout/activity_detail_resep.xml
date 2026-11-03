@@ -253,7 +253,7 @@
 
             </LinearLayout>
 
-            <!-- Section Langkah Memasak -->
+            <!-- Section Alarm Pemanggangan & Langkah Memasak -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -262,6 +262,7 @@
                 android:padding="20dp"
                 android:paddingBottom="24dp">
 
+                <!-- Header Alarm Pemanggangan -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -270,19 +271,23 @@
                     android:layout_marginBottom="16dp">
 
                     <TextView
+                        android:id="@+id/tvTitleAlarm"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Langkah Memasak →"
+                        android:text="Alarm Pemanggangan"
                         android:textColor="#FFF9F8"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
                     <ImageView
-                        android:id="@+id/btnTimer"
+                        android:id="@+id/btnSetAlarm"
                         android:layout_width="28dp"
                         android:layout_height="28dp"
-                        android:src="@drawable/ic_bell"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:src="@drawable/baseline_timer_24"
                         app:tint="#FFF9F8"
                         android:contentDescription="Timer" />
                 </LinearLayout>
