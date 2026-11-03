@@ -39,7 +39,6 @@
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
-            <!-- Ikon Lonceng Notifikasi (Sudah diberi ID btnNotifikasi) -->
             <ImageView
                 android:id="@+id/btnNotifikasi"
                 android:layout_width="36dp"
@@ -103,19 +102,22 @@
                 android:layout_marginStart="12dp"
                 android:background="@null"
                 android:hint="Cari sourdough, kue, kue kering..."
-                android:textColor="#3E2723"
                 android:textColorHint="#A08882"
+                android:textColor="#3E2723"
                 android:textSize="13sp"
-                android:inputType="text" />
+                android:inputType="text"
+                android:maxLines="1"
+                android:imeOptions="actionSearch" />
 
             <ImageView
+                android:id="@+id/btnFilterIcon"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:src="@drawable/search_filters"
                 android:contentDescription="Filter" />
         </LinearLayout>
 
-        <!-- Kategori Horizontal -->
+        <!-- Kategori Horizontal (Semua, Sourdough, Kue, dll) -->
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -127,7 +129,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <!-- Chip 1 (Aktif - Maroon) -->
+                <!-- Chip 1 (Semua) -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnKategoriSemua"
                     android:layout_width="wrap_content"
@@ -140,7 +142,7 @@
                     android:textSize="12sp"
                     app:cornerRadius="18dp" />
 
-                <!-- Chip 2 -->
+                <!-- Chip 2 (Sourdough) -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnKategoriSourdough"
                     android:layout_width="wrap_content"
@@ -155,7 +157,7 @@
                     app:strokeColor="#EED5CE"
                     app:strokeWidth="1dp" />
 
-                <!-- Chip 3 -->
+                <!-- Chip 3 (Kue) -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnKategoriKue"
                     android:layout_width="wrap_content"
@@ -170,7 +172,7 @@
                     app:strokeColor="#EED5CE"
                     app:strokeWidth="1dp" />
 
-                <!-- Chip 4 -->
+                <!-- Chip 4 (Kue Kering) -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnKategoriKueKering"
                     android:layout_width="wrap_content"
@@ -186,9 +188,9 @@
             </LinearLayout>
         </HorizontalScrollView>
 
-        <!-- Kartu Unggulan (Bake of the Day / Dubai Chewy Cookies) -->
+        <!-- Kartu Bake of the Day  -->
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardBakeOfDay"
+            android:id="@+id/cardBakeOfTheDay"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
@@ -226,10 +228,13 @@
                             android:layout_height="wrap_content"
                             android:paddingHorizontal="10dp"
                             android:paddingVertical="4dp"
-                            android:text="✨ Bake of the Day"
+                            android:text="Bake of the Day"
                             android:textColor="#802C3E"
                             android:textSize="11sp"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            android:drawableStart="@drawable/sparkles"
+                            android:drawablePadding="6dp"
+                            android:gravity="center_vertical"/>
                     </com.google.android.material.card.MaterialCardView>
                 </FrameLayout>
 

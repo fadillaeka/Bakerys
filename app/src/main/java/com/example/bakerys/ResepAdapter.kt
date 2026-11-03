@@ -47,7 +47,7 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
 
         // Logika tombol favorit (warna ikon)
         if (item.isFavorite) {
-            holder.btnFavorite?.setColorFilter(Color.parseColor("#802C3E"))
+            holder.btnFavorite?.setColorFilter(Color.parseColor("#FF3B30"))
         } else {
             holder.btnFavorite?.setColorFilter(Color.parseColor("#8C7A6B"))
         }
@@ -57,7 +57,7 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
             item.isFavorite = !item.isFavorite
 
             if (item.isFavorite) {
-                holder.btnFavorite?.setColorFilter(Color.parseColor("#802C3E"))
+                holder.btnFavorite?.setColorFilter(Color.parseColor("#FF3B30"))
                 DisukaiFragment.tambahKeDisukai(item)
                 Toast.makeText(holder.itemView.context, "${item.judul} ditambahkan ke Disukai", Toast.LENGTH_SHORT).show()
             } else {
