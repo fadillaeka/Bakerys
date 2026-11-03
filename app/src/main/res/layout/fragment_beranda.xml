@@ -266,6 +266,31 @@
             app:spanCount="2"
             tools:listitem="@layout/item_resipe_card"
             tools:itemCount="4"/>
+        <!-- Teks Quote / Catatan Kaki di Bawah RecyclerView -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="32dp">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/bakery_mark"
+                app:tint="#802C3E"
+                android:contentDescription="Heart" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="A little better, one bake at a time."
+                android:textColor="#802C3E"
+                android:textSize="13sp"
+                android:textStyle="italic" />
+        </LinearLayout>
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

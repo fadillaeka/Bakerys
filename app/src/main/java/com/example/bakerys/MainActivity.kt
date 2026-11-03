@@ -3,6 +3,7 @@ package com.example.bakerys
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -100,5 +101,14 @@ class MainActivity : AppCompatActivity() {
                 Log.e("SUPABASE_ERROR", "Gagal konek ke database: ${e.message}")
             }
         }
+    }
+
+    // --- TAMBAHKAN FUNGSI LOGOUT INI DI SINI ---
+    fun logoutUser() {
+        Toast.makeText(this, "Berhasil Log Out", Toast.LENGTH_SHORT).show()
+        val intent = Intent(this, WelcomeActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 }
