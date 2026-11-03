@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
 // 1. Data Model
@@ -14,7 +15,8 @@ data class ResepModel(
     val judul: String,
     val deskripsi: String,
     val gambar: Int,
-    var isFavorite: Boolean = false
+    var isFavorite: Boolean = false,
+    var isDisukai: Boolean = false
 )
 
 // 2. Adapter
@@ -43,19 +45,29 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
         // Pasang gambar kue secara dinamik
         holder.imgKue?.setImageResource(item.gambar)
 
-        // Logik butang favorit
+        // Logika tombol favorit (warna ikon)
         if (item.isFavorite) {
-            holder.btnFavorite?.setColorFilter(Color.parseColor("#D32F2F"))
+            holder.btnFavorite?.setColorFilter(Color.parseColor("#802C3E"))
         } else {
             holder.btnFavorite?.setColorFilter(Color.parseColor("#8C7A6B"))
         }
 
+        // --- AKSI KLIK TOMBOL FAVORIT / LIKE ---
         holder.btnFavorite?.setOnClickListener {
             item.isFavorite = !item.isFavorite
+
             if (item.isFavorite) {
-                holder.btnFavorite?.setColorFilter(Color.parseColor("#D32F2F"))
+                holder.btnFavorite?.setColorFilter(Color.parseColor("#802C3E"))
+
+                // TAMBAHKAN INI: Kirim data resep ke DisukaiFragment
+                DisukaiFragment.tambahKeDisukai(item)
+                Toast.makeText(holder.itemView.context, "${item.judul} ditambahkan ke Disukai", Toast.LENGTH_SHORT).show()
             } else {
                 holder.btnFavorite?.setColorFilter(Color.parseColor("#8C7A6B"))
+
+                // TAMBAHKAN INI: Hapus data resep dari DisukaiFragment jika di-unlike
+                DisukaiFragment.daftarResepDisukai.removeAll { it.judul == item.judul }
+                Toast.makeText(holder.itemView.context, "${item.judul} dihapus dari Disukai", Toast.LENGTH_SHORT).show()
             }
         }
 
