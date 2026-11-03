@@ -47,6 +47,12 @@ class BerandaFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_beranda, container, false)
 
+        val btnNotifikasi = view.findViewById<ImageView>(R.id.btnNotifikasi)
+        btnNotifikasi?.setOnClickListener {
+            val bottomSheet = NotifikasiBottomSheet()
+            bottomSheet.show(parentFragmentManager, "NotifikasiBottomSheet")
+        }
+
         cardBakeOfTheDay = view.findViewById(R.id.cardBakeOfTheDay)
 
         // Klik Card Dubai Chewy Cookies
