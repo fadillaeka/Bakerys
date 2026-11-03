@@ -1,39 +1,12 @@
 package com.example.bakerys
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import android.net.Uri
 
-
-@kotlinx.serialization.InternalSerializationApi
-@Serializable
 data class ResepModel(
-    @SerialName("id")
-    val id: Long? = null,
-
-    @SerialName("user_id")
-    val userId: String? = null,
-
-    @SerialName("kategori_id")
-    val kategoriId: Long? = null,
-
-    @SerialName("judul")
-    val judul: String = "",
-
-    @SerialName("deskripsi")
-    val deskripsi: String = "",
-
-    @SerialName("gambar")
-    val gambar: Int,
-
-    @SerialName("waktu_panggang")
-    val waktuPanggang: Int? = null,
-
-    @SerialName("porsi")
-    val porsi: String? = null,
-
-    @SerialName("status")
-    val status: String = "published",
-
+    val judul: String,
+    val deskripsi: String,
+    val gambar: Int? = null,
+    val imageUri: Uri? = null,
     var isFavorite: Boolean = false,
-    val isDisukai: Boolean = false
+    var isDisukai: Boolean = false
 )

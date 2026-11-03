@@ -8,8 +8,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
-
-@kotlinx.serialization.InternalSerializationApi
 class DisukaiAdapter(private val listDisukai: MutableList<ResepModel>) :
     RecyclerView.Adapter<DisukaiAdapter.DisukaiViewHolder>() {
 
@@ -30,9 +28,7 @@ class DisukaiAdapter(private val listDisukai: MutableList<ResepModel>) :
         val item = listDisukai[position]
         holder.tvJudul.text = item.judul
         holder.tvDeskripsi.text = item.deskripsi
-        val imgResId = item.gambar.toInt() ?: R.drawable.cookies
-        holder.ivGambar.setImageResource(imgResId)
-
+        holder.ivGambar.setImageResource(item.gambar ?: R.drawable.dubai)
         // Aksi ketika ikon hati diklik (Unlike / Hapus dari daftar disukai)
         holder.ivHeart.setOnClickListener {
             val currentPosition = holder.adapterPosition

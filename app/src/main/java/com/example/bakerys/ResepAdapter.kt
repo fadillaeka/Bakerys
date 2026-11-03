@@ -10,9 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
-
-
-@kotlinx.serialization.InternalSerializationApi
+// 1. Data Model
 
 // 2. Adapter
 class ResepAdapter(private val listResep: List<ResepModel>) :
@@ -37,9 +35,8 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
         holder.tvJudulKue?.text = item.judul
         holder.tvWaktuLevel?.text = item.deskripsi
 
-        val imgResId = item.gambar ?: R.drawable.bg_pastry_login
-        holder.imgKue?.setImageResource(imgResId)
-
+        // Pasang gambar kue secara dinamik
+        holder.imgKue?.setImageResource(item.gambar ?: R.drawable.dubai)
         // Logika tombol favorit (warna ikon)
         if (item.isFavorite) {
             holder.btnFavorite?.setColorFilter(Color.parseColor("#FF3B30"))
@@ -49,7 +46,7 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
 
         // --- AKSI KLIK TOMBOL FAVORIT / LIKE ---
         holder.btnFavorite?.setOnClickListener {
-            (!item.isFavorite).also { item.isFavorite = it }
+            item.isFavorite = !item.isFavorite
 
             if (item.isFavorite) {
                 holder.btnFavorite?.setColorFilter(Color.parseColor("#FF3B30"))
@@ -67,7 +64,7 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
             val context = holder.itemView.context
             val intent = Intent(context, DetailResepActivity::class.java).apply {
                 putExtra("EXTRA_JUDUL", item.judul)
-                putExtra("EXTRA_GAMBAR", imgResId)
+                putExtra("EXTRA_GAMBAR", item.gambar)
 
                 // Format durasi dinamis agar tidak default ke 50 menit
                 val durasiFormat = if (item.deskripsi.contains("•")) {
