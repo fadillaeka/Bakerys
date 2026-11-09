@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,14 +15,20 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.example.bakerys.databinding.FragmentProfilBinding
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
+@OptIn(kotlinx.serialization.InternalSerializationApi::class)
 class ProfilFragment : Fragment() {
 
     private var _binding: FragmentProfilBinding? = null
     private val binding get() = _binding!!
 
-    // Preferences untuk menyimpan opsi yang dipilih
     private lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreateView(
@@ -38,56 +45,128 @@ class ProfilFragment : Fragment() {
 
         sharedPreferences = requireActivity().getSharedPreferences("BakerysPrefs", Context.MODE_PRIVATE)
 
-        // 1. Load preferensi tersimpan saat fragment dibuka
         loadSavedPreferences()
 
-        // 2. Listener Tombol Edit Profile
+        // 1. Listener Tombol Edit Profile
         binding.btnEditProfile.setOnClickListener {
             startActivity(Intent(requireContext(), EditProfileActivity::class.java))
         }
 
-        // 3. Listener Navigasi ke TersimpanFragment (Resep Disimpan)
+        // 2. Listener Navigasi Fragment (Diperbaiki menggunakan supportFragmentManager)
         binding.btnResepDisimpan.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, TersimpanFragment())
-                .addToBackStack(null)
-                .commit()
+            activity?.supportFragmentManager?.beginTransaction()
+                ?.replace(R.id.fragment_container, TersimpanFragment())
+                ?.addToBackStack(null)
+                ?.commit()
         }
 
-        // 4. Listener Navigasi ke DraftFragment
         binding.btnDraftResep.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, DraftFragment())
-                .addToBackStack(null)
-                .commit()
+            activity?.supportFragmentManager?.beginTransaction()
+                ?.replace(R.id.fragment_container, DraftFragment())
+                ?.addToBackStack(null)
+                ?.commit()
         }
 
-        // 4.5. Listener Navigasi ke DisukaiFragment (MENU DISUKAI BARU)
         binding.btnDisukai.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, DisukaiFragment())
-                .addToBackStack(null)
-                .commit()
+            activity?.supportFragmentManager?.beginTransaction()
+                ?.replace(R.id.fragment_container, DisukaiFragment())
+                ?.addToBackStack(null)
+                ?.commit()
         }
 
-        // 5. Listener Log Out
+        // 3. Listener Log Out
         binding.btnLogout.setOnClickListener {
-            Toast.makeText(requireContext(), "Berhasil Log Out", Toast.LENGTH_SHORT).show()
+            viewLifecycleOwner.lifecycleScope.launch {
+                try {
+                    SupabaseClient.instance.auth.signOut()
+                } catch (e: Exception) {
+                    // Ignore exception
+                }
 
-            val currentActivity = activity ?: return@setOnClickListener
-            val intent = Intent(currentActivity, WelcomeActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                Toast.makeText(requireContext(), "Berhasil Log Out", Toast.LENGTH_SHORT).show()
+
+                val currentActivity = activity ?: return@launch
+                val intent = Intent(currentActivity, WelcomeActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                }
+                currentActivity.startActivity(intent)
+                currentActivity.finish()
             }
-            currentActivity.startActivity(intent)
-            currentActivity.finish()
         }
 
-        // 6. Listener Aksi Klik Preferensi Pemanggangan
+        // 4. Listener Preferensi Pemanggangan
         setupPreferensiListeners()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Mengisi & merefresh data profil dari lokal & Supabase setiap kali fragment ini aktif
+        loadProfilUser()
+    }
+
+    private fun loadProfilUser() {
+        // 1. Muat Foto Profil & Data Teks dari SharedPreferences Lokal (Instan)
+        val savedUriStr = sharedPreferences.getString("profile_image_uri", null)
+        if (!savedUriStr.isNullOrEmpty()) {
+            try {
+                binding.ivFotoProfil.setImageURI(Uri.parse(savedUriStr))
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        val localNama = sharedPreferences.getString("profile_name", null)
+        val localBio = sharedPreferences.getString("profile_bio", null)
+        if (!localNama.isNullOrEmpty()) binding.tvNamaUser.text = localNama
+        if (!localBio.isNullOrEmpty()) binding.tvBioUser.text = localBio
+
+        // 2. Sinkronkan dengan Supabase DB
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val currentUser = SupabaseClient.instance.auth.currentUserOrNull() ?: return@launch
+                val userId = currentUser.id
+                val userEmailAuth = currentUser.email ?: ""
+
+                val result = SupabaseClient.instance.from("users")
+                    .select {
+                        filter {
+                            eq("id", userId)
+                        }
+                    }.decodeList<JsonObject>()
+
+                var username = userEmailAuth.substringBefore("@")
+                var bioText = "Selamat datang di Bakerys!"
+
+                if (result.isNotEmpty()) {
+                    val userObj = result.first()
+
+                    val dbUsername = userObj["username"]?.jsonPrimitive?.content
+                    val dbNamaLengkap = userObj["nama_lengkap"]?.jsonPrimitive?.content
+
+                    if (!dbUsername.isNullOrEmpty()) {
+                        username = dbUsername
+                    } else if (!dbNamaLengkap.isNullOrEmpty()) {
+                        username = dbNamaLengkap
+                    }
+
+                    val dbBio = userObj["bio"]?.jsonPrimitive?.content
+                    if (!dbBio.isNullOrEmpty()) {
+                        bioText = dbBio
+                    }
+                }
+
+                if (_binding != null) {
+                    binding.tvNamaUser.text = username
+                    binding.tvBioUser.text = bioText
+                }
+
+            } catch (e: Exception) {
+                android.util.Log.e("BAKERYS_DEBUG", "Error load profil: ${e.message}")
+            }
+        }
+    }
+
     private fun setupPreferensiListeners() {
-        // --- Satuan Pengukuran ---
         binding.btnMetric.setOnClickListener {
             setOptionSelected(binding.btnMetric, binding.tvMetric, binding.btnImperial, binding.tvImperial)
             savePreference("unit_preference", "metric")
@@ -100,7 +179,6 @@ class ProfilFragment : Fragment() {
             Toast.makeText(requireContext(), "Satuan diubah ke Sendok (Cangkir/ons)", Toast.LENGTH_SHORT).show()
         }
 
-        // --- Suhu Oven ---
         binding.btnCelcius.setOnClickListener {
             setOptionSelected(binding.btnCelcius, binding.tvCelcius, binding.btnFahrenheit, binding.tvFahrenheit)
             savePreference("temp_preference", "celcius")
@@ -140,12 +218,10 @@ class ProfilFragment : Fragment() {
         unselectedBtn: LinearLayout,
         unselectedTv: TextView
     ) {
-        // Tampilan Aktif (Maroon, Teks Putih Bold)
         selectedBtn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#802C3E"))
         selectedTv.setTextColor(Color.WHITE)
         selectedTv.setTypeface(null, Typeface.BOLD)
 
-        // Tampilan Tidak Aktif (Transparan, Teks Maroon Normal)
         unselectedBtn.backgroundTintList = null
         unselectedTv.setTextColor(Color.parseColor("#802C3E"))
         unselectedTv.setTypeface(null, Typeface.NORMAL)

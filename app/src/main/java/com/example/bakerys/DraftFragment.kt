@@ -27,12 +27,23 @@ class DraftFragment : Fragment() {
         rvDraft = view.findViewById(R.id.rvDraft)
         rvDraft.layoutManager = LinearLayoutManager(requireContext())
 
-        // Inisialisasi adapter dengan aksi klik item untuk pindah ke UnggahFragment
+        // Menggunakan JelajahAdapter karena cocok dengan tipe Recipe di RecipeRepository.draftList
         draftAdapter = JelajahAdapter(
             recipeList = RecipeRepository.draftList,
             onItemClick = { recipe ->
-                // Panggil fungsi di MainActivity untuk pindah ke UnggahFragment membawa data draft
-                (activity as? MainActivity)?.bukaUnggahDenganData(recipe)
+                val fragmentUnggah = UnggahFragment().apply {
+                    arguments = Bundle().apply {
+                        putInt("DRAFT_ID", recipe.id)
+                        putString("DRAFT_TITLE", recipe.title)
+                        putString("DRAFT_IMAGE_URI", recipe.imageUri?.toString())
+                        putInt("DRAFT_IMAGE_RES", recipe.imageResId ?: 0)
+                    }
+                }
+
+                activity?.supportFragmentManager?.beginTransaction()
+                    ?.replace(R.id.fragment_container, fragmentUnggah)
+                    ?.addToBackStack(null)
+                    ?.commit()
             },
             onBookmarkClick = { }
         )
@@ -41,7 +52,6 @@ class DraftFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Refresh otomatis saat tab Draft dibuka
         if (::draftAdapter.isInitialized) {
             draftAdapter.notifyDataSetChanged()
         }
