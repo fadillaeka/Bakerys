@@ -38,7 +38,12 @@ class BerandaFragment : Fragment() {
         ResepModel(judul = "Fudgy Brownies", deskripsi = "Easy • 1h 20m", gambar = R.drawable.classic_choco_brownies),
         ResepModel(judul = "Cheesecake Bars", deskripsi = "Medium • 3h 30m", gambar = R.drawable.no_bake_pumpkin_cheesecake_bars),
 
-        ResepModel(judul = "Classic Cookies", deskripsi = "Easy • 35m", gambar = R.drawable.cookies)
+        // --- SENARAI KUIH KERING LENGKAP ---
+        ResepModel(judul = "Classic Cookies", deskripsi = "Easy • 35m", gambar = R.drawable.cookies),
+        ResepModel(judul = "Nastar Premium", deskripsi = "Medium • 1h", gambar = R.drawable.nastar),
+        ResepModel(judul = "Kastangel Keju", deskripsi = "Easy • 45m", gambar = R.drawable.kastangel),
+        ResepModel(judul = "Lidah Kucing", deskripsi = "Easy • 35m", gambar = R.drawable.lidah_kucing),
+        ResepModel(judul = "Kuping Gajah", deskripsi = "Easy • 30m", gambar = R.drawable.kuping_gajah)
     )
 
     override fun onCreateView(
@@ -81,8 +86,9 @@ class BerandaFragment : Fragment() {
             }
             override fun afterTextChanged(s: Editable?) {}
         })
-            // Fitur Klik Ikon Filter (Mengurutkan resep)
-            val btnFilterIcon = view.findViewById<ImageView>(R.id.btnFilterIcon)
+
+        // Fitur Klik Ikon Filter
+        val btnFilterIcon = view.findViewById<ImageView>(R.id.btnFilterIcon)
         btnFilterIcon?.setOnClickListener { viewAnchor ->
             val popup = android.widget.PopupMenu(requireContext(), viewAnchor)
             popup.menu.add(0, 1, 0, "Urutkan: Terbaru ke Terlama")
@@ -112,7 +118,7 @@ class BerandaFragment : Fragment() {
 
         val daftarTombol = listOfNotNull(btnSemua, btnSourdough, btnKue, btnKueKering)
 
-        // Tombol SEMUA (Card Dubai Muncul Kembali)
+        // Tombol SEMUA
         btnSemua?.setOnClickListener {
             aturWarnaTombolAktif(btnSemua, daftarTombol)
             etSearch.setText("")
@@ -120,7 +126,7 @@ class BerandaFragment : Fragment() {
             updateDataResep(semuaDataResep)
         }
 
-        // Tombol SOURDOUGH (Card Dubai Disembunyikan)
+        // Tombol SOURDOUGH
         btnSourdough?.setOnClickListener {
             aturWarnaTombolAktif(btnSourdough, daftarTombol)
             etSearch.setText("")
@@ -133,7 +139,7 @@ class BerandaFragment : Fragment() {
             updateDataResep(dataSourdough)
         }
 
-        // Tombol KUE (Card Dubai Disembunyikan)
+        // Tombol KUE
         btnKue?.setOnClickListener {
             aturWarnaTombolAktif(btnKue, daftarTombol)
             etSearch.setText("")
@@ -146,14 +152,18 @@ class BerandaFragment : Fragment() {
             updateDataResep(dataKue)
         }
 
-        // Tombol KUE KERING (Card Dubai Disembunyikan)
+        // Tombol KUE KERING (Menampilkan Classic Cookies + Nastar + Kastangel + Lidah Kucing + Kuping Gajah)
         btnKueKering?.setOnClickListener {
             aturWarnaTombolAktif(btnKueKering, daftarTombol)
             etSearch.setText("")
             cardBakeOfTheDay.visibility = View.GONE
             val dataKueKering = semuaDataResep.filter {
                 it.judul.contains("Cookie", ignoreCase = true) ||
-                        it.judul.contains("Cookies", ignoreCase = true)
+                        it.judul.contains("Cookies", ignoreCase = true) ||
+                        it.judul.contains("Nastar", ignoreCase = true) ||
+                        it.judul.contains("Kastangel", ignoreCase = true) ||
+                        it.judul.contains("Lidah Kucing", ignoreCase = true) ||
+                        it.judul.contains("Kuping Gajah", ignoreCase = true)
             }
             updateDataResep(dataKueKering)
         }
@@ -163,9 +173,9 @@ class BerandaFragment : Fragment() {
 
     private fun filterResep(query: String) {
         if (query.isNotEmpty()) {
-            cardBakeOfTheDay.visibility = View.GONE // Sembunyikan saat sedang mengetik pencarian
+            cardBakeOfTheDay.visibility = View.GONE
         } else {
-            cardBakeOfTheDay.visibility = View.VISIBLE // Munculkan kembali jika pencarian kosong
+            cardBakeOfTheDay.visibility = View.VISIBLE
         }
 
         val hasil = if (query.isEmpty()) {
