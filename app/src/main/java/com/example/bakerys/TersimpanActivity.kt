@@ -7,10 +7,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
-@kotlinx.serialization.InternalSerializationApi
+@OptIn(kotlinx.serialization.InternalSerializationApi::class)
 class TersimpanActivity : AppCompatActivity() {
 
-    private val bookmarkedList = mutableListOf<Recipe>()
+    private lateinit var rvTersimpan: RecyclerView
+    private lateinit var adapter: TersimpanAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,30 +20,33 @@ class TersimpanActivity : AppCompatActivity() {
         val btnBack = findViewById<ImageView>(R.id.btnBack)
         btnBack.setOnClickListener { finish() }
 
-        val rvTersimpan = findViewById<RecyclerView>(R.id.rvTersimpan)
+        rvTersimpan = findViewById(R.id.rvTersimpan)
         rvTersimpan.layoutManager = LinearLayoutManager(this)
 
-        val adapter = TersimpanAdapter(
-            bookmarkedList = bookmarkedList,
-            onItemClick = { resep ->
-                // Mengirimkan judul resep menggunakan key EXTRA_JUDUL agar dibaca oleh DetailResepActivity
+        adapter = TersimpanAdapter(
+            bookmarkedList = RecipeRepository.resepTersimpanList,
+            onItemClick = { recipe ->
                 val intent = Intent(this, DetailResepActivity::class.java).apply {
-                    putExtra("EXTRA_JUDUL", resep.title)
-                    if (resep.imageResId != null) {
-                        putExtra("EXTRA_GAMBAR", resep.imageResId)
-                    }
+                    putExtra("EXTRA_RECIPE_ID", recipe.id)
+                    putExtra("EXTRA_JUDUL", recipe.title)
+                    recipe.imageResId?.let { putExtra("EXTRA_GAMBAR", it) }
                 }
                 startActivity(intent)
             },
-            onRemoveBookmark = { resep, position ->
-                if (position in 0 until bookmarkedList.size) {
-                    bookmarkedList.removeAt(position)
-                    rvTersimpan.adapter?.notifyItemRemoved(position)
-                    rvTersimpan.adapter?.notifyItemRangeChanged(position, bookmarkedList.size - position)
-                }
+            onRemoveBookmark = { recipe, position ->
+                recipe.isBookmarked = false
+                RecipeRepository.resepTersimpanList.removeAll { it.id == recipe.id }
+                BookmarkManager.removeBookmark(recipe)
+                adapter.removeItemAt(position)
             }
         )
-
         rvTersimpan.adapter = adapter
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::adapter.isInitialized) {
+            adapter.notifyDataSetChanged()
+        }
     }
 }

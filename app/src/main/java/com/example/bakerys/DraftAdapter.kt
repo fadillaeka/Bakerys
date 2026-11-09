@@ -6,42 +6,40 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.button.MaterialButton
-
-// Data Model khusus untuk item Draft
-data class DraftModel(
-    val judul: String,
-    val gambar: Int
-)
 
 class DraftAdapter(
-    private val listDraft: List<DraftModel>,
-    private val onItemClick: (DraftModel) -> Unit
-) : RecyclerView.Adapter<DraftAdapter.ViewHolder>() {
+    private val draftList: List<Recipe>,
+    private val onItemClick: (Recipe) -> Unit
+) : RecyclerView.Adapter<DraftAdapter.DraftViewHolder>() {
 
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class DraftViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imgDraft: ImageView = itemView.findViewById(R.id.imgDraft)
         val tvJudulDraft: TextView = itemView.findViewById(R.id.tvJudulDraft)
-        val btnLihatResep: MaterialButton = itemView.findViewById(R.id.btnLihatResep)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        // DI SINI KUNCI PERUBAHANNYA: Meng-inflate item_draft_card.xml
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DraftViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_draft_card, parent, false)
-        return ViewHolder(view)
+        return DraftViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = listDraft[position]
+    override fun onBindViewHolder(holder: DraftViewHolder, position: Int) {
+        val recipe = draftList[position]
 
-        holder.tvJudulDraft.text = item.judul
-        holder.imgDraft.setImageResource(item.gambar)
+        holder.tvJudulDraft.text = recipe.title
 
-        holder.btnLihatResep.setOnClickListener {
-            onItemClick(item)
+        if (recipe.imageUri != null) {
+            holder.imgDraft.setImageURI(recipe.imageUri)
+        } else if (recipe.imageResId != null) {
+            holder.imgDraft.setImageResource(recipe.imageResId)
+        } else {
+            holder.imgDraft.setImageResource(R.drawable.bakery_mark)
+        }
+
+        holder.itemView.setOnClickListener {
+            onItemClick(recipe)
         }
     }
 
-    override fun getItemCount(): Int = listDraft.size
+    override fun getItemCount(): Int = draftList.size
 }

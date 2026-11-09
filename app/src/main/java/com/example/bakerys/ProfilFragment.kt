@@ -52,14 +52,7 @@ class ProfilFragment : Fragment() {
             startActivity(Intent(requireContext(), EditProfileActivity::class.java))
         }
 
-        // 2. Listener Navigasi Fragment (Diperbaiki menggunakan supportFragmentManager)
-        binding.btnResepDisimpan.setOnClickListener {
-            activity?.supportFragmentManager?.beginTransaction()
-                ?.replace(R.id.fragment_container, TersimpanFragment())
-                ?.addToBackStack(null)
-                ?.commit()
-        }
-
+        // 2. Listener Navigasi Fragment (Draft & Disukai)
         binding.btnDraftResep.setOnClickListener {
             activity?.supportFragmentManager?.beginTransaction()
                 ?.replace(R.id.fragment_container, DraftFragment())

@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 class DraftFragment : Fragment() {
 
     private lateinit var rvDraft: RecyclerView
-    private lateinit var draftAdapter: JelajahAdapter
+    private lateinit var draftAdapter: DraftAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -27,10 +27,9 @@ class DraftFragment : Fragment() {
         rvDraft = view.findViewById(R.id.rvDraft)
         rvDraft.layoutManager = LinearLayoutManager(requireContext())
 
-        // Menggunakan JelajahAdapter karena cocok dengan tipe Recipe di RecipeRepository.draftList
-        draftAdapter = JelajahAdapter(
-            recipeList = RecipeRepository.draftList,
-            onItemClick = { recipe ->
+        draftAdapter = DraftAdapter(
+            draftList = RecipeRepository.draftList,
+            onItemClick = { recipe: Recipe ->
                 val fragmentUnggah = UnggahFragment().apply {
                     arguments = Bundle().apply {
                         putInt("DRAFT_ID", recipe.id)
@@ -44,9 +43,9 @@ class DraftFragment : Fragment() {
                     ?.replace(R.id.fragment_container, fragmentUnggah)
                     ?.addToBackStack(null)
                     ?.commit()
-            },
-            onBookmarkClick = { }
+            }
         )
+
         rvDraft.adapter = draftAdapter
     }
 
