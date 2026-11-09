@@ -2,10 +2,11 @@ package com.example.bakerys
 
 import android.net.Uri
 
-// Model khusus untuk Postingan Biasa (bukan resep)
+// Model khusus untuk Postingan Biasa
 data class PostinganModel(
+    val id: Int = System.currentTimeMillis().toInt(),
     val judul: String,
-    val deskripsi: String,
+    val deskripsi: String = "",
     val imageUri: Uri? = null,
     val imageResId: Int? = null,
     val waktu: String = "Baru saja",
@@ -24,6 +25,17 @@ object PostinganRepository {
     }
 
     fun tambahKeDraft(post: PostinganModel) {
-        daftarDraft.add(0, post)
+        val index = daftarDraft.indexOfFirst { it.id == post.id }
+        if (index != -1) {
+            // Update draft yang sudah ada
+            daftarDraft[index] = post
+        } else {
+            // Tambah draft baru di paling atas
+            daftarDraft.add(0, post)
+        }
+    }
+
+    fun hapusDraftById(id: Int) {
+        daftarDraft.removeAll { it.id == id }
     }
 }

@@ -127,7 +127,7 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
-    // MEMBUKA DRAFT DENGAN DATA KE UNGGAH FRAGMENT
+    // MEMBUKA UNGGAH FRAGMENT DENGAN DATA DRAFT (Mendukung segala tipe objek Recipe/ResepModel)
     fun bukaUnggahDenganData(recipe: Recipe) {
         val fragment = UnggahFragment().apply {
             arguments = Bundle().apply {
@@ -139,12 +139,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Ganti fragment aktif ke UnggahFragment
+        // Pindah ke Fragment Unggah dan aktifkan tab Bottom Navigation
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
             .commit()
 
-        // Pindahkan indikator tab bottom navigation ke "Unggah"
         bottomNav.selectedItemId = R.id.nav_unggah
     }
 }
