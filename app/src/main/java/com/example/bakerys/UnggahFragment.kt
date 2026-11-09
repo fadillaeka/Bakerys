@@ -56,7 +56,7 @@ class UnggahFragment : Fragment() {
             pickImageLauncher.launch("image/*")
         }
 
-        // --- BACA DATA DRAFT YANG DIKIRIM ---
+        // --- BACA DATA DRAFT YANG DIKIRIM DARI DRAFTFRAGMENT ---
         arguments?.let { bundle ->
             if (bundle.containsKey("DRAFT_ID")) {
                 draftIdEdit = bundle.getInt("DRAFT_ID")
@@ -112,9 +112,14 @@ class UnggahFragment : Fragment() {
             NotifikasiBottomSheet.tambahNotif("Postingan kamu berhasil dipublikasikan!")
             Toast.makeText(requireContext(), "Postingan terbit di Jelajah!", Toast.LENGTH_SHORT).show()
             resetForm()
+
+            // PINDAH KE FRAGMENT BERANDA (JELAJAH)
+            activity?.supportFragmentManager?.beginTransaction()
+                ?.replace(R.id.fragment_container, BerandaFragment())
+                ?.commit()
         }
 
-        // 2. Simpan Sebagai Draft
+        // 2. Simpan Sebagai Draft (Tetap di halaman Unggah)
         btnSimpanDraft.setOnClickListener {
             val caption = etCaption.text.toString().trim()
 
@@ -139,7 +144,7 @@ class UnggahFragment : Fragment() {
             }
             RecipeRepository.tambahDraft(draftBaru)
 
-            Toast.makeText(requireContext(), "Draft berhasil diperbarui!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Draft berhasil disimpan!", Toast.LENGTH_SHORT).show()
             resetForm()
         }
     }

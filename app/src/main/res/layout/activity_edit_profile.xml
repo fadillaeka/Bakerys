@@ -10,10 +10,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingBottom="40dp">
+        android:orientation="vertical">
 
-        <!-- Header Atas (Logo & Judul) -->
+        <!-- Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -21,10 +20,13 @@
             android:padding="20dp">
 
             <ImageView
+                android:id="@+id/btnKembali"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
+                android:clickable="true"
+                android:focusable="true"
                 android:src="@drawable/bakery_mark"
-                android:contentDescription="Logo" />
+                android:contentDescription="Kembali" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -45,188 +47,167 @@
             android:paddingBottom="24dp">
 
             <FrameLayout
-                android:layout_width="110dp"
-                android:layout_height="110dp">
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center">
 
-                <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/bg_circle_peach"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/circle_user_round"
-                    android:contentDescription="Foto Profil" />
-
+                <!-- WADAH FOTO PROFIL BULAT -->
                 <com.google.android.material.card.MaterialCardView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_gravity="bottom|end"
-                    android:layout_marginEnd="4dp"
-                    android:layout_marginBottom="4dp"
-                    app:cardBackgroundColor="#802C3E"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
-                    app:strokeColor="#FFF9F8"
-                    app:strokeWidth="2dp">
+                    android:layout_width="110dp"
+                    android:layout_height="110dp"
+                    android:layout_gravity="center"
+                    app:cardCornerRadius="55dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#802C3E"
+                    app:strokeWidth="1.5dp">
 
                     <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
+                        android:id="@+id/ivFotoProfil"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/circle_user_round"
+                        android:contentDescription="Foto Profil" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Tombol Kamera -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardUbahFoto"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:layout_gravity="bottom|end"
+                    app:cardBackgroundColor="#802C3E"
+                    app:cardCornerRadius="17dp"
+                    app:cardElevation="2dp">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:layout_gravity="center"
-                        android:src="@drawable/ic_camera"
-                        app:tint="#FFF9F8"
-                        android:contentDescription="Ubah Foto" />
+                        android:src="@android:drawable/ic_menu_camera"
+                        app:tint="#FFFFFF"
+                        android:contentDescription="Kamera" />
                 </com.google.android.material.card.MaterialCardView>
             </FrameLayout>
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnUbahFoto"
                 android:layout_width="wrap_content"
-                android:layout_height="58dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:backgroundTint="#802C3E"
                 android:text="Ubah Foto Profile"
                 android:textAllCaps="false"
-                android:textSize="16sp"
+                android:textSize="12sp"
                 app:cornerRadius="16dp" />
         </LinearLayout>
 
-        <!-- Container Formulir Berwarna Maroon (Gap diperluas agar tidak dempet) -->
+        <!-- Informasi Pribadi -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#802C3E"
             android:orientation="vertical"
-            android:paddingHorizontal="24dp"
-            android:paddingTop="24dp"
-            android:paddingBottom="36dp">
+            android:padding="20dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Informasi Pribadi"
                 android:textColor="#FFFFFF"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="20dp"
-                android:background="#D7B5AE" />
+                android:layout_marginBottom="16dp"
+                android:background="#A44D5F" />
 
-            <!-- Nama Lengkap -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
                 android:text="Nama Lengkap"
-                android:textColor="#FFF9F8"
-                android:textSize="12sp"/>
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
 
             <EditText
+                android:id="@+id/etNamaLengkap"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:layout_marginBottom="20dp"
-                android:background="@drawable/bg_ffd2be_input"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_input_field"
                 android:hint="Contoh : Kim Namjoon"
                 android:paddingHorizontal="16dp"
-                android:textColor="#3E2723"
-                android:textColorHint="#7A4F57"
                 android:textSize="13sp" />
 
-            <!-- Username -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
                 android:text="Username"
-                android:textColor="#FFF9F8"
-                android:textSize="12sp"/>
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
 
             <EditText
+                android:id="@+id/etUsername"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:layout_marginBottom="20dp"
-                android:background="@drawable/bg_ffd2be_input"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_input_field"
                 android:hint="Contoh : Kim Namjoon"
                 android:paddingHorizontal="16dp"
-                android:textColor="#3E2723"
-                android:textColorHint="#7A4F57"
                 android:textSize="13sp" />
 
-            <!-- Email -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
                 android:text="Email"
-                android:textColor="#FFF9F8"
-                android:textSize="12sp"/>
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
 
             <EditText
+                android:id="@+id/etEmail"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:layout_marginBottom="20dp"
-                android:background="@drawable/bg_ffd2be_input"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_input_field"
                 android:hint="Contoh : BelanjaSapi@gmail.com"
                 android:paddingHorizontal="16dp"
-                android:textColor="#3E2723"
-                android:textColorHint="#7A4F57"
                 android:textSize="13sp" />
 
-            <!-- Bio -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
                 android:text="Bio"
-                android:textColor="#FFF9F8"
-                android:textSize="12sp"/>
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
 
             <EditText
+                android:id="@+id/etBio"
                 android:layout_width="match_parent"
-                android:layout_height="110dp"
-                android:background="@drawable/bg_ffd2be_input"
+                android:layout_height="100dp"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/bg_input_field"
                 android:gravity="top|start"
                 android:hint="Hobi membuat kue"
                 android:padding="16dp"
-                android:textColor="#3E2723"
-                android:textColorHint="#7A4F57"
                 android:textSize="13sp" />
-
-        </LinearLayout>
-
-        <!-- Tombol Aksi Bawah -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="24dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSimpan"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:layout_weight="1"
-                android:backgroundTint="#802C3E"
+                android:backgroundTint="#FCEBE5"
                 android:text="Simpan Perubahan"
                 android:textAllCaps="false"
-                android:textColor="#FFF9F8"
-                app:cornerRadius="16dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnKembali"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="1"
-                android:layout_marginStart="12dp"
-                android:text="Kembali"
-                android:textAllCaps="false"
                 android:textColor="#802C3E"
-                app:cornerRadius="16dp"
-                app:strokeColor="#802C3E" />
+                android:textStyle="bold"
+                app:cornerRadius="16dp" />
         </LinearLayout>
 
     </LinearLayout>

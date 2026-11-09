@@ -1,3 +1,7 @@
+@file:OptIn(
+    io.github.jan.supabase.annotations.SupabaseExperimental::class,
+    kotlinx.serialization.InternalSerializationApi::class
+)
 package com.example.bakerys
 
 import android.content.Intent
@@ -10,6 +14,8 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,18 +27,13 @@ class MainActivity : AppCompatActivity() {
 
         bottomNav = findViewById(R.id.bottom_nav_main)
 
-        // Set halaman pertama kali aplikasi dibuka (Beranda)
         if (savedInstanceState == null) {
             loadFragment(BerandaFragment())
         }
 
-        // Cek jika ada perintah pindah fragment dari DetailResepActivity
         handleIntentNavigation(intent)
-
-        // Jalankan tes koneksi ke Supabase Database
         cekKoneksiDatabase()
 
-        // Aksi ketika menu di Bottom Navigation diklik
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_beranda -> {
@@ -62,33 +63,22 @@ class MainActivity : AppCompatActivity() {
         handleIntentNavigation(intent)
     }
 
-    // Fungsi untuk memindahkan fragment & memilih ikon bottom nav secara otomatis
     private fun handleIntentNavigation(intent: Intent?) {
         val target = intent?.getStringExtra("EXTRA_NAV_TARGET") ?: return
         when (target) {
-            "TARGET_BERANDA" -> {
-                bottomNav.selectedItemId = R.id.nav_beranda
-            }
-            "TARGET_UNGGAH" -> {
-                bottomNav.selectedItemId = R.id.nav_unggah
-            }
-            "TARGET_JELAJAH" -> {
-                bottomNav.selectedItemId = R.id.nav_jelajah
-            }
-            "TARGET_PROFIL" -> {
-                bottomNav.selectedItemId = R.id.nav_profil
-            }
+            "TARGET_BERANDA" -> bottomNav.selectedItemId = R.id.nav_beranda
+            "TARGET_UNGGAH" -> bottomNav.selectedItemId = R.id.nav_unggah
+            "TARGET_JELAJAH" -> bottomNav.selectedItemId = R.id.nav_jelajah
+            "TARGET_PROFIL" -> bottomNav.selectedItemId = R.id.nav_profil
         }
     }
 
-    // Fungsi bantuan untuk mengganti Fragment di dalam FrameLayout
     private fun loadFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
             .commit()
     }
 
-    // Fungsi tes koneksi ke database Supabase
     private fun cekKoneksiDatabase() {
         lifecycleScope.launch {
             try {
@@ -103,7 +93,26 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // --- TAMBAHKAN FUNGSI LOGOUT INI DI SINI ---
+    // FUNGSI INSERT DATA LANGSUNG KE SUPABASE
+    fun tambahDataDatabase(namaResep: String, deskripsiResep: String) {
+        lifecycleScope.launch {
+            try {
+                val dataJson = buildJsonObject {
+                    put("nama_resep", namaResep)
+                    put("deskripsi", deskripsiResep)
+                }
+
+                SupabaseClient.instance.from("resep").insert(dataJson)
+
+                Log.d("SUPABASE_INSERT", "Data berhasil ditambahkan!")
+                Toast.makeText(this@MainActivity, "Data Berhasil Disimpan!", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Log.e("SUPABASE_INSERT_ERROR", "Gagal simpan data: ${e.message}")
+                Toast.makeText(this@MainActivity, "Gagal: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
     fun logoutUser() {
         Toast.makeText(this, "Berhasil Log Out", Toast.LENGTH_SHORT).show()
         val intent = Intent(this, WelcomeActivity::class.java)
@@ -111,7 +120,8 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
-    // Tambahkan di dalam MainActivity
+
+    // MEMBUKA DRAFT DENGAN DATA KE UNGGAH FRAGMENT
     fun bukaUnggahDenganData(recipe: Recipe) {
         val fragment = UnggahFragment().apply {
             arguments = Bundle().apply {
@@ -125,10 +135,10 @@ class MainActivity : AppCompatActivity() {
 
         // Ganti fragment aktif ke UnggahFragment
         supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, fragment) // Sesuaikan ID container fragment di activity_main.xml kamu
+            .replace(R.id.fragment_container, fragment)
             .commit()
 
-        // Sesuaikan BottomNavigationView agar tab Unggah terpilih (jika ada)
-        // binding.bottomNavigation.selectedItemId = R.id.nav_unggah
+        // Pindahkan indikator tab bottom navigation ke "Unggah"
+        bottomNav.selectedItemId = R.id.nav_unggah
     }
 }

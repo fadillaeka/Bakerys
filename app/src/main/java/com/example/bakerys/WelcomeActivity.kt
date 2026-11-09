@@ -7,6 +7,8 @@ import androidx.appcompat.app.AppCompatActivity
 import kotlin.jvm.java
 import com.example.bakerys.RegisterActivity
 
+
+@kotlinx.serialization.InternalSerializationApi
 class WelcomeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {

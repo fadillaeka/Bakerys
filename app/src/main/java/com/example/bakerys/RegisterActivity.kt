@@ -1,51 +1,68 @@
 package com.example.bakerys
 
-import android.content.Intent
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.widget.Button
-import androidx.appcompat.app.AlertDialog
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.example.bakerys.databinding.ActivityRegisterBinding // Sesuaikan jika pakai ViewBinding
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
+@kotlinx.serialization.InternalSerializationApi
 class RegisterActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityRegisterBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_register)
+        binding = ActivityRegisterBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        // Tombol Daftar di activity_register.xml
-        val btnDaftar = findViewById<View>(R.id.btnDaftarSubmit)
+        // Event saat tombol Daftar diklik
+        binding.btnDaftarSubmit.setOnClickListener {
+            val email = binding.etEmailReg.text.toString().trim()
+            val password = binding.etPasswordReg.text.toString().trim()
+            val username = binding.etUsernameReg.text.toString().trim()
 
-        btnDaftar?.setOnClickListener {
-            tampilkanPopUpBerhasil()
+            if (email.isNotEmpty() && password.isNotEmpty() && username.isNotEmpty()) {
+                daftarAkun(email, password, username)
+            } else {
+                Toast.makeText(this, "Semua field wajib diisi!", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
-    private fun tampilkanPopUpBerhasil() {
-        // Inflate layout dialog_daftar_berhasil.xml
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_daftar_berhasil, null)
-        val builder = AlertDialog.Builder(this)
-            .setView(dialogView)
-            .setCancelable(false)
+    private fun daftarAkun(emailInput: String, passwordInput: String, usernameInput: String) {
+        lifecycleScope.launch {
+            try {
+                // 1. Sign Up ke Supabase Auth
+                SupabaseClient.instance.auth.signUpWith(Email) {
+                    email = emailInput
+                    password = passwordInput
+                }
 
-        val dialog = builder.create()
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                val userId = SupabaseClient.instance.auth.currentUserOrNull()?.id
 
-        // Tombol Kembali Ke Login di dalam dialog
-        val btnKembaliLogin = dialogView.findViewById<Button>(R.id.btnKembaliLogin)
-        btnKembaliLogin?.setOnClickListener {
-            dialog.dismiss()
+                if (userId != null) {
+                    // 2. Simpan Data Profil ke Tabel 'users' Supabase
+                    val userProfile = buildJsonObject {
+                        put("id", userId)
+                        put("username", usernameInput)
+                        put("email", emailInput)
+                        put("password", passwordInput)
+                    }
+                    SupabaseClient.instance.from("users").insert(userProfile)
 
-            // Kembali ke halaman Login (LoginActivity / WelcomeActivity)
-            val intent = Intent(this, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
+                    Toast.makeText(this@RegisterActivity, "Registrasi berhasil!", Toast.LENGTH_SHORT).show()
+                    finish() // Tutup halaman register & pindah ke Login
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@RegisterActivity, "Gagal daftar: ${e.message}", Toast.LENGTH_LONG).show()
+            }
         }
-
-        dialog.show()
     }
 }

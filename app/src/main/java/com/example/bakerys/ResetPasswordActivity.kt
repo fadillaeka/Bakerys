@@ -11,6 +11,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.bakerys.databinding.ActivityResetPasswordBinding
 
+
+
+@kotlinx.serialization.InternalSerializationApi
 class ResetPasswordActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityResetPasswordBinding

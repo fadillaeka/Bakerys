@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -9,8 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Bakerys">
 
-        <!-- 1. JADIKAN WELCOME ACTIVITY SEBAGAI HALAMAN UTAMA (LAUNCHER) -->
-        <!-- Activity yang pertama kali terbuka (WelcomeActivity) wajib exported="true" -->
+        <!-- 1. HALAMAN UTAMA (LAUNCHER) -->
         <activity
             android:name=".WelcomeActivity"
             android:exported="true">
@@ -20,15 +22,10 @@
             </intent-filter>
         </activity>
 
-        <!-- MainActivity tanpa intent-filter di-set exported="false" -->
+        <!-- 2. ACTIVITY LAINNYA (EXPORTED = FALSE) -->
         <activity
             android:name=".MainActivity"
-            android:exported="false" />
-
-        <!-- 2. MAIN ACTIVITY DAN ACTIVITY LAINNYA SET EXPORTED = FALSE -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
+            android:exported="true" />
 
         <activity
             android:name=".DetailResepActivity"

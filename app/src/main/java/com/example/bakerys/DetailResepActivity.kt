@@ -1,3 +1,7 @@
+@file:OptIn(
+    io.github.jan.supabase.annotations.SupabaseExperimental::class,
+    kotlinx.serialization.InternalSerializationApi::class
+)
 package com.example.bakerys
 
 import android.content.Intent
@@ -27,14 +31,19 @@ class DetailResepActivity : AppCompatActivity() {
         binding.tvWaktuMemasak.text = waktu
         binding.tvTentangResep.text = tentang
 
-        // Percabangan Memuat Resep Dinamis Sesuai Judul
+        // Percabangan Memuat Resep Dinamis Sesuai Judul (Lengkap 13 Resep)
         when {
             judul.contains("Dubai", ignoreCase = true) -> muatResepDubaiCookies()
             judul.contains("Caramel", ignoreCase = true) || judul.contains("Apple", ignoreCase = true) -> muatResepCaramelApple()
-            judul.contains("Sourdough", ignoreCase = true) -> muatResepSourdough()
+            judul.contains("Sourdough", ignoreCase = true) || judul.contains("Bread", ignoreCase = true) || judul.contains("loaf", ignoreCase = true) || judul.contains("Baguette", ignoreCase = true) || judul.contains("Borodinsky", ignoreCase = true) -> muatResepSourdough()
             judul.contains("Lava", ignoreCase = true) -> muatResepLavaCake()
             judul.contains("Rainbow", ignoreCase = true) -> muatResepRainbowCake()
             judul.contains("Fudgy", ignoreCase = true) || judul.contains("Brownies", ignoreCase = true) -> muatResepFudgyBrownies()
+            judul.contains("Nastar", ignoreCase = true) -> muatResepNastar()
+            judul.contains("Butter", ignoreCase = true) -> muatResepButterCookies()
+            judul.contains("Kastengel", ignoreCase = true) -> muatResepKastengel()
+            judul.contains("Lidah", ignoreCase = true) || judul.contains("Kucing", ignoreCase = true) -> muatResepLidahKucing()
+            judul.contains("Kuping", ignoreCase = true) || judul.contains("Gajah", ignoreCase = true) -> muatResepKupingGajah()
             judul.contains("Cookies", ignoreCase = true) -> muatResepCookies()
             judul.contains("Cheesecake", ignoreCase = true) -> muatResepCheesecake()
             else -> muatResepCheesecake()
@@ -48,7 +57,7 @@ class DetailResepActivity : AppCompatActivity() {
     }
 
     // =========================================================================
-    // 1. DUBAI CHEWY COOKIES (VERSI KUNAFA RUMAHAN)
+    // 1. DUBAI CHEWY COOKIES
     // =========================================================================
     private fun muatResepDubaiCookies() {
         binding.tvLangkah1.text = "Lelehkan cokelat putih couverture dengan metode tim. Campurkan dengan kunafa panggang, pasta pistachio, dan pistachio cincang hingga merata."
@@ -57,31 +66,31 @@ class DetailResepActivity : AppCompatActivity() {
         binding.tvLangkah4.text = "Ratakan adonan marshmallow di atas loyang beralas kertas roti. Ambil adonan isi dari kulkas, lalu bungkus rapat dengan lapisan chewy cokelat."
         binding.tvLangkah5.text = "Gulingkan di atas bubuk kakao hingga tertutup rata, dinginkan di kulkas 20–30 menit, dan sajikan pada suhu ruang agar tekstur kenyalnya maksimal."
 
-        binding.tvBahanPengganti.text = "• Kunafa panggang dapat diganti dengan pastry Kataifi sangrai atau mi kunafa halus.\n• Pasta pistachio dapat diganti dengan selai kacang atau pasta hazelnut.\n• Susu bubuk skim dapat diganti dengan susu bubuk full cream."
+        binding.tvBahanPengganti.text = "• Kunafa panggang dapat diganti dengan pastry Kataifi sangrai atau mi kunafa halus.\nPasta pistachio dapat diganti dengan selai kacang atau pasta hazelnut.\nSusu bubuk skim dapat diganti dengan susu bubuk full cream."
 
         binding.btnTabBahanUtama.setOnClickListener {
             setActiveTab(binding.btnTabBahanUtama, binding.btnTabTakaranSendok, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• Kunafa panggang\n• Pasta pistachio\n• Cokelat putih couverture\n• Pistachio cincang"
-            binding.tvBahanKanan.text = "• Marshmallow\n• Mentega tawar\n• Susu bubuk skim\n• Bubuk kakao (isi & topping)"
+            binding.tvBahanKiri.text = "• Kunafa panggang\nPasta pistachio\nCokelat putih couverture\nPistachio cincang"
+            binding.tvBahanKanan.text = "• Marshmallow\nMentega tawar\nSusu bubuk skim\nBubuk kakao (isi & topping)"
         }
 
         binding.btnTabTakaranSendok.setOnClickListener {
             setActiveTab(binding.btnTabTakaranSendok, binding.btnTabBahanUtama, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• 1 1/2 cangkir kunafa\n• 1/2 cangkir pasta pistachio\n• 2 sdm cokelat putih leleh\n• 2 sdm pistachio cincang"
-            binding.tvBahanKanan.text = "• 2 cangkir marshmallow\n• 2 sdm mentega tawar\n• 1 sdm susu bubuk skim\n• 2 sdm bubuk kakao"
+            binding.tvBahanKiri.text = "• 1 1/2 cangkir kunafa\n1/2 cangkir pasta pistachio\n2 sdm cokelat putih leleh\n2 sdm pistachio cincang"
+            binding.tvBahanKanan.text = "• 2 cangkir marshmallow\n2 sdm mentega tawar\n1 sdm susu bubuk skim\n2 sdm bubuk kakao"
         }
 
         binding.btnTabTakaranGram.setOnClickListener {
             setActiveTab(binding.btnTabTakaranGram, binding.btnTabBahanUtama, binding.btnTabTakaranSendok)
-            binding.tvBahanKiri.text = "• 160 gr kunafa panggang\n• 135 gr pasta pistachio\n• 32 gr cokelat putih couverture\n• 20 gr pistachio cincang"
-            binding.tvBahanKanan.text = "• 130 gr marshmallow\n• 30 gr mentega tawar\n• 12 gr susu bubuk skim\n• 18 gr bubuk kakao + topping secukupnya"
+            binding.tvBahanKiri.text = "• 160 gr kunafa panggang\n135 gr pasta pistachio\n32 gr cokelat putih couverture\n20 gr pistachio cincang"
+            binding.tvBahanKanan.text = "• 130 gr marshmallow\n30 gr mentega tawar\n12 gr susu bubuk skim\n18 gr bubuk kakao + topping secukupnya"
         }
 
         binding.btnTabBahanUtama.performClick()
     }
 
     // =========================================================================
-    // 2. CARAMEL APPLE MAGIC FRIDGE CAKE (ISABELLE ESTER)
+    // 2. CARAMEL APPLE MAGIC FRIDGE CAKE
     // =========================================================================
     private fun muatResepCaramelApple() {
         binding.tvLangkah1.text = "Kocok krim kental, bumbu pai apel, dan 3 sdm saus karamel dengan mikser kecepatan sedang hingga membentuk puncak kaku (sekitar 2 menit)."
@@ -94,20 +103,20 @@ class DetailResepActivity : AppCompatActivity() {
 
         binding.btnTabBahanUtama.setOnClickListener {
             setActiveTab(binding.btnTabBahanUtama, binding.btnTabTakaranSendok, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• Krim kental\n• Bumbu pai apel\n• Saus karamel (Smucker's®)"
-            binding.tvBahanKanan.text = "• Biskuit graham kayu manis\n• Selai apel"
+            binding.tvBahanKiri.text = "• Krim kental\nBumbu pai apel\nSaus karamel (Smucker's®)"
+            binding.tvBahanKanan.text = "• Biskuit graham kayu manis\nSelai apel"
         }
 
         binding.btnTabTakaranSendok.setOnClickListener {
             setActiveTab(binding.btnTabTakaranSendok, binding.btnTabBahanUtama, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• 1 1/2 cangkir krim kental\n• 1/2 sdt bumbu pai apel\n• 1/4 cangkir saus karamel"
-            binding.tvBahanKanan.text = "• 28 biskuit graham kayu manis\n• 1/2 cangkir selai apel"
+            binding.tvBahanKiri.text = "• 1 1/2 cangkir krim kental\n1/2 sdt bumbu pai apel\n1/4 cangkir saus karamel"
+            binding.tvBahanKanan.text = "• 28 biskuit graham kayu manis\n1/2 cangkir selai apel"
         }
 
         binding.btnTabTakaranGram.setOnClickListener {
             setActiveTab(binding.btnTabTakaranGram, binding.btnTabBahanUtama, binding.btnTabTakaranSendok)
-            binding.tvBahanKiri.text = "• 360 ml krim kental\n• 2 gr bumbu pai apel\n• 60 ml saus karamel"
-            binding.tvBahanKanan.text = "• 280 gr biskuit graham kayu manis\n• 150 gr selai apel"
+            binding.tvBahanKiri.text = "• 360 ml krim kental\n2 gr bumbu pai apel\n60 ml saus karamel"
+            binding.tvBahanKanan.text = "• 280 gr biskuit graham kayu manis\n150 gr selai apel"
         }
 
         binding.btnTabBahanUtama.performClick()
@@ -123,24 +132,24 @@ class DetailResepActivity : AppCompatActivity() {
         binding.tvLangkah4.text = "Ayak tepung terigu dan cokelat bubuk agar tidak menggumpal, campurkan ke dalam adonan lalu aduk hingga merata."
         binding.tvLangkah5.text = "Tuang ke loyang beralas kertas roti, hentakkan beberapa kali, taburi chocochips, lalu panggang oven suhu 160°C (api atas bawah) selama 40 menit."
 
-        binding.tvBahanPengganti.text = "• Margarin BlueBand dapat diganti dengan mentega tawar untuk aroma gurih yang lebih tajam.\n• Minyak goreng dapat diganti dengan minyak canola atau minyak kelapa murni."
+        binding.tvBahanPengganti.text = "• Margarin BlueBand dapat diganti dengan mentega tawar untuk aroma gurih yang lebih tajam.\nMinyak goreng dapat diganti dengan minyak canola atau minyak kelapa murni."
 
         binding.btnTabBahanUtama.setOnClickListener {
             setActiveTab(binding.btnTabBahanUtama, binding.btnTabTakaranSendok, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• Dark Cooking Chocolate\n• Gula Pasir\n• Margarin BlueBand\n• Minyak Goreng"
-            binding.tvBahanKanan.text = "• Tepung Terigu\n• Cokelat Bubuk\n• Telur Ayam\n• Chocochips (Topping)"
+            binding.tvBahanKiri.text = "• Dark Cooking Chocolate\nGula Pasir\nMargarin BlueBand\nMinyak Goreng"
+            binding.tvBahanKanan.text = "• Tepung Terigu\nCokelat Bubuk\nTelur Ayam\nChocochips (Topping)"
         }
 
         binding.btnTabTakaranSendok.setOnClickListener {
             setActiveTab(binding.btnTabTakaranSendok, binding.btnTabBahanUtama, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• 1 1/2 cangkir DCC potongan\n• 16 sdm Gula Pasir\n• 6 sdm Margarin BlueBand\n• 3 sdm Minyak Goreng"
-            binding.tvBahanKanan.text = "• 12 sdm Tepung Terigu\n• 6 sdm Cokelat Bubuk\n• 3 butir Telur Ayam\n• Chocochips secukupnya"
+            binding.tvBahanKiri.text = "• 1 1/2 cangkir DCC potongan\n16 sdm Gula Pasir\n6 sdm Margarin BlueBand\n3 sdm Minyak Goreng"
+            binding.tvBahanKanan.text = "• 12 sdm Tepung Terigu\n6 sdm Cokelat Bubuk\n3 butir Telur Ayam\nChocochips secukupnya"
         }
 
         binding.btnTabTakaranGram.setOnClickListener {
             setActiveTab(binding.btnTabTakaranGram, binding.btnTabBahanUtama, binding.btnTabTakaranSendok)
-            binding.tvBahanKiri.text = "• 225 gr Dark Cooking Chocolate\n• 240 gr Gula Pasir\n• 90 gr Margarin BlueBand\n• 45 ml Minyak Goreng"
-            binding.tvBahanKanan.text = "• 150 gr Tepung Terigu\n• 60 gr Cokelat Bubuk\n• 3 butir Telur Ayam\n• Chocochips secukupnya"
+            binding.tvBahanKiri.text = "• 225 gr Dark Cooking Chocolate\n240 gr Gula Pasir\n90 gr Margarin BlueBand\n45 ml Minyak Goreng"
+            binding.tvBahanKanan.text = "• 150 gr Tepung Terigu\n60 gr Cokelat Bubuk\n3 butir Telur Ayam\nChocochips secukupnya"
         }
 
         binding.btnTabBahanUtama.performClick()
@@ -160,20 +169,20 @@ class DetailResepActivity : AppCompatActivity() {
 
         binding.btnTabBahanUtama.setOnClickListener {
             setActiveTab(binding.btnTabBahanUtama, binding.btnTabTakaranSendok, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• Tepung Protein Tinggi\n• Starter Sourdough Aktif\n• Air Matang"
-            binding.tvBahanKanan.text = "• Garam Laut (Sea Salt)\n• Tepung Beras (dusting)"
+            binding.tvBahanKiri.text = "• Tepung Protein Tinggi\nStarter Sourdough Aktif\nAir Matang"
+            binding.tvBahanKanan.text = "• Garam Laut (Sea Salt)\nTepung Beras (dusting)"
         }
 
         binding.btnTabTakaranSendok.setOnClickListener {
             setActiveTab(binding.btnTabTakaranSendok, binding.btnTabBahanUtama, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• 4 cangkir Tepung Terigu\n• 1/2 cangkir Starter Sourdough\n• 1 1/2 cangkir Air Matang"
-            binding.tvBahanKanan.text = "• 2 sdt Garam Laut\n• Tepung Beras Secukupnya"
+            binding.tvBahanKiri.text = "• 4 cangkir Tepung Terigu\n1/2 cangkir Starter Sourdough\n1 1/2 cangkir Air Matang"
+            binding.tvBahanKanan.text = "• 2 sdt Garam Laut\nTepung Beras Secukupnya"
         }
 
         binding.btnTabTakaranGram.setOnClickListener {
             setActiveTab(binding.btnTabTakaranGram, binding.btnTabBahanUtama, binding.btnTabTakaranSendok)
-            binding.tvBahanKiri.text = "• 500 gr Tepung Protein Tinggi\n• 100 gr Starter Sourdough\n• 350 ml Air Matang"
-            binding.tvBahanKanan.text = "• 10 gr Garam Laut\n• Tepung Beras Secukupnya"
+            binding.tvBahanKiri.text = "• 500 gr Tepung Protein Tinggi\n100 gr Starter Sourdough\n350 ml Air Matang"
+            binding.tvBahanKanan.text = "• 10 gr Garam Laut\nTepung Beras Secukupnya"
         }
 
         binding.btnTabBahanUtama.performClick()
@@ -193,20 +202,20 @@ class DetailResepActivity : AppCompatActivity() {
 
         binding.btnTabBahanUtama.setOnClickListener {
             setActiveTab(binding.btnTabBahanUtama, binding.btnTabTakaranSendok, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• Cokelat Hitam (DCC)\n• Mentega\n• Telur Ayam\n• Gula Pasir\n• Tepung Terigu"
-            binding.tvBahanKanan.text = "• Ekstrak Vanila\n• Garam Halus\n• Gula Halus Tabur\n• Es Krim Vanila"
+            binding.tvBahanKiri.text = "• Cokelat Hitam (DCC)\nMentega\nTelur Ayam\nGula Pasir\nTepung Terigu"
+            binding.tvBahanKanan.text = "• Ekstrak Vanila\nGaram Halus\nGula Halus Tabur\nEs Krim Vanila"
         }
 
         binding.btnTabTakaranSendok.setOnClickListener {
             setActiveTab(binding.btnTabTakaranSendok, binding.btnTabBahanUtama, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• 1 cangkir Cokelat Hitam\n• 1/2 cangkir Mentega\n• 2 butir Telur\n• 4 sdm Gula Pasir"
-            binding.tvBahanKanan.text = "• 3 sdm Tepung Terigu\n• 1 sdt Ekstrak Vanila\n• 1/4 sdt Garam"
+            binding.tvBahanKiri.text = "• 1 cangkir Cokelat Hitam\n1/2 cangkir Mentega\n2 butir Telur\n4 sdm Gula Pasir"
+            binding.tvBahanKanan.text = "• 3 sdm Tepung Terigu\n1 sdt Ekstrak Vanila\n1/4 sdt Garam"
         }
 
         binding.btnTabTakaranGram.setOnClickListener {
             setActiveTab(binding.btnTabTakaranGram, binding.btnTabBahanUtama, binding.btnTabTakaranSendok)
-            binding.tvBahanKiri.text = "• 170 gr Cokelat Hitam\n• 115 gr Mentega\n• 2 Butir Telur\n• 50 gr Gula Pasir"
-            binding.tvBahanKanan.text = "• 30 gr Tepung Terigu\n• 5 ml Ekstrak Vanila\n• 2 gr Garam"
+            binding.tvBahanKiri.text = "• 170 gr Cokelat Hitam\n115 gr Mentega\n2 Butir Telur\n50 gr Gula Pasir"
+            binding.tvBahanKanan.text = "• 30 gr Tepung Terigu\n5 ml Ekstrak Vanila\n2 gr Garam"
         }
 
         binding.btnTabBahanUtama.performClick()
@@ -226,20 +235,20 @@ class DetailResepActivity : AppCompatActivity() {
 
         binding.btnTabBahanUtama.setOnClickListener {
             setActiveTab(binding.btnTabBahanUtama, binding.btnTabTakaranSendok, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• Telur Ayam\n• Gula Pasir\n• SP / Emulsifier\n• Tepung Terigu Protein Sedang"
-            binding.tvBahanKanan.text = "• Susu Bubuk\n• Margarin Leleh\n• Pewarna Makanan Pelangi\n• Buttercream"
+            binding.tvBahanKiri.text = "• Telur Ayam\nGula Pasir\nSP / Emulsifier\nTepung Terigu Protein Sedang"
+            binding.tvBahanKanan.text = "• Susu Bubuk\nMargarin Leleh\nPewarna Makanan Pelangi\nButtercream"
         }
 
         binding.btnTabTakaranSendok.setOnClickListener {
             setActiveTab(binding.btnTabTakaranSendok, binding.btnTabBahanUtama, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• 4 butir Telur\n• 12 sdm Gula Pasir\n• 1 sdt SP\n• 15 sdm Tepung Terigu"
-            binding.tvBahanKanan.text = "• 3 sdm Susu Bubuk\n• 10 sdm Margarin Leleh\n• Pewarna Secukupnya\n• Buttercream"
+            binding.tvBahanKiri.text = "• 4 butir Telur\n12 sdm Gula Pasir\n1 sdt SP\n15 sdm Tepung Terigu"
+            binding.tvBahanKanan.text = "• 3 sdm Susu Bubuk\n10 sdm Margarin Leleh\nPewarna Secukupnya\nButtercream"
         }
 
         binding.btnTabTakaranGram.setOnClickListener {
             setActiveTab(binding.btnTabTakaranGram, binding.btnTabBahanUtama, binding.btnTabTakaranSendok)
-            binding.tvBahanKiri.text = "• 4 butir Telur\n• 150 gr Gula Pasir\n• 5 gr SP\n• 150 gr Tepung Terigu"
-            binding.tvBahanKanan.text = "• 20 gr Susu Bubuk\n• 100 gr Margarin Leleh\n• Pewarna Pelangi\n• 200 gr Buttercream"
+            binding.tvBahanKiri.text = "• 4 butir Telur\n150 gr Gula Pasir\n5 gr SP\n150 gr Tepung Terigu"
+            binding.tvBahanKanan.text = "• 20 gr Susu Bubuk\n100 gr Margarin Leleh\nPewarna Pelangi\n200 gr Buttercream"
         }
 
         binding.btnTabBahanUtama.performClick()
@@ -259,20 +268,20 @@ class DetailResepActivity : AppCompatActivity() {
 
         binding.btnTabBahanUtama.setOnClickListener {
             setActiveTab(binding.btnTabBahanUtama, binding.btnTabTakaranSendok, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• Mentega Tawar\n• Gula Palem (Brown Sugar)\n• Gula Pasir\n• Telur Ayam"
-            binding.tvBahanKanan.text = "• Tepung Terigu\n• Baking Soda\n• Choco Chips\n• Ekstrak Vanila & Garam"
+            binding.tvBahanKiri.text = "• Mentega Tawar\nGula Palem (Brown Sugar)\nGula Pasir\nTelur Ayam"
+            binding.tvBahanKanan.text = "• Tepung Terigu\nBaking Soda\nChoco Chips\nEkstrak Vanila & Garam"
         }
 
         binding.btnTabTakaranSendok.setOnClickListener {
             setActiveTab(binding.btnTabTakaranSendok, binding.btnTabBahanUtama, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• 8 sdm Mentega Tawar\n• 6 sdm Gula Palem\n• 4 sdm Gula Pasir\n• 1 butir Telur"
-            binding.tvBahanKanan.text = "• 14 sdm Tepung Terigu\n• 1/2 sdt Baking Soda\n• 1 cangkir Choco Chips"
+            binding.tvBahanKiri.text = "• 8 sdm Mentega Tawar\n6 sdm Gula Palem\n4 sdm Gula Pasir\n1 butir Telur"
+            binding.tvBahanKanan.text = "• 14 sdm Tepung Terigu\n1/2 sdt Baking Soda\n1 cangkir Choco Chips"
         }
 
         binding.btnTabTakaranGram.setOnClickListener {
             setActiveTab(binding.btnTabTakaranGram, binding.btnTabBahanUtama, binding.btnTabTakaranSendok)
-            binding.tvBahanKiri.text = "• 115 gr Mentega Tawar\n• 100 gr Gula Palem\n• 50 gr Gula Pasir\n• 1 butir Telur"
-            binding.tvBahanKanan.text = "• 180 gr Tepung Terigu\n• 3 gr Baking Soda\n• 150 gr Choco Chips"
+            binding.tvBahanKiri.text = "• 115 gr Mentega Tawar\n100 gr Gula Palem\n50 gr Gula Pasir\n1 butir Telur"
+            binding.tvBahanKanan.text = "• 180 gr Tepung Terigu\n3 gr Baking Soda\n150 gr Choco Chips"
         }
 
         binding.btnTabBahanUtama.performClick()
@@ -292,20 +301,185 @@ class DetailResepActivity : AppCompatActivity() {
 
         binding.btnTabBahanUtama.setOnClickListener {
             setActiveTab(binding.btnTabBahanUtama, binding.btnTabTakaranSendok, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• Remahan biskuit graham\n• Mentega cair\n• Gula pasir\n• Puree labu kuning\n• Keju krim\n• Gula merah"
-            binding.tvBahanKanan.text = "• Bumbu pai labu\n• Cokelat putih\n• Krim kental\n• Gula halus\n• Ekstrak vanila"
+            binding.tvBahanKiri.text = "• Remahan biskuit graham\nMentega cair\nGula pasir\nPuree labu kuning\nKeju krim\nGula merah"
+            binding.tvBahanKanan.text = "• Bumbu pai labu\nCokelat putih\nKrim kental\nGula halus\nEkstrak vanila"
         }
 
         binding.btnTabTakaranSendok.setOnClickListener {
             setActiveTab(binding.btnTabTakaranSendok, binding.btnTabBahanUtama, binding.btnTabTakaranGram)
-            binding.tvBahanKiri.text = "• 1 1/4 cangkir remahan biskuit graham\n• 1/3 cangkir mentega cair\n• 2 sendok makan gula pasir\n• 1 kaleng (15 ons) labu\n• 1 kemasan (8 ons) keju krim"
-            binding.tvBahanKanan.text = "• 2 sendok teh bumbu pai labu\n• 8 ons cokelat putih\n• 3/4 cangkir krim kental\n• 1/4 cangkir gula halus"
+            binding.tvBahanKiri.text = "• 1 1/4 cangkir remahan biskuit graham\n1/3 cangkir mentega cair\n2 sendok makan gula pasir\n1 kaleng (15 ons) labu\n1 kemasan (8 ons) keju krim"
+            binding.tvBahanKanan.text = "• 2 sendok teh bumbu pai labu\n8 ons cokelat putih\n3/4 cangkir krim kental\n1/4 cangkir gula halus"
         }
 
         binding.btnTabTakaranGram.setOnClickListener {
             setActiveTab(binding.btnTabTakaranGram, binding.btnTabBahanUtama, binding.btnTabTakaranSendok)
-            binding.tvBahanKiri.text = "• 150 gr biskuit graham\n• 75 gr mentega cair\n• 30 gr gula pasir\n• 425 gr puree labu\n• 225 gr keju krim"
-            binding.tvBahanKanan.text = "• 10 gr bumbu pai labu\n• 225 gr cokelat putih\n• 180 ml krim kental\n• 30 gr gula halus"
+            binding.tvBahanKiri.text = "• 150 gr biskuit graham\n75 gr mentega cair\n30 gr gula pasir\n425 gr puree labu\n225 gr keju krim"
+            binding.tvBahanKanan.text = "• 10 gr bumbu pai labu\n225 gr cokelat putih\n180 ml krim kental\n30 gr gula halus"
+        }
+
+        binding.btnTabBahanUtama.performClick()
+    }
+
+    // =========================================================================
+    // 9. NASTAR KLASIK
+    // =========================================================================
+    private fun muatResepNastar() {
+        binding.tvLangkah1.text = "Kocok mentega, margarin, dan gula halus sebentar (sekitar 1-2 menit) hingga tercampur rata dan lembut, jangan terlalu lama."
+        binding.tvLangkah2.text = "Masukkan kuning telur satu per satu sambil terus dikocok rata, lalu matikan mikser."
+        binding.tvLangkah3.text = "Masukkan tepung terigu, susu bubuk, dan tepung maizena yang sudah diayak. Aduk perlahan menggunakan spatula hingga adonan bisa dibentuk."
+        binding.tvLangkah4.text = "Ambil sedikit adonan, isi dengan selai nanas bulat, bulatkan kembali dan tata di atas loyang yang sudah dialasi kertas roti."
+        binding.tvLangkah5.text = "Panggang dalam oven suhu 140°C selama 25 menit. Keluarkan sebentar untuk dioles kuning telur, lalu panggang lagi hingga kuning keemasan."
+
+        binding.tvBahanPengganti.text = "• Selai nanas homemade dapat diganti dengan selai nanas instan siap pakai khusus nastar."
+
+        binding.btnTabBahanUtama.setOnClickListener {
+            setActiveTab(binding.btnTabBahanUtama, binding.btnTabTakaranSendok, binding.btnTabTakaranGram)
+            binding.tvBahanKiri.text = "• Mentega (Butter)\nMargarin\nGula Halus\nKuning Telur"
+            binding.tvBahanKanan.text = "• Tepung Terigu Protein Sedang\nTepung Maizena\nSusu Bubuk\nSelai Nanas (Isian)"
+        }
+
+        binding.btnTabTakaranSendok.setOnClickListener {
+            setActiveTab(binding.btnTabTakaranSendok, binding.btnTabBahanUtama, binding.btnTabTakaranGram)
+            binding.tvBahanKiri.text = "• 10 sdm Mentega\n6 sdm Margarin\n4 sdm Gula Halus\n3 butir Kuning Telur"
+            binding.tvBahanKanan.text = "• 35 cangkir Tepung Terigu\n3 sdm Tepung Maizena\n2 sdm Susu Bubuk\nSelai Nanas Secukupnya"
+        }
+
+        binding.btnTabTakaranGram.setOnClickListener {
+            setActiveTab(binding.btnTabTakaranGram, binding.btnTabBahanUtama, binding.btnTabTakaranSendok)
+            binding.tvBahanKiri.text = "• 100 gr Mentega\n100 gr Margarin\n50 gr Gula Halus\n3 butir Kuning Telur"
+            binding.tvBahanKanan.text = "• 300 gr Tepung Terigu\n30 gr Tepung Maizena\n25 gr Susu Bubuk\n150 gr Selai Nanas"
+        }
+
+        binding.btnTabBahanUtama.performClick()
+    }
+
+    // =========================================================================
+    // 10. BUTTER COOKIES
+    // =========================================================================
+    private fun muatResepButterCookies() {
+        binding.tvLangkah1.text = "Kocok mentega tawar dan gula halus dengan mikser kecepatan sedang selama 2-3 menit hingga pucat, mengembang, dan lembut."
+        binding.tvLangkah2.text = "Masukkan ekstrak vanila dan kuning telur, lalu kocok sebentar lagi hingga benar-benar tercampur rata."
+        binding.tvLangkah3.text = "Ayak tepung terigu protein rendah dan maizena, masukkan secara bertahap ke adonan basah sambil diaduk perlahan dengan spatula."
+        binding.tvLangkah4.text = "Masukkan adonan ke dalam piping bag (kantong semprot) yang dipasangi spuit bintang, lalu semprotkan di atas loyang beralas kertas roti."
+        binding.tvLangkah5.text = "Panggang dalam oven dengan suhu 160°C selama 15–18 menit hingga pinggirannya kecokelatan keemasan, lalu dinginkan di rak kawat."
+
+        binding.tvBahanPengganti.text = "• Mentega tawar (butter) sangat disarankan agar aroma harumnya terasa, bisa dicampur margarin dengan perbandingan 1:1."
+
+        binding.btnTabBahanUtama.setOnClickListener {
+            setActiveTab(binding.btnTabBahanUtama, binding.btnTabTakaranSendok, binding.btnTabTakaranGram)
+            binding.tvBahanKiri.text = "• Mentega Tawar (Butter)\nGula Halus\nKuning Telur\nEkstrak Vanila"
+            binding.tvBahanKanan.text = "• Tepung Terigu Kunci Biru\nTepung Maizena\nSejumput Garam"
+        }
+
+        binding.btnTabTakaranSendok.setOnClickListener {
+            setActiveTab(binding.btnTabTakaranSendok, binding.btnTabBahanUtama, binding.btnTabTakaranGram)
+            binding.tvBahanKiri.text = "• 16 sdm Mentega Tawar\n6 sdm Gula Halus\n1 butir Kuning Telur\n1 sdt Ekstrak Vanila"
+            binding.tvBahanKanan.text = "• 22 sdm Tepung Terigu\n2 sdm Tepung Maizena\n1/4 sdt Garam"
+        }
+
+        binding.btnTabTakaranGram.setOnClickListener {
+            setActiveTab(binding.btnTabTakaranGram, binding.btnTabBahanUtama, binding.btnTabTakaranSendok)
+            binding.tvBahanKiri.text = "• 200 gr Mentega Tawar\n75 gr Gula Halus\n1 butir Kuning Telur\n5 ml Ekstrak Vanila"
+            binding.tvBahanKanan.text = "• 220 gr Tepung Terigu\n30 gr Tepung Maizena\n2 gr Garam"
+        }
+
+        binding.btnTabBahanUtama.performClick()
+    }
+
+    // =========================================================================
+    // 11. KASTENGEL KEJU
+    // =========================================================================
+    private fun muatResepKastengel() {
+        binding.tvLangkah1.text = "Kocok mentega tawar, margarin, dan kuning telur sebentar saja (sekitar 1 menit) hingga tercampur rata dan lembut."
+        binding.tvLangkah2.text = "Masukkan keju Edam parut dan keju Cheddar parut ke dalam adonan, aduk perlahan menggunakan spatula."
+        binding.tvLangkah3.text = "Ayak tepung terigu dan tepung maizena, lalu masukkan secara bertahap sambil diaduk sampai adonan kalis dan mudah dibentuk."
+        binding.tvLangkah4.text = "Gilas adonan setebal kurang lebih 1 cm, cetak memanjang atau potong-potong, lalu tata di atas loyang."
+        binding.tvLangkah5.text = "Olesi permukaannya dengan kuning telur dan taburi sisa keju parut di atasnya. Panggang dalam oven suhu 140°C selama 30 menit hingga matang keemasan."
+
+        binding.tvBahanPengganti.text = "• Keju Edam dapat diganti sepenuhnya dengan keju Cheddar tua atau Cheddar biasa jika ingin lebih ekonomis."
+
+        binding.btnTabBahanUtama.setOnClickListener {
+            setActiveTab(binding.btnTabBahanUtama, binding.btnTabTakaranSendok, binding.btnTabTakaranGram)
+            binding.tvBahanKiri.text = "• Mentega Tawar (Butter)\nMargarin\nKuning Telur\nKeju Edam Parut"
+            binding.tvBahanKanan.text = "• Keju Cheddar Parut\nTepung Terigu Protein Sedang\nTepung Maizena\nKuning Telur (Olesan)"
+        }
+
+        binding.btnTabTakaranSendok.setOnClickListener {
+            setActiveTab(binding.btnTabTakaranSendok, binding.btnTabBahanUtama, binding.btnTabTakaranGram)
+            binding.tvBahanKiri.text = "• 10 sdm Mentega Tawar\n6 sdm Margarin\n2 butir Kuning Telur\n1 cangkir Keju Edam"
+            binding.tvBahanKanan.text = "• 1 cangkir Keju Cheddar\n24 sdm Tepung Terigu\n2 sdm Tepung Maizena\n2 butir Kuning Telur"
+        }
+
+        binding.btnTabTakaranGram.setOnClickListener {
+            setActiveTab(binding.btnTabTakaranGram, binding.btnTabBahanUtama, binding.btnTabTakaranSendok)
+            binding.tvBahanKiri.text = "• 100 gr Mentega Tawar\n100 gr Margarin\n2 butir Kuning Telur\n100 gr Keju Edam Parut"
+            binding.tvBahanKanan.text = "• 100 gr Keju Cheddar Parut\n300 gr Tepung Terigu\n25 gr Tepung Maizena\n2 butir Kuning Telur (Olesan)"
+        }
+
+        binding.btnTabBahanUtama.performClick()
+    }
+
+    // =========================================================================
+    // 12. LIDAH KUCING
+    // =========================================================================
+    private fun muatResepLidahKucing() {
+        binding.tvLangkah1.text = "Kocok mentega tawar, margarin, dan gula halus menggunakan mikser dengan kecepatan tinggi selama 3-4 menit hingga adonan putih, pucat, dan sangat mengembang."
+        binding.tvLangkah2.text = "Masukkan putih telur secara perlahan sambil terus dikocok rata, lalu tambahkan ekstrak vanila."
+        binding.tvLangkah3.text = "Ayak tepung terigu protein rendah, tepung maizena, dan susu bubuk, lalu masukkan ke dalam adonan basah secara bertahap sambil diaduk balik perlahan dengan spatula."
+        binding.tvLangkah4.text = "Masukkan adonan ke dalam piping bag (kantong semprot), gunting ujungnya, lalu semprotkan memanjang secara rapi di atas loyang khusus lidah kucing yang sudah dioles tipis margarin."
+        binding.tvLangkah5.text = "Panggang dalam oven dengan suhu 140°C selama 20–25 menit hingga matang renyah dan bagian pinggirnya kecokelatan."
+
+        binding.tvBahanPengganti.text = "• Penggunaan putih telur dalam keadaan fresh (segar) sangat penting agar kue bisa renyah dan tidak lembek."
+
+        binding.btnTabBahanUtama.setOnClickListener {
+            setActiveTab(binding.btnTabBahanUtama, binding.btnTabTakaranSendok, binding.btnTabTakaranGram)
+            binding.tvBahanKiri.text = "• Mentega Tawar (Butter)\nMargarin\nGula Halus\nPutih Telur"
+            binding.tvBahanKanan.text = "• Tepung Terigu Kunci Biru\nTepung Maizena\nSusu Bubuk\nEkstrak Vanila"
+        }
+
+        binding.btnTabTakaranSendok.setOnClickListener {
+            setActiveTab(binding.btnTabTakaranSendok, binding.btnTabBahanUtama, binding.btnTabTakaranGram)
+            binding.tvBahanKiri.text = "• 12 sdm Mentega Tawar\n4 sdm Margarin\n8 sdm Gula Halus\n3 butir Putih Telur"
+            binding.tvBahanKanan.text = "• 18 sdm Tepung Terigu\n2 sdm Tepung Maizena\n2 sdm Susu Bubuk\n1 sdt Ekstrak Vanila"
+        }
+
+        binding.btnTabTakaranGram.setOnClickListener {
+            setActiveTab(binding.btnTabTakaranGram, binding.btnTabBahanUtama, binding.btnTabTakaranSendok)
+            binding.tvBahanKiri.text = "• 125 gr Mentega Tawar\n75 gr Margarin\n120 gr Gula Halus\n60 ml Putih Telur"
+            binding.tvBahanKanan.text = "• 180 gr Tepung Terigu\n25 gr Tepung Maizena\n20 gr Susu Bubuk\n5 ml Ekstrak Vanila"
+        }
+
+        binding.btnTabBahanUtama.performClick()
+    }
+
+    // =========================================================================
+    // 13. KUPING GAJAH
+    // =========================================================================
+    private fun muatResepKupingGajah() {
+        binding.tvLangkah1.text = "Kocok telur ayam, gula halus, vanili, dan sejumput garam menggunakan whisk hingga gula larut dan merata."
+        binding.tvLangkah2.text = "Masukkan tepung terigu dan margarin cair ke dalam adonan telur, uleni perlahan hingga kalis."
+        binding.tvLangkah3.text = "Bagi adonan menjadi dua bagian: satu bagian dibiarkan warna putih/original, dan bagian lainnya ditambahkan bubuk kakao lalu uleni hingga rata."
+        binding.tvLangkah4.text = "Tipiskan kedua adonan, tumpuk adonan cokelat di atas adonan putih, lalu gulung rapat padat dan simpan di kulkas selama 1 jam agar set."
+        binding.tvLangkah5.text = "Iris tipis-tipis gulungan adonan secara melintang, lalu goreng dalam minyak panas dengan api sedang hingga matang renyah kecokelatan."
+
+        binding.tvBahanPengganti.text = "• Margarin cair dapat diganti dengan mentega cair untuk hasil yang lebih wangi dan gurih."
+
+        binding.btnTabBahanUtama.setOnClickListener {
+            setActiveTab(binding.btnTabBahanUtama, binding.btnTabTakaranSendok, binding.btnTabTakaranGram)
+            binding.tvBahanKiri.text = "• Tepung Terigu Protein Sedang\nGula Halus\nMargarin (dicairkan)\nTelur Ayam"
+            binding.tvBahanKanan.text = "• Bubuk Kakao (untuk warna cokelat)\nEkstrak Vanila\nGaram & Air Secukupnya"
+        }
+
+        binding.btnTabTakaranSendok.setOnClickListener {
+            setActiveTab(binding.btnTabTakaranSendok, binding.btnTabBahanUtama, binding.btnTabTakaranGram)
+            binding.tvBahanKiri.text = "• 30 sdm Tepung Terigu\n8 sdm Gula Halus\n4 sdm Margarin Cair\n1 butir Telur Ayam"
+            binding.tvBahanKanan.text = "• 2 sdm Bubuk Kakao\n1 sdt Ekstrak Vanila\n1/4 sdt Garam"
+        }
+
+        binding.btnTabTakaranGram.setOnClickListener {
+            setActiveTab(binding.btnTabTakaranGram, binding.btnTabBahanUtama, binding.btnTabTakaranSendok)
+            binding.tvBahanKiri.text = "• 300 gr Tepung Terigu\n75 gr Gula Halus\n50 gr Margarin Cair\n1 butir Telur Ayam"
+            binding.tvBahanKanan.text = "• 15 gr Bubuk Kakao\n5 ml Ekstrak Vanila\n2 gr Garam"
         }
 
         binding.btnTabBahanUtama.performClick()
