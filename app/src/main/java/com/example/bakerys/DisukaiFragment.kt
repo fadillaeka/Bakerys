@@ -1,5 +1,6 @@
 package com.example.bakerys
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,7 +8,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-
 
 @kotlinx.serialization.InternalSerializationApi
 class DisukaiFragment : Fragment() {
@@ -23,6 +23,14 @@ class DisukaiFragment : Fragment() {
                 daftarResepDisukai.add(resep)
             }
         }
+
+        fun hapusDariDisukai(resep: ResepModel) {
+            daftarResepDisukai.removeAll { it.judul == resep.judul }
+        }
+
+        fun isDisukai(resep: ResepModel): Boolean {
+            return daftarResepDisukai.any { it.judul == resep.judul }
+        }
     }
 
     override fun onCreateView(
@@ -34,7 +42,19 @@ class DisukaiFragment : Fragment() {
         rvDisukai = view.findViewById(R.id.rvDisukai)
         rvDisukai.layoutManager = LinearLayoutManager(requireContext())
 
-        adapterDisukai = DisukaiAdapter(daftarResepDisukai)
+        adapterDisukai = DisukaiAdapter(
+            listDisukai = daftarResepDisukai,
+            onItemClick = { resep ->
+                // Klik resep -> Langsung masuk ke DetailResepActivity
+                val intent = Intent(requireContext(), DetailResepActivity::class.java).apply {
+                    putExtra("EXTRA_JUDUL", resep.judul)
+                    if (resep.gambar != null) {
+                        putExtra("EXTRA_GAMBAR", resep.gambar)
+                    }
+                }
+                startActivity(intent)
+            }
+        )
         rvDisukai.adapter = adapterDisukai
 
         return view
