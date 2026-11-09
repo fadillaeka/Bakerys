@@ -7,7 +7,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-
 @kotlinx.serialization.InternalSerializationApi
 class TersimpanAdapter(
     private val bookmarkedList: MutableList<Recipe>,
@@ -30,6 +29,8 @@ class TersimpanAdapter(
     override fun onBindViewHolder(holder: TersimpanViewHolder, position: Int) {
         val recipe = bookmarkedList[position]
 
+        holder.tvTitle.text = recipe.title
+
         if (recipe.imageUri != null) {
             holder.ivThumb.setImageURI(recipe.imageUri)
         } else if (recipe.imageResId != null) {
@@ -38,8 +39,14 @@ class TersimpanAdapter(
             holder.ivThumb.setImageResource(R.drawable.dubai)
         }
 
+        // Hapus dari bookmark
         holder.btnRemove.setOnClickListener {
             onRemoveBookmark(recipe, holder.adapterPosition)
+        }
+
+        // Klik item resep -> Buka DetailResepActivity
+        holder.itemView.setOnClickListener {
+            onItemClick(recipe)
         }
     }
 

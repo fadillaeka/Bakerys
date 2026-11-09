@@ -39,6 +39,9 @@ class JelajahAdapter(
         holder.tvTitle.text = recipe.title
         holder.tvDesc.text = recipe.description
 
+        // Cek sinkronisasi status bookmark awal dengan BookmarkManager
+        recipe.isBookmarked = BookmarkManager.isBookmarked(recipe)
+
         // Utamakan foto galeri jika ada (imageUri)
         if (recipe.imageUri != null) {
             holder.ivThumb.setImageURI(recipe.imageUri)
@@ -64,9 +67,16 @@ class JelajahAdapter(
             NotifikasiBottomSheet.tambahNotif("Seseorang menyukai postingan Anda.")
         }
 
-        // Listener Tombol Bookmark
+        // Listener Tombol Bookmark (Terintegrasi ke BookmarkManager)
         holder.btnBookmark.setOnClickListener {
             recipe.isBookmarked = !recipe.isBookmarked
+
+            if (recipe.isBookmarked) {
+                BookmarkManager.addBookmark(recipe)
+            } else {
+                BookmarkManager.removeBookmark(recipe)
+            }
+
             updateBookmarkUI(holder.btnBookmark, recipe.isBookmarked)
             onBookmarkClick(recipe)
             NotifikasiBottomSheet.tambahNotif("Seseorang menambahkan postingan Anda ke favorit.")
@@ -77,7 +87,6 @@ class JelajahAdapter(
             NotifikasiBottomSheet.tambahNotif("Seseorang mengomentari postingan Anda.")
             val activity = holder.itemView.context as? FragmentActivity
             activity?.let {
-                // Mengirim emptyList() agar tidak error constructor
                 val commentSheet = KomentarBottomSheet(mutableListOf())
                 commentSheet.show(it.supportFragmentManager, "KomentarBottomSheet")
             }
