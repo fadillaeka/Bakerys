@@ -7,7 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-@kotlinx.serialization.InternalSerializationApi
+@OptIn(kotlinx.serialization.InternalSerializationApi::class)
 class TersimpanAdapter(
     private val bookmarkedList: MutableList<Recipe>,
     private val onItemClick: (Recipe) -> Unit,
@@ -39,16 +39,25 @@ class TersimpanAdapter(
             holder.ivThumb.setImageResource(R.drawable.dubai)
         }
 
-        // Hapus dari bookmark
         holder.btnRemove.setOnClickListener {
-            onRemoveBookmark(recipe, holder.adapterPosition)
+            val currentPos = holder.adapterPosition
+            if (currentPos != RecyclerView.NO_POSITION && currentPos < bookmarkedList.size) {
+                onRemoveBookmark(recipe, currentPos)
+            }
         }
 
-        // Klik item resep -> Buka DetailResepActivity
         holder.itemView.setOnClickListener {
             onItemClick(recipe)
         }
     }
 
     override fun getItemCount(): Int = bookmarkedList.size
+
+    fun removeItemAt(position: Int) {
+        if (position in 0 until bookmarkedList.size) {
+            bookmarkedList.removeAt(position)
+            notifyItemRemoved(position)
+            notifyItemRangeChanged(position, bookmarkedList.size - position)
+        }
+    }
 }

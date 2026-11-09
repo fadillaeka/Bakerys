@@ -5,16 +5,16 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
-@kotlinx.serialization.InternalSerializationApi
+@OptIn(kotlinx.serialization.InternalSerializationApi::class)
 class TersimpanFragment : Fragment() {
 
-    private var _binding: View? = null
     private lateinit var rvTersimpan: RecyclerView
-    private lateinit var adapter: TersimpanAdapter
+    private lateinit var tersimpanAdapter: TersimpanAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -30,38 +30,29 @@ class TersimpanFragment : Fragment() {
         rvTersimpan = view.findViewById(R.id.rvTersimpan)
         rvTersimpan.layoutManager = LinearLayoutManager(requireContext())
 
-        adapter = TersimpanAdapter(
-            bookmarkedList = BookmarkManager.bookmarkedList,
-            onItemClick = { resep ->
+        tersimpanAdapter = TersimpanAdapter(
+            bookmarkedList = RecipeRepository.resepTersimpanList,
+            onItemClick = { recipe ->
                 val intent = Intent(requireContext(), DetailResepActivity::class.java).apply {
-                    putExtra("EXTRA_JUDUL", resep.title)
-                    if (resep.imageResId != null) {
-                        putExtra("EXTRA_GAMBAR", resep.imageResId)
-                    }
+                    putExtra("EXTRA_RECIPE_ID", recipe.id)
                 }
                 startActivity(intent)
             },
-            onRemoveBookmark = { resep, position ->
-                if (position != RecyclerView.NO_POSITION && position < BookmarkManager.bookmarkedList.size) {
-                    BookmarkManager.removeBookmark(resep)
-                    adapter.notifyItemRemoved(position)
-                    adapter.notifyItemRangeChanged(position, BookmarkManager.bookmarkedList.size - position)
-                }
+            onRemoveBookmark = { recipe, position ->
+                recipe.isBookmarked = false
+                RecipeRepository.resepTersimpanList.removeAll { it.id == recipe.id }
+                BookmarkManager.removeBookmark(recipe)
+                tersimpanAdapter.removeItemAt(position)
+                Toast.makeText(requireContext(), "Resep dihapus dari simpanan!", Toast.LENGTH_SHORT).show()
             }
         )
-
-        rvTersimpan.adapter = adapter
+        rvTersimpan.adapter = tersimpanAdapter
     }
 
     override fun onResume() {
         super.onResume()
-        if (::adapter.isInitialized) {
-            adapter.notifyDataSetChanged()
+        if (::tersimpanAdapter.isInitialized) {
+            tersimpanAdapter.notifyDataSetChanged()
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }
