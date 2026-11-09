@@ -34,7 +34,10 @@ class DisukaiFragment : Fragment() {
         rvDisukai = view.findViewById(R.id.rvDisukai)
         rvDisukai.layoutManager = LinearLayoutManager(requireContext())
 
-        adapterDisukai = DisukaiAdapter(daftarResepDisukai)
+        adapterDisukai = DisukaiAdapter(
+            listDisukai = daftarResepDisukai,
+            onItemClick = {}
+        )
         rvDisukai.adapter = adapterDisukai
 
         return view

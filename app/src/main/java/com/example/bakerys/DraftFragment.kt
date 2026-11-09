@@ -27,6 +27,7 @@ class DraftFragment : Fragment() {
         rvDraft = view.findViewById(R.id.rvDraft)
         rvDraft.layoutManager = LinearLayoutManager(requireContext())
 
+        // Mengirimkan RecipeRepository.draftList ke DraftAdapter
         draftAdapter = DraftAdapter(
             draftList = RecipeRepository.draftList,
             onItemClick = { recipe: Recipe ->

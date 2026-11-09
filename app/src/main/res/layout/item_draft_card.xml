@@ -44,14 +44,14 @@
 
         <!-- Tombol Lihat Resep -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnLihatResep"
+            android:id="@+id/btnHapusDraft"
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="36dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
             android:backgroundTint="#F8CFBE"
-            android:text="Lihat Resep"
+            android:text="Hapus Draft"
             android:textAllCaps="false"
             android:textColor="#802C3E"
             android:textSize="11sp"

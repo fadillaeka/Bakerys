@@ -13,6 +13,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import kotlin.OptIn
+import kotlinx.serialization.InternalSerializationApi
 
 // 1. Data Model
 
@@ -33,6 +35,7 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
         return ViewHolder(view)
     }
 
+    @OptIn(InternalSerializationApi::class)
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = listResep[position]
 

@@ -1,9 +1,12 @@
 package com.example.bakerys
 
+import android.net.Uri
+
 data class ResepModel(
     val judul: String,
     val deskripsi: String,
-    val gambar: Int?,
+    val gambar: Int? = null,
+    val imageUri: Uri? = null,
     var isFavorite: Boolean = false,
-    val kategori: String = "Semua"
+    var isDisukai: Boolean = false
 )
