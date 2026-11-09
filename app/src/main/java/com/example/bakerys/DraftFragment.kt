@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 class DraftFragment : Fragment() {
 
     private lateinit var rvDraft: RecyclerView
-    private lateinit var draftAdapter: JelajahAdapter
+    private lateinit var draftAdapter: DraftAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -27,21 +27,30 @@ class DraftFragment : Fragment() {
         rvDraft = view.findViewById(R.id.rvDraft)
         rvDraft.layoutManager = LinearLayoutManager(requireContext())
 
-        // Inisialisasi adapter dengan aksi klik item untuk pindah ke UnggahFragment
-        draftAdapter = JelajahAdapter(
-            recipeList = RecipeRepository.draftList,
-            onItemClick = { recipe ->
-                // Panggil fungsi di MainActivity untuk pindah ke UnggahFragment membawa data draft
-                (activity as? MainActivity)?.bukaUnggahDenganData(recipe)
-            },
-            onBookmarkClick = { }
+        draftAdapter = DraftAdapter(
+            draftList = RecipeRepository.draftList,
+            onItemClick = { recipe: Recipe ->
+                val fragmentUnggah = UnggahFragment().apply {
+                    arguments = Bundle().apply {
+                        putInt("DRAFT_ID", recipe.id)
+                        putString("DRAFT_TITLE", recipe.title)
+                        putString("DRAFT_IMAGE_URI", recipe.imageUri?.toString())
+                        putInt("DRAFT_IMAGE_RES", recipe.imageResId ?: 0)
+                    }
+                }
+
+                activity?.supportFragmentManager?.beginTransaction()
+                    ?.replace(R.id.fragment_container, fragmentUnggah)
+                    ?.addToBackStack(null)
+                    ?.commit()
+            }
         )
+
         rvDraft.adapter = draftAdapter
     }
 
     override fun onResume() {
         super.onResume()
-        // Refresh otomatis saat tab Draft dibuka
         if (::draftAdapter.isInitialized) {
             draftAdapter.notifyDataSetChanged()
         }

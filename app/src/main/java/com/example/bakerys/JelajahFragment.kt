@@ -1,10 +1,10 @@
 package com.example.bakerys
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -26,35 +26,25 @@ class JelajahFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         rvJelajah = view.findViewById(R.id.rvJelajah)
+        rvJelajah.layoutManager = LinearLayoutManager(requireContext())
 
-        setupRecyclerView()
+        jelajahAdapter = JelajahAdapter(
+            recipeList = RecipeRepository.recipeList,
+            onItemClick = { recipe ->
+                val intent = Intent(requireContext(), DetailResepActivity::class.java).apply {
+                    putExtra("EXTRA_RECIPE_ID", recipe.id)
+                }
+                startActivity(intent)
+            }
+        )
+
+        rvJelajah.adapter = jelajahAdapter
     }
 
     override fun onResume() {
         super.onResume()
-        // Refresh tampilan agar status ikon heart & bookmark selalu update jika kembali ke tab Jelajah
         if (::jelajahAdapter.isInitialized) {
             jelajahAdapter.notifyDataSetChanged()
         }
-    }
-
-    private fun setupRecyclerView() {
-        jelajahAdapter = JelajahAdapter(
-            recipeList = RecipeRepository.recipeList,
-            onItemClick = { recipe ->
-                Toast.makeText(requireContext(), "Membuka: ${recipe.title}", Toast.LENGTH_SHORT).show()
-            },
-            onBookmarkClick = { recipe ->
-                // Update status bookmark di RecipeRepository utama
-                val repoRecipe = RecipeRepository.recipeList.find { it.id == recipe.id }
-                repoRecipe?.isBookmarked = recipe.isBookmarked
-
-                val statusText = if (recipe.isBookmarked) "Tersimpan" else "Dihapus dari simpanan"
-                Toast.makeText(requireContext(), "${recipe.title} $statusText", Toast.LENGTH_SHORT).show()
-            }
-        )
-
-        rvJelajah.layoutManager = LinearLayoutManager(requireContext())
-        rvJelajah.adapter = jelajahAdapter
     }
 }

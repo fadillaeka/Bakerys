@@ -41,26 +41,25 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
 
         // Pasang gambar kue secara dinamik
         holder.imgKue?.setImageResource(item.gambar ?: R.drawable.dubai)
-        // Logika tombol favorit (warna ikon)
-        if (item.isFavorite) {
-            holder.btnFavorite?.setColorFilter(Color.parseColor("#FF3B30"))
-        } else {
-            holder.btnFavorite?.setColorFilter(Color.parseColor("#8C7A6B"))
-        }
+
+        // Sinkronkan status favorit awal dari DisukaiFragment agar warna selalu konsisten saat di-scroll
+        item.isFavorite = DisukaiFragment.daftarResepDisukai.any { it.judul == item.judul }
+        updateHeartColor(holder.btnFavorite, item.isFavorite)
 
         // --- AKSI KLIK TOMBOL FAVORIT / LIKE ---
         holder.btnFavorite?.setOnClickListener {
             item.isFavorite = !item.isFavorite
 
             if (item.isFavorite) {
-                holder.btnFavorite?.setColorFilter(Color.parseColor("#FF3B30"))
                 DisukaiFragment.tambahKeDisukai(item)
                 Toast.makeText(holder.itemView.context, "${item.judul} ditambahkan ke Disukai", Toast.LENGTH_SHORT).show()
             } else {
-                holder.btnFavorite?.setColorFilter(Color.parseColor("#8C7A6B"))
                 DisukaiFragment.daftarResepDisukai.removeAll { it.judul == item.judul }
                 Toast.makeText(holder.itemView.context, "${item.judul} dihapus dari Disukai", Toast.LENGTH_SHORT).show()
             }
+
+            // Update warna secara instan
+            updateHeartColor(holder.btnFavorite, item.isFavorite)
         }
 
         // --- AKSI KLIK KARTU UNTUK MEMBUKA DETAIL RESEP ---
@@ -84,4 +83,13 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
     }
 
     override fun getItemCount(): Int = listResep.size
+
+    // Helper function untuk mengubah warna ikon secara langsung & aman
+    private fun updateHeartColor(imageView: ImageView?, isFavorite: Boolean) {
+        if (isFavorite) {
+            imageView?.setColorFilter(Color.parseColor("#FF3B30")) // Merah menyala
+        } else {
+            imageView?.setColorFilter(Color.parseColor("#8C7A6B")) // Abu-abu / Cokelat tua
+        }
+    }
 }

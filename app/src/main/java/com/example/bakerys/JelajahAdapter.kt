@@ -9,12 +9,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
-import kotlin.collections.emptyList
 
 class JelajahAdapter(
     private val recipeList: List<Recipe>,
-    private val onItemClick: (Recipe) -> Unit,
-    private val onBookmarkClick: (Recipe) -> Unit
+    private val onItemClick: (Recipe) -> Unit
 ) : RecyclerView.Adapter<JelajahAdapter.JelajahViewHolder>() {
 
     inner class JelajahViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -24,7 +22,6 @@ class JelajahAdapter(
 
         val btnLike: ImageView = itemView.findViewById(R.id.btnLike)
         val btnComment: ImageView = itemView.findViewById(R.id.btnComment)
-        val btnBookmark: ImageView = itemView.findViewById(R.id.btnBookmark)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): JelajahViewHolder {
@@ -39,7 +36,6 @@ class JelajahAdapter(
         holder.tvTitle.text = recipe.title
         holder.tvDesc.text = recipe.description
 
-        // Utamakan foto galeri jika ada (imageUri)
         if (recipe.imageUri != null) {
             holder.ivThumb.setImageURI(recipe.imageUri)
         } else if (recipe.imageResId != null) {
@@ -48,36 +44,24 @@ class JelajahAdapter(
             holder.ivThumb.setImageResource(R.drawable.dubai)
         }
 
-        // Update status UI Like & Bookmark
         updateLikeUI(holder.btnLike, recipe.isLiked)
-        updateBookmarkUI(holder.btnBookmark, recipe.isBookmarked)
 
-        // Listener Klik Item
         holder.itemView.setOnClickListener {
             onItemClick(recipe)
         }
 
-        // Listener Tombol Like
         holder.btnLike.setOnClickListener {
             recipe.isLiked = !recipe.isLiked
             updateLikeUI(holder.btnLike, recipe.isLiked)
-            NotifikasiBottomSheet.tambahNotif("Seseorang menyukai postingan Anda.")
+            if (recipe.isLiked) {
+                NotifikasiBottomSheet.tambahNotif("Seseorang menyukai postingan Anda.")
+            }
         }
 
-        // Listener Tombol Bookmark
-        holder.btnBookmark.setOnClickListener {
-            recipe.isBookmarked = !recipe.isBookmarked
-            updateBookmarkUI(holder.btnBookmark, recipe.isBookmarked)
-            onBookmarkClick(recipe)
-            NotifikasiBottomSheet.tambahNotif("Seseorang menambahkan postingan Anda ke favorit.")
-        }
-
-        // Listener Tombol Komentar
         holder.btnComment.setOnClickListener {
             NotifikasiBottomSheet.tambahNotif("Seseorang mengomentari postingan Anda.")
             val activity = holder.itemView.context as? FragmentActivity
             activity?.let {
-                // Mengirim emptyList() agar tidak error constructor
                 val commentSheet = KomentarBottomSheet(mutableListOf())
                 commentSheet.show(it.supportFragmentManager, "KomentarBottomSheet")
             }
@@ -92,16 +76,6 @@ class JelajahAdapter(
             imageView.imageTintList = null
         } else {
             imageView.setImageResource(R.drawable.ic_heart_outline)
-            imageView.imageTintList = ColorStateList.valueOf(Color.parseColor("#3E2723"))
-        }
-    }
-
-    private fun updateBookmarkUI(imageView: ImageView, isBookmarked: Boolean) {
-        if (isBookmarked) {
-            imageView.setImageResource(R.drawable.ic_bookmark_card)
-            imageView.imageTintList = ColorStateList.valueOf(Color.parseColor("#791E2A"))
-        } else {
-            imageView.setImageResource(R.drawable.ic_bookmark_card)
             imageView.imageTintList = ColorStateList.valueOf(Color.parseColor("#3E2723"))
         }
     }

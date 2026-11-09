@@ -8,8 +8,10 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
-class DisukaiAdapter(private val listDisukai: MutableList<ResepModel>) :
-    RecyclerView.Adapter<DisukaiAdapter.DisukaiViewHolder>() {
+class DisukaiAdapter(
+    private val listDisukai: MutableList<ResepModel>,
+    private val onItemClick: (ResepModel) -> Unit
+) : RecyclerView.Adapter<DisukaiAdapter.DisukaiViewHolder>() {
 
     class DisukaiViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val ivGambar: ImageView = view.findViewById(R.id.ivDisukaiGambar)
@@ -29,7 +31,13 @@ class DisukaiAdapter(private val listDisukai: MutableList<ResepModel>) :
         holder.tvJudul.text = item.judul
         holder.tvDeskripsi.text = item.deskripsi
         holder.ivGambar.setImageResource(item.gambar ?: R.drawable.dubai)
-        // Aksi ketika ikon hati diklik (Unlike / Hapus dari daftar disukai)
+
+        // 1. Klik Kartu Resep -> Pindah ke DetailResepActivity
+        holder.itemView.setOnClickListener {
+            onItemClick(item)
+        }
+
+        // 2. Aksi ketika ikon hati diklik (Unlike / Hapus dari daftar disukai)
         holder.ivHeart.setOnClickListener {
             val currentPosition = holder.adapterPosition
             if (currentPosition != RecyclerView.NO_POSITION) {
@@ -38,7 +46,7 @@ class DisukaiAdapter(private val listDisukai: MutableList<ResepModel>) :
                 // Hapus dari list
                 listDisukai.removeAt(currentPosition)
                 notifyItemRemoved(currentPosition)
-                notifyItemRangeChanged(currentPosition, listDisukai.size)
+                notifyItemRangeChanged(currentPosition, listDisukai.size - currentPosition)
 
                 // Tampilkan pesan
                 Toast.makeText(holder.itemView.context, "${removedItem.judul} dihapus dari Disukai", Toast.LENGTH_SHORT).show()

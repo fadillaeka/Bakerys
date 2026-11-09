@@ -56,16 +56,20 @@ class UnggahFragment : Fragment() {
             pickImageLauncher.launch("image/*")
         }
 
-        // --- BACA DATA DRAFT YANG DIKIRIM ---
+        // --- BACA DATA DRAFT YANG DIKIRIM DARI DRAFTFRAGMENT ---
         arguments?.let { bundle ->
-            if (bundle.containsKey("DRAFT_ID")) {
-                draftIdEdit = bundle.getInt("DRAFT_ID")
+            if (bundle.containsKey("DRAFT_ID") || bundle.containsKey("DRAFT_TITLE")) {
+                if (bundle.containsKey("DRAFT_ID")) {
+                    draftIdEdit = bundle.getInt("DRAFT_ID")
+                }
                 val draftTitle = bundle.getString("DRAFT_TITLE", "")
                 val draftUriString = bundle.getString("DRAFT_IMAGE_URI")
                 val draftImageRes = bundle.getInt("DRAFT_IMAGE_RES", 0)
 
                 // Set Caption
-                etCaption.setText(draftTitle)
+                if (!draftTitle.isNullOrEmpty()) {
+                    etCaption.setText(draftTitle)
+                }
 
                 // Set Foto dari Draft
                 if (!draftUriString.isNullOrEmpty()) {
@@ -90,7 +94,7 @@ class UnggahFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            val newId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
+            val newId = draftIdEdit ?: (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
 
             val postinganBaru = Recipe(
                 id = newId,
@@ -112,9 +116,14 @@ class UnggahFragment : Fragment() {
             NotifikasiBottomSheet.tambahNotif("Postingan kamu berhasil dipublikasikan!")
             Toast.makeText(requireContext(), "Postingan terbit di Jelajah!", Toast.LENGTH_SHORT).show()
             resetForm()
+
+            // PINDAH KE FRAGMENT BERANDA (JELAJAH)
+            activity?.supportFragmentManager?.beginTransaction()
+                ?.replace(R.id.fragment_container, BerandaFragment())
+                ?.commit()
         }
 
-        // 2. Simpan Sebagai Draft
+        // 2. Simpan Sebagai Draft (Tetap di halaman Unggah)
         btnSimpanDraft.setOnClickListener {
             val caption = etCaption.text.toString().trim()
 
@@ -139,7 +148,7 @@ class UnggahFragment : Fragment() {
             }
             RecipeRepository.tambahDraft(draftBaru)
 
-            Toast.makeText(requireContext(), "Draft berhasil diperbarui!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Draft berhasil disimpan!", Toast.LENGTH_SHORT).show()
             resetForm()
         }
     }
