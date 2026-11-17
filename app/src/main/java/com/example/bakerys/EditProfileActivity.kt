@@ -141,16 +141,17 @@ class EditProfileActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val currentUser = SupabaseClient.instance.auth.currentUserOrNull()
-                if (currentUser != null) {
-                    val userId = currentUser.id
-                    val updatedData = buildJsonObject {
-                        put("nama_lengkap", fullNameBaru)
-                        put("username", usernameBaru)
-                        put("bio", bioBaru)
+                val userId = currentUser?.id ?: BakeryStorageManager.dapatkanUserId(this@EditProfileActivity)
+                val updatedData = buildJsonObject {
+                    put("nama_lengkap", fullNameBaru)
+                    put("username", usernameBaru)
+                    put("bio", bioBaru)
+                    if (imageUri != null) {
+                        put("foto_profil", imageUri.toString())
                     }
-                    SupabaseClient.instance.from("users").update(updatedData) {
-                        filter { eq("id", userId) }
-                    }
+                }
+                SupabaseClient.instance.from("users").update(updatedData) {
+                    filter { eq("id", userId) }
                 }
             } catch (e: Exception) {
                 android.util.Log.e("EDIT_PROFILE_ERROR", "Error: ${e.message}")

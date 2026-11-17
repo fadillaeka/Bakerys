@@ -135,9 +135,9 @@ class ProfilFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val currentUser = SupabaseClient.instance.auth.currentUserOrNull() ?: return@launch
-                val userId = currentUser.id
-                val userEmailAuth = currentUser.email ?: ""
+                val currentUser = SupabaseClient.instance.auth.currentUserOrNull()
+                val userId = currentUser?.id ?: BakeryStorageManager.dapatkanUserId(requireContext())
+                val userEmailAuth = currentUser?.email ?: ""
 
                 val result = SupabaseClient.instance.from("users")
                     .select {
@@ -164,6 +164,35 @@ class ProfilFragment : Fragment() {
                     val dbBio = userObj["bio"]?.jsonPrimitive?.content
                     if (!dbBio.isNullOrEmpty()) {
                         bioText = dbBio
+                    }
+
+                    val dbFoto = userObj["foto_profil"]?.jsonPrimitive?.content
+                    if (!dbFoto.isNullOrEmpty()) {
+                        try {
+                            binding.ivFotoProfil.setImageURI(Uri.parse(dbFoto))
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+
+                    val dbSatuan = userObj["satuan_pengukuran"]?.jsonPrimitive?.content
+                    if (!dbSatuan.isNullOrEmpty()) {
+                        sharedPreferences.edit().putString("unit_preference", dbSatuan).apply()
+                        if (dbSatuan == "imperial") {
+                            setOptionSelected(binding.btnImperial, binding.tvImperial, binding.btnMetric, binding.tvMetric)
+                        } else {
+                            setOptionSelected(binding.btnMetric, binding.tvMetric, binding.btnImperial, binding.tvImperial)
+                        }
+                    }
+
+                    val dbSuhu = userObj["standar_suhu"]?.jsonPrimitive?.content
+                    if (!dbSuhu.isNullOrEmpty()) {
+                        sharedPreferences.edit().putString("temp_preference", dbSuhu).apply()
+                        if (dbSuhu == "fahrenheit") {
+                            setOptionSelected(binding.btnFahrenheit, binding.tvFahrenheit, binding.btnCelcius, binding.tvCelcius)
+                        } else {
+                            setOptionSelected(binding.btnCelcius, binding.tvCelcius, binding.btnFahrenheit, binding.tvFahrenheit)
+                        }
                     }
                 }
 
@@ -241,6 +270,7 @@ class ProfilFragment : Fragment() {
 
     private fun savePreference(key: String, value: String) {
         sharedPreferences.edit().putString(key, value).apply()
+        BakeryStorageManager.simpanPreferensiKeSupabase(requireContext(), key, value)
     }
 
     private fun setOptionSelected(

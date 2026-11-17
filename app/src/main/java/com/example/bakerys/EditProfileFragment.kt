@@ -99,28 +99,37 @@ class EditProfileFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val currentUser = SupabaseClient.instance.auth.currentUserOrNull()
-                if (currentUser != null) {
-                    val userId = currentUser.id
+                val userId = currentUser?.id ?: BakeryStorageManager.dapatkanUserId(requireContext())
 
-                    val result = SupabaseClient.instance.from("users")
-                        .select { filter { eq("id", userId) } }
-                        .decodeList<JsonObject>()
+                val result = SupabaseClient.instance.from("users")
+                    .select { filter { eq("id", userId) } }
+                    .decodeList<JsonObject>()
 
-                    if (result.isNotEmpty()) {
-                        val userObj = result.first()
-                        val namaLengkap = userObj["nama_lengkap"]?.jsonPrimitive?.content ?: ""
-                        val username = userObj["username"]?.jsonPrimitive?.content ?: ""
-                        val bio = userObj["bio"]?.jsonPrimitive?.content ?: ""
+                if (result.isNotEmpty()) {
+                    val userObj = result.first()
+                    val namaLengkap = userObj["nama_lengkap"]?.jsonPrimitive?.content ?: ""
+                    val username = userObj["username"]?.jsonPrimitive?.content ?: ""
+                    val bio = userObj["bio"]?.jsonPrimitive?.content ?: ""
+                    val foto = userObj["foto_profil"]?.jsonPrimitive?.content
 
-                        binding.etNamaLengkap.setText(namaLengkap)
-                        binding.etUsername.setText(username)
-                        binding.etBio.setText(bio)
-                    } else {
-                        binding.etUsername.setText(currentUser.email?.substringBefore("@") ?: "")
+                    binding.etNamaLengkap.setText(namaLengkap)
+                    binding.etUsername.setText(username)
+                    binding.etBio.setText(bio)
+
+                    if (!foto.isNullOrEmpty() && imageUri == null) {
+                        try {
+                            val uri = Uri.parse(foto)
+                            imageUri = uri
+                            binding.ivFotoProfil.setImageURI(uri)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }
-
-                    binding.etEmail.setText(currentUser.email ?: "")
+                } else {
+                    binding.etUsername.setText(currentUser?.email?.substringBefore("@") ?: "")
                 }
+
+                binding.etEmail.setText(currentUser?.email ?: "")
             } catch (e: Exception) {
                 android.util.Log.e("EDIT_PROFILE_LOAD", "Error: ${e.message}")
             }
@@ -150,16 +159,17 @@ class EditProfileFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val currentUser = SupabaseClient.instance.auth.currentUserOrNull()
-                if (currentUser != null) {
-                    val userId = currentUser.id
-                    val updatedData = buildJsonObject {
-                        put("nama_lengkap", fullNameBaru)
-                        put("username", usernameBaru)
-                        put("bio", bioBaru)
+                val userId = currentUser?.id ?: BakeryStorageManager.dapatkanUserId(requireContext())
+                val updatedData = buildJsonObject {
+                    put("nama_lengkap", fullNameBaru)
+                    put("username", usernameBaru)
+                    put("bio", bioBaru)
+                    if (imageUri != null) {
+                        put("foto_profil", imageUri.toString())
                     }
-                    SupabaseClient.instance.from("users").update(updatedData) {
-                        filter { eq("id", userId) }
-                    }
+                }
+                SupabaseClient.instance.from("users").update(updatedData) {
+                    filter { eq("id", userId) }
                 }
             } catch (e: Exception) {
                 android.util.Log.e("EDIT_PROFILE_ERROR", "Error: ${e.message}")

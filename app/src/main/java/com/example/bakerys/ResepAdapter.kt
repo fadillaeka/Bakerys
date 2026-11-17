@@ -71,6 +71,7 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
             }
 
             BakeryStorageManager.simpanDaftarDisukai(holder.itemView.context, DisukaiFragment.daftarResepDisukai)
+            BakeryStorageManager.simpanSukaKeSupabase(holder.itemView.context, 11L, item.isFavorite)
 
             // Update warna secara instan
             updateHeartColor(holder.btnFavorite, item.isFavorite)

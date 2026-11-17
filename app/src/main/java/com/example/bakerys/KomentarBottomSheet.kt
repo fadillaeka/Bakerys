@@ -119,8 +119,8 @@ class KomentarBottomSheet(
             rvComments?.smoothScrollToPosition(adapter.itemCount - 1)
             Toast.makeText(requireContext(), "Komentar berhasil dikirim!", Toast.LENGTH_SHORT).show()
 
-            // Simpan komentar ke Supabase Database
-            BakeryStorageManager.simpanKomentarKeSupabase(1L, text)
+            // Simpan komentar ke Supabase Database (resep_id 11L yang valid)
+            BakeryStorageManager.simpanKomentarKeSupabase(11L, text, requireContext())
         }
 
         fun kirimKomentar(resepId: Long, teksKomentar: String) {

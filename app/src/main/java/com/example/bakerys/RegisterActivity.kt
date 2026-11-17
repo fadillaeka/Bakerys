@@ -47,12 +47,12 @@ class RegisterActivity : AppCompatActivity() {
                     password = passwordInput
                 }
 
-                val userId = SupabaseClient.instance.auth.currentUserOrNull()?.id
+                val userId = SupabaseClient.instance.auth.currentUserOrNull()?.id ?: java.util.UUID.randomUUID().toString()
 
                 // 2. Simpan Data Profil ke Tabel 'users' Supabase
                 try {
                     val userProfile = buildJsonObject {
-                        if (userId != null) put("id", userId)
+                        put("id", userId)
                         put("username", usernameInput)
                         put("email", emailInput)
                         put("password", passwordInput)
@@ -66,6 +66,7 @@ class RegisterActivity : AppCompatActivity() {
                 getSharedPreferences("BakerysPrefs", Context.MODE_PRIVATE).edit()
                     .putString("profile_name", usernameInput)
                     .putString("profile_email", emailInput)
+                    .putString("current_user_id", userId)
                     .apply()
 
                 Toast.makeText(this@RegisterActivity, "Registrasi berhasil! Silakan masuk.", Toast.LENGTH_SHORT).show()

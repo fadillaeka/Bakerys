@@ -118,8 +118,8 @@ class UnggahFragment : Fragment() {
             // Tambahkan ke feed Jelajah
             RecipeRepository.tambahPostingan(postinganBaru)
 
-            // Simpan postingan resep ke Supabase Database
-            BakeryStorageManager.simpanResepKeSupabase(caption, "Resep kreasi baker terbit di Jelajah")
+            // Simpan postingan resep ke Supabase Database (tabel postingan_users & resep)
+            BakeryStorageManager.simpanPostinganKeSupabase(caption, imageUri?.toString() ?: "", requireContext())
 
             // Hapus dari draft jika postingan ini berasal dari draft
             draftIdEdit?.let { id ->
@@ -169,7 +169,10 @@ class UnggahFragment : Fragment() {
             }
             RecipeRepository.tambahDraft(draftBaru)
 
-            // Simpan draft secara persisten ke database
+            // Simpan draft ke Supabase Database (tabel draft_postingan_user)
+            BakeryStorageManager.simpanDraftKeSupabase(caption, imageUri?.toString() ?: "", requireContext())
+
+            // Simpan draft secara persisten ke database lokal
             BakeryStorageManager.simpanDaftarDraft(requireContext(), RecipeRepository.draftList)
 
             Toast.makeText(requireContext(), "Draft berhasil disimpan!", Toast.LENGTH_SHORT).show()

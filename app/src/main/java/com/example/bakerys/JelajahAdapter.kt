@@ -55,6 +55,11 @@ class JelajahAdapter(
             holder.btnLike.startAnimation(animPulse)
             recipe.isLiked = !recipe.isLiked
             updateLikeUI(holder.btnLike, recipe.isLiked)
+            BakeryStorageManager.simpanSukaKeSupabase(
+                holder.itemView.context,
+                if (recipe.id > 0) recipe.id.toLong() else 11L,
+                recipe.isLiked
+            )
             if (recipe.isLiked) {
                 NotifikasiBottomSheet.tambahNotif("Seseorang menyukai postingan Anda.")
             }

@@ -54,6 +54,7 @@ class DraftAdapter(
                         draftList.removeAt(currentPos)
                         RecipeRepository.draftList.removeAll { it.id == itemToRemove.id }
                         BakeryStorageManager.simpanDaftarDraft(context, RecipeRepository.draftList)
+                        BakeryStorageManager.hapusDraftDariSupabase(itemToRemove.title, context)
                         notifyItemRemoved(currentPos)
                         notifyItemRangeChanged(currentPos, draftList.size - currentPos)
                         onItemDeleted?.invoke(itemToRemove)

@@ -91,10 +91,14 @@ class LoginActivity : AppCompatActivity() {
                 // Simpan profil nama ke SharedPreferences
                 val sharedPref = getSharedPreferences("BakerysPrefs", Context.MODE_PRIVATE)
                 val displayName = if (usernameInput.contains("@")) usernameInput.substringBefore("@") else usernameInput
-                sharedPref.edit()
+                val authUserId = SupabaseClient.instance.auth.currentUserOrNull()?.id
+                val editor = sharedPref.edit()
                     .putString("profile_name", displayName)
                     .putString("profile_email", userEmail)
-                    .apply()
+                if (!authUserId.isNullOrEmpty()) {
+                    editor.putString("current_user_id", authUserId)
+                }
+                editor.apply()
 
                 Toast.makeText(this@LoginActivity, "Login berhasil!", Toast.LENGTH_SHORT).show()
 
