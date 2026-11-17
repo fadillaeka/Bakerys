@@ -35,10 +35,17 @@ class DisukaiAdapter(
         // 1. Klik Kartu Resep -> Pindah ke DetailResepActivity
         holder.itemView.setOnClickListener {
             onItemClick(item)
+            val context = holder.itemView.context
+            if (context is android.app.Activity) {
+                context.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            }
         }
 
         // 2. Aksi ketika ikon hati diklik (Unlike / Hapus dari daftar disukai)
         holder.ivHeart.setOnClickListener {
+            val animPulse = android.view.animation.AnimationUtils.loadAnimation(holder.itemView.context, R.anim.scale_pulse)
+            holder.ivHeart.startAnimation(animPulse)
+
             val currentPosition = holder.adapterPosition
             if (currentPosition != RecyclerView.NO_POSITION) {
                 val removedItem = listDisukai[currentPosition]

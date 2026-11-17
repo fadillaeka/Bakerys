@@ -39,6 +39,7 @@ class DisukaiFragment : Fragment() {
             onItemClick = {}
         )
         rvDisukai.adapter = adapterDisukai
+        rvDisukai.scheduleLayoutAnimation()
 
         return view
     }

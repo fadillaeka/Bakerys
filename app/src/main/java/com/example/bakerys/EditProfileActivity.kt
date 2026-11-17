@@ -46,6 +46,11 @@ class EditProfileActivity : AppCompatActivity() {
         loadSavedProfileImage()
         loadProfileData()
 
+        binding.btnKembali.setOnClickListener {
+            finish()
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+        }
+
         binding.btnUbahFoto.setOnClickListener { pickImageLauncher.launch("image/*") }
         binding.cardUbahFoto.setOnClickListener { pickImageLauncher.launch("image/*") }
         binding.btnSimpan.setOnClickListener { simpanPerubahanProfil() }
@@ -153,6 +158,13 @@ class EditProfileActivity : AppCompatActivity() {
 
             Toast.makeText(this@EditProfileActivity, "Profil berhasil diperbarui!", Toast.LENGTH_SHORT).show()
             finish()
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
         }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 }

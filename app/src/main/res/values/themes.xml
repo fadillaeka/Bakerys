@@ -19,4 +19,10 @@
         <!-- Membuat sudutnya melengkung penuh -->
         <item name="shapeAppearanceOverlay">@style/ShapeAppearance.Material3.Corner.Full</item>
     </style>
+
+    <!-- Animasi Pop-Up Dialog Memantul Elegan -->
+    <style name="DialogAnimation">
+        <item name="android:windowEnterAnimation">@anim/scale_bounce</item>
+        <item name="android:windowExitAnimation">@anim/fade_out</item>
+    </style>
 </resources>

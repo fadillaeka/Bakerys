@@ -40,26 +40,37 @@ class MainActivity : AppCompatActivity() {
         handleIntentNavigation(intent)
         cekKoneksiDatabase()
 
+        var currentTabIndex = 0
+
         bottomNav.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_beranda -> {
-                    loadFragment(BerandaFragment())
-                    true
-                }
-                R.id.nav_unggah -> {
-                    loadFragment(UnggahFragment())
-                    true
-                }
-                R.id.nav_jelajah -> {
-                    loadFragment(JelajahFragment())
-                    true
-                }
-                R.id.nav_profil -> {
-                    loadFragment(ProfilFragment())
-                    true
-                }
-                else -> false
+            val targetIndex = when (item.itemId) {
+                R.id.nav_beranda -> 0
+                R.id.nav_unggah -> 1
+                R.id.nav_jelajah -> 2
+                R.id.nav_profil -> 3
+                else -> 0
             }
+
+            val fragment = when (item.itemId) {
+                R.id.nav_beranda -> BerandaFragment()
+                R.id.nav_unggah -> UnggahFragment()
+                R.id.nav_jelajah -> JelajahFragment()
+                R.id.nav_profil -> ProfilFragment()
+                else -> BerandaFragment()
+            }
+
+            if (targetIndex != currentTabIndex) {
+                val animEnter = if (targetIndex > currentTabIndex) R.anim.slide_in_right else R.anim.slide_in_left
+                val animExit = if (targetIndex > currentTabIndex) R.anim.slide_out_left else R.anim.slide_out_right
+
+                supportFragmentManager.beginTransaction()
+                    .setCustomAnimations(animEnter, animExit)
+                    .replace(R.id.fragment_container, fragment)
+                    .commit()
+
+                currentTabIndex = targetIndex
+            }
+            true
         }
     }
 
@@ -81,6 +92,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
+            .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
             .replace(R.id.fragment_container, fragment)
             .commit()
     }
@@ -124,6 +136,7 @@ class MainActivity : AppCompatActivity() {
         val intent = Intent(this, WelcomeActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
         finish()
     }
 

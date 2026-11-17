@@ -5,6 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="120dp"
     android:layout_marginBottom="16dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
     app:cardBackgroundColor="#FCEBE5"
     app:cardCornerRadius="16dp"
     app:cardElevation="0dp"
@@ -42,7 +45,7 @@
             android:maxLines="2"
             android:ellipsize="end" />
 
-        <!-- Tombol Lihat Resep -->
+        <!-- Tombol Hapus Draft -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnHapusDraft"
             style="@style/Widget.Material3.Button.TextButton"
@@ -50,14 +53,14 @@
             android:layout_height="36dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
-            android:backgroundTint="#F8CFBE"
+            android:backgroundTint="#FFDADA"
             android:text="Hapus Draft"
             android:textAllCaps="false"
-            android:textColor="#802C3E"
+            android:textColor="#C0392B"
             android:textSize="11sp"
             android:textStyle="bold"
             app:cornerRadius="12dp"
-            app:strokeColor="#E4B7A5"
+            app:strokeColor="#E57373"
             app:strokeWidth="1dp" />
 
     </RelativeLayout>

@@ -1,23 +1,25 @@
 package com.example.bakerys
 
+import android.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 
 class DraftAdapter(
-    private val draftList: MutableList<Recipe>, // Diubah ke MutableList agar item bisa dihapus
-    private val onItemClick: (Recipe) -> Unit
+    private val draftList: MutableList<Recipe>,
+    private val onItemClick: (Recipe) -> Unit,
+    private val onItemDeleted: ((Recipe) -> Unit)? = null
 ) : RecyclerView.Adapter<DraftAdapter.DraftViewHolder>() {
 
     inner class DraftViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imgDraft: ImageView = itemView.findViewById(R.id.imgDraft)
         val tvJudulDraft: TextView = itemView.findViewById(R.id.tvJudulDraft)
-        // Tambahkan rujukan tombol hapus (sesuaikan ID dengan file XML item_draft_card kamu)
-        val btnHapusDraft: Button = itemView.findViewById(R.id.btnHapusDraft)
+        val btnHapusDraft: MaterialButton? = itemView.findViewById(R.id.btnHapusDraft)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DraftViewHolder {
@@ -39,27 +41,32 @@ class DraftAdapter(
             holder.imgDraft.setImageResource(R.drawable.bakery_mark)
         }
 
-        holder.itemView.setOnClickListener {
-            onItemClick(recipe)
+        // Aksi Tombol Hapus Draft dengan Konfirmasi
+        holder.btnHapusDraft?.setOnClickListener {
+            val currentPos = holder.adapterPosition
+            if (currentPos != RecyclerView.NO_POSITION) {
+                val context = holder.itemView.context
+                AlertDialog.Builder(context)
+                    .setTitle("Hapus Draft")
+                    .setMessage("Apakah Anda yakin ingin menghapus draft \"${recipe.title}\"?")
+                    .setPositiveButton("Hapus") { _, _ ->
+                        val itemToRemove = draftList[currentPos]
+                        draftList.removeAt(currentPos)
+                        RecipeRepository.draftList.removeAll { it.id == itemToRemove.id }
+                        notifyItemRemoved(currentPos)
+                        notifyItemRangeChanged(currentPos, draftList.size - currentPos)
+                        onItemDeleted?.invoke(itemToRemove)
+                        Toast.makeText(context, "Draft berhasil dihapus", Toast.LENGTH_SHORT).show()
+                    }
+                    .setNegativeButton("Batal", null)
+                    .show()
+            }
         }
 
-        // Event saat tombol Hapus Draft diklik
-        holder.btnHapusDraft.setOnClickListener {
-            val currentPosition = holder.adapterPosition
-            if (currentPosition != RecyclerView.NO_POSITION) {
-                removeItemAt(currentPosition)
-            }
+        holder.itemView.setOnClickListener {
+            onItemClick(recipe)
         }
     }
 
     override fun getItemCount(): Int = draftList.size
-
-    // Fungsi untuk menghapus item dari list dan memperbarui tampilan RecyclerView
-    fun removeItemAt(position: Int) {
-        if (position in 0 until draftList.size) {
-            draftList.removeAt(position)
-            notifyItemRemoved(position)
-            notifyItemRangeChanged(position, draftList.size - position)
-        }
-    }
 }

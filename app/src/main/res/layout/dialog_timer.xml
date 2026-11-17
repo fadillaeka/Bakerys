@@ -4,71 +4,247 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="24dp"
-    app:cardBackgroundColor="#E6B8B8"
+    android:layout_marginHorizontal="20dp"
+    app:cardBackgroundColor="#FFF9F8"
     app:cardCornerRadius="24dp"
     app:cardElevation="8dp"
-    app:strokeColor="#D7B5AE"
-    app:strokeWidth="1dp">
+    app:strokeColor="#802C3E"
+    app:strokeWidth="1.5dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="20dp"
+        android:gravity="center_horizontal">
 
-        <!-- Tombol Tutup (X) di Kanan Atas -->
-        <ImageView
-            android:id="@+id/btnCloseTimer"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="end"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            app:tint="#802C3E"
-            android:contentDescription="Tutup" />
+        <!-- Header: Judul Timer + Close -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp">
 
-        <!-- Teks Hitung Mundur (Timer 05:00) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:text="⏱️ Timer Pemanggangan"
+                android:textColor="#802C3E"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/btnCloseTimer"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:clickable="true"
+                android:focusable="true"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                app:tint="#802C3E"
+                android:contentDescription="Tutup" />
+        </RelativeLayout>
+
+        <!-- Tampilan Countdown Besar -->
         <TextView
             android:id="@+id/tvTimerCountdown"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="24dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="12dp"
             android:text="05:00"
-            android:textColor="#3E2723"
-            android:textSize="48sp"
+            android:textColor="#802C3E"
+            android:textSize="44sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium" />
 
-        <!-- Tombol Restart -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnRestartTimer"
+        <!-- Pengaturan Waktu Input Menit & Detik -->
+        <LinearLayout
+            android:id="@+id/layoutTimerInput"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <!-- Input Menit -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <EditText
+                    android:id="@+id/etTimerMinutes"
+                    android:layout_width="65dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_input_field"
+                    android:gravity="center"
+                    android:hint="05"
+                    android:inputType="number"
+                    android:maxLength="3"
+                    android:textColor="#802C3E"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Menit"
+                    android:textColor="#8D6E63"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp"
+                android:layout_marginBottom="14dp"
+                android:text=":"
+                android:textColor="#802C3E"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <!-- Input Detik -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <EditText
+                    android:id="@+id/etTimerSeconds"
+                    android:layout_width="65dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_input_field"
+                    android:gravity="center"
+                    android:hint="00"
+                    android:inputType="number"
+                    android:maxLength="2"
+                    android:textColor="#802C3E"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Detik"
+                    android:textColor="#8D6E63"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- Tombol Pasang Waktu -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSetTimerCustom"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginBottom="14dp"
+                android:backgroundTint="#802C3E"
+                android:text="Set"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp" />
+        </LinearLayout>
+
+        <!-- Tombol Cepat (Preset Chips) -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginBottom="12dp"
-            android:backgroundTint="#FFF9F8"
-            android:text="Restart"
-            android:textAllCaps="false"
-            android:textColor="#802C3E"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            app:cornerRadius="24dp"
-            app:elevation="0dp" />
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPreset1m"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="2dp"
+                android:text="+1m"
+                android:textAllCaps="false"
+                android:textColor="#802C3E"
+                android:textSize="11sp"
+                app:strokeColor="#802C3E"
+                app:cornerRadius="12dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPreset5m"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="2dp"
+                android:text="+5m"
+                android:textAllCaps="false"
+                android:textColor="#802C3E"
+                android:textSize="11sp"
+                app:strokeColor="#802C3E"
+                app:cornerRadius="12dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPreset15m"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="2dp"
+                android:text="+15m"
+                android:textAllCaps="false"
+                android:textColor="#802C3E"
+                android:textSize="11sp"
+                app:strokeColor="#802C3E"
+                app:cornerRadius="12dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPreset30m"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="2dp"
+                android:text="+30m"
+                android:textAllCaps="false"
+                android:textColor="#802C3E"
+                android:textSize="11sp"
+                app:strokeColor="#802C3E"
+                app:cornerRadius="12dp" />
+        </LinearLayout>
 
         <!-- Tombol Start / Pause -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnStartTimer"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:backgroundTint="#FFF9F8"
-            android:text="Start"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="#802C3E"
+            android:text="Mulai Timer"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:cornerRadius="24dp" />
+
+        <!-- Tombol Restart -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRestartTimer"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:text="Reset Waktu"
             android:textAllCaps="false"
             android:textColor="#802C3E"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold"
-            app:cornerRadius="24dp"
-            app:elevation="0dp" />
+            app:strokeColor="#802C3E"
+            app:cornerRadius="24dp" />
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

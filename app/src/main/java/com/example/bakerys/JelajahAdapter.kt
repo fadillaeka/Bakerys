@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 class JelajahAdapter(
     private val recipeList: List<Recipe>,
-    private val onItemClick: (Recipe) -> Unit
+    private val onItemClick: ((Recipe) -> Unit)? = null
 ) : RecyclerView.Adapter<JelajahAdapter.JelajahViewHolder>() {
 
     inner class JelajahViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -44,25 +44,15 @@ class JelajahAdapter(
             holder.ivThumb.setImageResource(R.drawable.dubai)
         }
 
-        // Animasi kartu muncul halus saat di-scroll
-        holder.itemView.alpha = 0f
-        holder.itemView.scaleX = 0.94f
-        holder.itemView.scaleY = 0.94f
-        holder.itemView.animate()
-            .alpha(1f)
-            .scaleX(1f)
-            .scaleY(1f)
-            .setDuration(300)
-            .start()
-
         updateLikeUI(holder.btnLike, recipe.isLiked)
 
-        holder.itemView.setOnClickListener {
-            onItemClick(recipe)
-        }
+        // Hanya bisa melihat postingan, memberi like, dan berkomentar (tidak bisa membuka detail resep)
+        holder.itemView.setOnClickListener(null)
+        holder.itemView.isClickable = false
 
         holder.btnLike.setOnClickListener {
-            animasiMembal(holder.btnLike) // Efek hati membal saat diklik
+            val animPulse = android.view.animation.AnimationUtils.loadAnimation(holder.itemView.context, R.anim.scale_pulse)
+            holder.btnLike.startAnimation(animPulse)
             recipe.isLiked = !recipe.isLiked
             updateLikeUI(holder.btnLike, recipe.isLiked)
             if (recipe.isLiked) {
@@ -71,7 +61,6 @@ class JelajahAdapter(
         }
 
         holder.btnComment.setOnClickListener {
-            animasiMembal(holder.btnComment) // Efek ikon komentar membal saat diklik
             NotifikasiBottomSheet.tambahNotif("Seseorang mengomentari postingan Anda.")
             val activity = holder.itemView.context as? FragmentActivity
             activity?.let {
@@ -82,21 +71,6 @@ class JelajahAdapter(
     }
 
     override fun getItemCount(): Int = recipeList.size
-
-    private fun animasiMembal(view: View) {
-        view.animate()
-            .scaleX(1.3f)
-            .scaleY(1.3f)
-            .setDuration(120)
-            .withEndAction {
-                view.animate()
-                    .scaleX(1f)
-                    .scaleY(1f)
-                    .setDuration(120)
-                    .start()
-            }
-            .start()
-    }
 
     private fun updateLikeUI(imageView: ImageView, isLiked: Boolean) {
         if (isLiked) {

@@ -29,16 +29,11 @@ class JelajahFragment : Fragment() {
         rvJelajah.layoutManager = LinearLayoutManager(requireContext())
 
         jelajahAdapter = JelajahAdapter(
-            recipeList = RecipeRepository.recipeList,
-            onItemClick = { recipe ->
-                val intent = Intent(requireContext(), DetailResepActivity::class.java).apply {
-                    putExtra("EXTRA_RECIPE_ID", recipe.id)
-                }
-                startActivity(intent)
-            }
+            recipeList = RecipeRepository.recipeList
         )
 
         rvJelajah.adapter = jelajahAdapter
+        rvJelajah.scheduleLayoutAnimation()
     }
 
     override fun onResume() {

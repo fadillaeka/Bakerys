@@ -59,10 +59,17 @@ class RegisterActivity : AppCompatActivity() {
 
                     Toast.makeText(this@RegisterActivity, "Registrasi berhasil!", Toast.LENGTH_SHORT).show()
                     finish() // Tutup halaman register & pindah ke Login
+                    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
                 }
             } catch (e: Exception) {
                 Toast.makeText(this@RegisterActivity, "Gagal daftar: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 }

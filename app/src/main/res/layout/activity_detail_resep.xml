@@ -359,4 +359,57 @@
         app:menu="@menu/bottom_nav_menu"
         app:labelVisibilityMode="labeled" />
 
+    <!-- 3. Pop-up Animasi Gambar Kue Berputar Nongol -->
+    <FrameLayout
+        android:id="@+id/layoutCakeAnimationOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99000000"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <!-- Lingkaran Gambar Kue Berputar -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardSpinningCake"
+                android:layout_width="230dp"
+                android:layout_height="230dp"
+                app:cardCornerRadius="115dp"
+                app:cardElevation="16dp"
+                app:strokeColor="#FFFFFF"
+                app:strokeWidth="4dp">
+
+                <ImageView
+                    android:id="@+id/ivSpinningCake"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/dubai"
+                    android:contentDescription="Gambar Kue Berputar" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Teks Pilihan Menarik -->
+            <TextView
+                android:id="@+id/tvSpinningCakeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_circle_peach"
+                android:backgroundTint="#802C3E"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="8dp"
+                android:text="✨ Dubai Chewy Cookies ✨"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </FrameLayout>
+
 </RelativeLayout>

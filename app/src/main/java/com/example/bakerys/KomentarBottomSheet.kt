@@ -55,19 +55,69 @@ class KomentarBottomSheet(
             dismiss()
         }
 
+        // Daftar kata-kata terlarang / tidak pantas (Bad Word Filter)
+        val kataKasarList = listOf(
+            "anjing", "babi", "bangsat", "kontol", "memek", "jembut", "pantek",
+            "bodoh", "tolol", "goblok", "idiot", "kampret", "bajingan", "asu",
+            "jancok", "fuck", "shit", "bitch", "asshole", "perek", "lonte",
+            "sialan", "setan", "iblis", "pepek", "titit", "itil", "peli"
+        )
+
+        fun validasiKomentar(teks: String): Pair<Boolean, String> {
+            val trimmed = teks.trim()
+            if (trimmed.length < 3) {
+                return Pair(false, "Komentar terlalu pendek (minimal 3 karakter)!")
+            }
+            if (trimmed.length > 250) {
+                return Pair(false, "Komentar terlalu panjang (maksimal 250 karakter)!")
+            }
+
+            // Normalisasi teks untuk deteksi bypass (misal: "a.n.j.i.n.g", "b@ngs@t")
+            val normalized = trimmed.lowercase()
+                .replace(Regex("[^a-zA-Z0-9]"), "")
+                .replace("0", "o")
+                .replace("1", "i")
+                .replace("3", "e")
+                .replace("4", "a")
+                .replace("@", "a")
+
+            for (kata in kataKasarList) {
+                if (normalized.contains(kata) || trimmed.lowercase().split(Regex("\\s+")).contains(kata)) {
+                    return Pair(false, "⚠️ Komentar mengandung kata tidak pantas! Harap gunakan bahasa yang sopan.")
+                }
+            }
+
+            // Cek apakah komentar hanya berisi karakter berulang (spam)
+            if (Regex("^(.)\\1{5,}$").matches(trimmed)) {
+                return Pair(false, "Komentar terdeteksi sebagai spam berulang!")
+            }
+
+            return Pair(true, "")
+        }
+
         fun sendComment() {
             val text = etComment?.text?.toString()?.trim().orEmpty()
-            if (text.isNotEmpty()) {
-                val nextProfileNumber = adapter.itemCount + 1
-                val username = "Profile $nextProfileNumber"
-                val avatarColor = avatarColors[adapter.itemCount % avatarColors.size]
-
-                val newComment = CommentItem(username, text, avatarColor)
-                adapter.addComment(newComment)
-
-                etComment?.text?.clear()
-                rvComments?.smoothScrollToPosition(adapter.itemCount - 1)
+            if (text.isEmpty()) {
+                Toast.makeText(requireContext(), "Komentar tidak boleh kosong!", Toast.LENGTH_SHORT).show()
+                return
             }
+
+            val (isValid, errorMessage) = validasiKomentar(text)
+            if (!isValid) {
+                Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show()
+                return
+            }
+
+            val nextProfileNumber = adapter.itemCount + 1
+            val username = "Baker #$nextProfileNumber"
+            val avatarColor = avatarColors[adapter.itemCount % avatarColors.size]
+
+            val newComment = CommentItem(username, text, avatarColor)
+            adapter.addComment(newComment)
+
+            etComment?.text?.clear()
+            rvComments?.smoothScrollToPosition(adapter.itemCount - 1)
+            Toast.makeText(requireContext(), "Komentar berhasil dikirim!", Toast.LENGTH_SHORT).show()
         }
 
         fun kirimKomentar(resepId: Long, teksKomentar: String) {

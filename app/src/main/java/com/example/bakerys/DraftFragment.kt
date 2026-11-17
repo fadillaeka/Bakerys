@@ -41,6 +41,7 @@ class DraftFragment : Fragment() {
                 }
 
                 activity?.supportFragmentManager?.beginTransaction()
+                    ?.setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out)
                     ?.replace(R.id.fragment_container, fragmentUnggah)
                     ?.addToBackStack(null)
                     ?.commit()
@@ -48,6 +49,7 @@ class DraftFragment : Fragment() {
         )
 
         rvDraft.adapter = draftAdapter
+        rvDraft.scheduleLayoutAnimation()
     }
 
     override fun onResume() {

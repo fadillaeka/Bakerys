@@ -27,6 +27,21 @@ class DetailResepActivity : AppCompatActivity() {
         binding.tvWaktuMemasak.text = waktu
         binding.tvTentangResep.text = tentang
 
+        // Animasi Masuk Gambar Resep (Pop & Bounce Berputar)
+        val animThumb = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.cake_pop_spin)
+        binding.ivDetailThumb.startAnimation(animThumb)
+
+        // Klik gambar kue di header untuk memutar kue lagi dengan animasi nongol
+        binding.ivDetailThumb.setOnClickListener {
+            val animSpin = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.cake_pop_spin)
+            binding.ivDetailThumb.startAnimation(animSpin)
+        }
+
+        // Tampilkan animasi pop-up kue berputar nongol di tengah layar untuk Dubai Chewy Cookies
+        if (judul.contains("Dubai", ignoreCase = true)) {
+            animasiKueBerputarNongol(gambar, judul)
+        }
+
         // Percabangan Memuat Resep Dinamis Sesuai Judul
         when {
             judul.contains("Dubai", ignoreCase = true) -> muatResepDubaiCookies()
@@ -344,7 +359,18 @@ class DetailResepActivity : AppCompatActivity() {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
         startActivity(intent)
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
         finish()
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        if (binding.layoutCakeAnimationOverlay.visibility == android.view.View.VISIBLE) {
+            binding.layoutCakeAnimationOverlay.visibility = android.view.View.GONE
+            return
+        }
+        super.onBackPressed()
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 
     private fun setActiveTab(selected: MaterialButton, unselected1: MaterialButton, unselected2: MaterialButton) {
@@ -364,5 +390,45 @@ class DetailResepActivity : AppCompatActivity() {
         unselected2.setTextColor(unselectedTextColor)
         unselected2.strokeColor = ColorStateList.valueOf(Color.parseColor("#D7B5AE"))
         unselected2.strokeWidth = 1
+    }
+
+    private fun animasiKueBerputarNongol(gambarResId: Int, judulKue: String) {
+        val overlay = binding.layoutCakeAnimationOverlay
+        val cardCake = binding.cardSpinningCake
+        val ivCake = binding.ivSpinningCake
+        val tvText = binding.tvSpinningCakeText
+
+        ivCake.setImageResource(gambarResId)
+        tvText.text = "✨ $judulKue ✨"
+        overlay.visibility = android.view.View.VISIBLE
+
+        val popSpin = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.cake_pop_spin)
+        cardCake.startAnimation(popSpin)
+
+        fun tutupOverlay() {
+            if (overlay.visibility == android.view.View.VISIBLE) {
+                val fadeOut = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.fade_out)
+                fadeOut.setAnimationListener(object : android.view.animation.Animation.AnimationListener {
+                    override fun onAnimationStart(animation: android.view.animation.Animation?) {}
+                    override fun onAnimationEnd(animation: android.view.animation.Animation?) {
+                        overlay.visibility = android.view.View.GONE
+                    }
+                    override fun onAnimationRepeat(animation: android.view.animation.Animation?) {}
+                })
+                overlay.startAnimation(fadeOut)
+            }
+        }
+
+        // Ketuk di mana saja pada layar untuk langsung menutup animasi
+        overlay.setOnClickListener {
+            tutupOverlay()
+        }
+
+        // Otomatis menutup setelah 1.8 detik dan menampilkan detail resep
+        overlay.postDelayed({
+            if (!isFinishing && !isDestroyed) {
+                tutupOverlay()
+            }
+        }, 1800)
     }
 }
