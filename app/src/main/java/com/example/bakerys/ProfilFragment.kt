@@ -47,9 +47,18 @@ class ProfilFragment : Fragment() {
 
         loadSavedPreferences()
 
-        // 1. Listener Tombol Edit Profile
+        // 1. Listener Tombol Edit Profile dengan animasi geser (Slide)
         binding.btnEditProfile.setOnClickListener {
-            startActivity(Intent(requireContext(), EditProfileActivity::class.java))
+            parentFragmentManager.beginTransaction()
+                .setCustomAnimations(
+                    R.anim.slide_in_right,
+                    R.anim.slide_out_left,
+                    android.R.anim.slide_in_left,
+                    android.R.anim.slide_out_right
+                )
+                .replace(R.id.fragment_container, EditProfileFragment())
+                .addToBackStack(null)
+                .commit()
         }
 
         // 2. Listener Tombol Draft Resep dengan animasi geser (Slide)

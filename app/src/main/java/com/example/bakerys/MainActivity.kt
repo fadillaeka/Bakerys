@@ -38,9 +38,34 @@ class MainActivity : AppCompatActivity() {
         }
 
         handleIntentNavigation(intent)
+        inisialisasiDataDatabase()
         cekKoneksiDatabase()
 
         var currentTabIndex = 0
+
+        fun bukaTab(targetIndex: Int, fragment: Fragment) {
+            val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+
+            val isDiChildProfil = currentFragment is DraftFragment ||
+                                  currentFragment is DisukaiFragment ||
+                                  currentFragment is EditProfileFragment
+
+            if (targetIndex != currentTabIndex || (targetIndex == 3 && isDiChildProfil)) {
+                if (supportFragmentManager.backStackEntryCount > 0) {
+                    supportFragmentManager.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
+                }
+
+                val animEnter = if (targetIndex >= currentTabIndex) R.anim.slide_in_right else R.anim.slide_in_left
+                val animExit = if (targetIndex >= currentTabIndex) R.anim.slide_out_left else R.anim.slide_out_right
+
+                supportFragmentManager.beginTransaction()
+                    .setCustomAnimations(animEnter, animExit)
+                    .replace(R.id.fragment_container, fragment)
+                    .commit()
+
+                currentTabIndex = targetIndex
+            }
+        }
 
         bottomNav.setOnItemSelectedListener { item ->
             val targetIndex = when (item.itemId) {
@@ -59,18 +84,24 @@ class MainActivity : AppCompatActivity() {
                 else -> BerandaFragment()
             }
 
-            if (targetIndex != currentTabIndex) {
-                val animEnter = if (targetIndex > currentTabIndex) R.anim.slide_in_right else R.anim.slide_in_left
-                val animExit = if (targetIndex > currentTabIndex) R.anim.slide_out_left else R.anim.slide_out_right
-
-                supportFragmentManager.beginTransaction()
-                    .setCustomAnimations(animEnter, animExit)
-                    .replace(R.id.fragment_container, fragment)
-                    .commit()
-
-                currentTabIndex = targetIndex
-            }
+            bukaTab(targetIndex, fragment)
             true
+        }
+
+        // KETIKA TAB PROFIL SUDAH AKTIF LALU DIKLIK KEMBALI DI NAVBAR (Misal saat buka Draft, Disukai, atau Edit Profile)
+        bottomNav.setOnItemReselectedListener { item ->
+            if (item.itemId == R.id.nav_profil) {
+                val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+                if (currentFragment !is ProfilFragment) {
+                    if (supportFragmentManager.backStackEntryCount > 0) {
+                        supportFragmentManager.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
+                    }
+                    supportFragmentManager.beginTransaction()
+                        .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right)
+                        .replace(R.id.fragment_container, ProfilFragment())
+                        .commit()
+                }
+            }
         }
     }
 
@@ -95,6 +126,29 @@ class MainActivity : AppCompatActivity() {
             .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
             .replace(R.id.fragment_container, fragment)
             .commit()
+    }
+
+    private fun inisialisasiDataDatabase() {
+        val disukaiTersimpan = BakeryStorageManager.muatDaftarDisukai(this)
+        if (disukaiTersimpan.isNotEmpty()) {
+            DisukaiFragment.daftarResepDisukai.clear()
+            DisukaiFragment.daftarResepDisukai.addAll(disukaiTersimpan)
+        }
+
+        val draftTersimpan = BakeryStorageManager.muatDaftarDraft(this)
+        if (draftTersimpan.isNotEmpty()) {
+            RecipeRepository.draftList.clear()
+            RecipeRepository.draftList.addAll(draftTersimpan)
+        }
+
+        val bookmarkTersimpan = BakeryStorageManager.muatDaftarTersimpan(this)
+        if (bookmarkTersimpan.isNotEmpty()) {
+            RecipeRepository.resepTersimpanList.clear()
+            RecipeRepository.resepTersimpanList.addAll(bookmarkTersimpan)
+            for (bm in bookmarkTersimpan) {
+                RecipeRepository.recipeList.find { it.id == bm.id || it.title == bm.title }?.isBookmarked = true
+            }
+        }
     }
 
     private fun cekKoneksiDatabase() {

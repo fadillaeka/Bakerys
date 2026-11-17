@@ -57,10 +57,10 @@ class KomentarBottomSheet(
 
         // Daftar kata-kata terlarang / tidak pantas (Bad Word Filter)
         val kataKasarList = listOf(
-            "anjing", "babi", "bangsat", "kontol", "memek", "jembut", "pantek",
-            "bodoh", "tolol", "goblok", "idiot", "kampret", "bajingan", "asu",
-            "jancok", "fuck", "shit", "bitch", "asshole", "perek", "lonte",
-            "sialan", "setan", "iblis", "pepek", "titit", "itil", "peli"
+            "anjing", "babi", "bangsat", "kontol", "memek", "jembut", "pantek", "cuki", "judol", "burit", "anjir", "anjay", "judi online", "bapuki", "pemai",
+            "bodoh", "tolol", "goblok", "idiot", "kampret", "bajingan", "asu", "pantat", "anjrit", "bjir", "hali", "halik", "cukimai",
+            "jancok", "fuck", "shit", "bitch", "asshole", "perek", "lonte","jelek",
+            "sialan", "setan", "iblis", "pepek", "titit", "itil", "peli",
         )
 
         fun validasiKomentar(teks: String): Pair<Boolean, String> {
@@ -109,7 +109,7 @@ class KomentarBottomSheet(
             }
 
             val nextProfileNumber = adapter.itemCount + 1
-            val username = "Baker #$nextProfileNumber"
+            val username = "Baker $nextProfileNumber"
             val avatarColor = avatarColors[adapter.itemCount % avatarColors.size]
 
             val newComment = CommentItem(username, text, avatarColor)
@@ -118,6 +118,9 @@ class KomentarBottomSheet(
             etComment?.text?.clear()
             rvComments?.smoothScrollToPosition(adapter.itemCount - 1)
             Toast.makeText(requireContext(), "Komentar berhasil dikirim!", Toast.LENGTH_SHORT).show()
+
+            // Simpan komentar ke Supabase Database
+            BakeryStorageManager.simpanKomentarKeSupabase(1L, text)
         }
 
         fun kirimKomentar(resepId: Long, teksKomentar: String) {

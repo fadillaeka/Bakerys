@@ -1,5 +1,6 @@
 package com.example.bakerys
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
@@ -44,24 +45,40 @@ class LoginActivity : AppCompatActivity() {
     private fun loginDenganUsername(usernameInput: String, passwordInput: String) {
         lifecycleScope.launch {
             try {
-                // 1. Cari email di tabel 'users' berdasarkan username
-                val result = SupabaseClient.instance.from("users")
-                    .select {
-                        filter {
-                            eq("username", usernameInput)
-                        }
-                    }.decodeList<JsonObject>()
+                var userEmail = ""
 
-                if (result.isEmpty()) {
-                    Toast.makeText(this@LoginActivity, "Username tidak ditemukan!", Toast.LENGTH_SHORT).show()
-                    return@launch
+                if (usernameInput.contains("@")) {
+                    // Jika pengguna mengetik email langsung
+                    userEmail = usernameInput
+                } else {
+                    // Cari email di tabel 'users' berdasarkan username
+                    try {
+                        val result = SupabaseClient.instance.from("users")
+                            .select {
+                                filter {
+                                    eq("username", usernameInput)
+                                }
+                            }.decodeList<JsonObject>()
+
+                        if (result.isNotEmpty()) {
+                            userEmail = result.first()["email"]?.jsonPrimitive?.content ?: ""
+                        }
+                    } catch (eUsers: Exception) {
+                        android.util.Log.e("LOGIN_USERS_QUERY", "Catatan query users: ${eUsers.message}")
+                    }
+
+                    // Cek juga di SharedPreferences jika tersimpan lokal
+                    if (userEmail.isEmpty()) {
+                        val savedName = getSharedPreferences("BakerysPrefs", Context.MODE_PRIVATE).getString("profile_name", null)
+                        val savedEmail = getSharedPreferences("BakerysPrefs", Context.MODE_PRIVATE).getString("profile_email", null)
+                        if (savedName.equals(usernameInput, ignoreCase = true) && !savedEmail.isNullOrEmpty()) {
+                            userEmail = savedEmail
+                        }
+                    }
                 }
 
-                // Ambil string email dari hasil query
-                val userEmail = result.first()["email"]?.jsonPrimitive?.content
-
-                if (userEmail.isNullOrEmpty()) {
-                    Toast.makeText(this@LoginActivity, "Email untuk username ini tidak valid!", Toast.LENGTH_SHORT).show()
+                if (userEmail.isEmpty()) {
+                    Toast.makeText(this@LoginActivity, "Username/Email tidak ditemukan!", Toast.LENGTH_SHORT).show()
                     return@launch
                 }
 
@@ -70,6 +87,14 @@ class LoginActivity : AppCompatActivity() {
                     email = userEmail
                     password = passwordInput
                 }
+
+                // Simpan profil nama ke SharedPreferences
+                val sharedPref = getSharedPreferences("BakerysPrefs", Context.MODE_PRIVATE)
+                val displayName = if (usernameInput.contains("@")) usernameInput.substringBefore("@") else usernameInput
+                sharedPref.edit()
+                    .putString("profile_name", displayName)
+                    .putString("profile_email", userEmail)
+                    .apply()
 
                 Toast.makeText(this@LoginActivity, "Login berhasil!", Toast.LENGTH_SHORT).show()
 

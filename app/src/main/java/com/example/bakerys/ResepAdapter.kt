@@ -70,6 +70,8 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
                 Toast.makeText(holder.itemView.context, "${item.judul} dihapus dari Disukai", Toast.LENGTH_SHORT).show()
             }
 
+            BakeryStorageManager.simpanDaftarDisukai(holder.itemView.context, DisukaiFragment.daftarResepDisukai)
+
             // Update warna secara instan
             updateHeartColor(holder.btnFavorite, item.isFavorite)
         }

@@ -53,6 +53,7 @@ class DraftAdapter(
                         val itemToRemove = draftList[currentPos]
                         draftList.removeAt(currentPos)
                         RecipeRepository.draftList.removeAll { it.id == itemToRemove.id }
+                        BakeryStorageManager.simpanDaftarDraft(context, RecipeRepository.draftList)
                         notifyItemRemoved(currentPos)
                         notifyItemRangeChanged(currentPos, draftList.size - currentPos)
                         onItemDeleted?.invoke(itemToRemove)

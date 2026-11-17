@@ -57,6 +57,7 @@ class DisukaiAdapter(
 
                 // Hapus dari list
                 listDisukai.removeAt(currentPosition)
+                BakeryStorageManager.simpanDaftarDisukai(holder.itemView.context, listDisukai)
                 notifyItemRemoved(currentPosition)
                 notifyItemRangeChanged(currentPosition, listDisukai.size - currentPosition)
 

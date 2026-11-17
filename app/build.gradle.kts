@@ -50,6 +50,7 @@ dependencies {
     // Supabase SDK
     implementation(platform("io.github.jan-tennert.supabase:bom:3.0.0"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    implementation(libs.supabase.auth)
     implementation("io.ktor:ktor-client-android:3.0.0")
 
     // Kotlinx Serialization JSON (Wajib untuk Supabase Insert)

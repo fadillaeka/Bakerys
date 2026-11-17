@@ -17,6 +17,7 @@ class UnggahFragment : Fragment() {
 
     private var imageUri: Uri? = null
     private var draftIdEdit: Int? = null
+    private var draftImageRes: Int? = null
 
     private lateinit var ivPreviewFoto: ImageView
     private lateinit var btnUploadFoto: MaterialCardView
@@ -29,6 +30,7 @@ class UnggahFragment : Fragment() {
     ) { uri: Uri? ->
         if (uri != null) {
             imageUri = uri
+            draftImageRes = null
             ivPreviewFoto.setImageURI(uri)
             ivPreviewFoto.scaleType = ImageView.ScaleType.CENTER_CROP
             ivPreviewFoto.imageTintList = null
@@ -64,7 +66,10 @@ class UnggahFragment : Fragment() {
                 }
                 val draftTitle = bundle.getString("DRAFT_TITLE", "")
                 val draftUriString = bundle.getString("DRAFT_IMAGE_URI")
-                val draftImageRes = bundle.getInt("DRAFT_IMAGE_RES", 0)
+                val imgResBundle = bundle.getInt("DRAFT_IMAGE_RES", 0)
+                if (imgResBundle != 0) {
+                    draftImageRes = imgResBundle
+                }
 
                 // Set Caption
                 if (!draftTitle.isNullOrEmpty()) {
@@ -77,8 +82,8 @@ class UnggahFragment : Fragment() {
                     ivPreviewFoto.setImageURI(imageUri)
                     ivPreviewFoto.scaleType = ImageView.ScaleType.CENTER_CROP
                     ivPreviewFoto.imageTintList = null
-                } else if (draftImageRes != 0) {
-                    ivPreviewFoto.setImageResource(draftImageRes)
+                } else if (imgResBundle != 0) {
+                    ivPreviewFoto.setImageResource(imgResBundle)
                     ivPreviewFoto.scaleType = ImageView.ScaleType.CENTER_CROP
                     ivPreviewFoto.imageTintList = null
                 }
@@ -87,8 +92,14 @@ class UnggahFragment : Fragment() {
 
         // 1. Publikasikan ke Jelajah
         btnPublikasikan.setOnClickListener {
-            val caption = etCaption.text.toString().trim()
+            // Validasi Foto: Tidak Boleh Kosong (Wajib Diisi)
+            val punyaFoto = (imageUri != null) || (draftImageRes != null && draftImageRes != 0)
+            if (!punyaFoto) {
+                Toast.makeText(requireContext(), "⚠️ Foto postingan tidak boleh kosong! Wajib pilih foto terlebih dahulu.", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
 
+            val caption = etCaption.text.toString().trim()
             if (caption.isEmpty()) {
                 etCaption.error = "Caption postingan tidak boleh kosong"
                 return@setOnClickListener
@@ -101,15 +112,19 @@ class UnggahFragment : Fragment() {
                 title = caption,
                 description = "",
                 imageUri = imageUri,
-                imageResId = if (imageUri == null) R.drawable.dubai else null
+                imageResId = if (imageUri == null) (draftImageRes ?: R.drawable.dubai) else null
             )
 
             // Tambahkan ke feed Jelajah
             RecipeRepository.tambahPostingan(postinganBaru)
 
+            // Simpan postingan resep ke Supabase Database
+            BakeryStorageManager.simpanResepKeSupabase(caption, "Resep kreasi baker terbit di Jelajah")
+
             // Hapus dari draft jika postingan ini berasal dari draft
             draftIdEdit?.let { id ->
                 RecipeRepository.draftList.removeAll { it.id == id }
+                BakeryStorageManager.simpanDaftarDraft(requireContext(), RecipeRepository.draftList)
                 draftIdEdit = null
             }
 
@@ -125,8 +140,14 @@ class UnggahFragment : Fragment() {
 
         // 2. Simpan Sebagai Draft (Tetap di halaman Unggah)
         btnSimpanDraft.setOnClickListener {
-            val caption = etCaption.text.toString().trim()
+            // Validasi Foto: Tidak Boleh Kosong untuk Draft juga
+            val punyaFoto = (imageUri != null) || (draftImageRes != null && draftImageRes != 0)
+            if (!punyaFoto) {
+                Toast.makeText(requireContext(), "⚠️ Foto draft tidak boleh kosong! Wajib pilih foto terlebih dahulu.", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
 
+            val caption = etCaption.text.toString().trim()
             if (caption.isEmpty()) {
                 etCaption.error = "Caption postingan tidak boleh kosong"
                 return@setOnClickListener
@@ -139,7 +160,7 @@ class UnggahFragment : Fragment() {
                 title = caption,
                 description = "",
                 imageUri = imageUri,
-                imageResId = if (imageUri == null) R.drawable.dubai else null
+                imageResId = if (imageUri == null) (draftImageRes ?: R.drawable.dubai) else null
             )
 
             // Update jika draft lama, atau tambah jika baru
@@ -147,6 +168,9 @@ class UnggahFragment : Fragment() {
                 RecipeRepository.draftList.removeAll { it.id == id }
             }
             RecipeRepository.tambahDraft(draftBaru)
+
+            // Simpan draft secara persisten ke database
+            BakeryStorageManager.simpanDaftarDraft(requireContext(), RecipeRepository.draftList)
 
             Toast.makeText(requireContext(), "Draft berhasil disimpan!", Toast.LENGTH_SHORT).show()
             resetForm()
@@ -157,6 +181,7 @@ class UnggahFragment : Fragment() {
         etCaption.setText("")
         imageUri = null
         draftIdEdit = null
+        draftImageRes = null
         arguments?.clear()
         ivPreviewFoto.setImageResource(android.R.drawable.ic_menu_camera)
         ivPreviewFoto.scaleType = ImageView.ScaleType.CENTER
