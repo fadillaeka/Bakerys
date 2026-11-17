@@ -14,13 +14,17 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.PopupMenu
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -94,12 +98,73 @@ class BerandaFragment : Fragment() {
         // 4. Jalankan Animasi Halaman Beranda
         jalankanAnimasiBeranda(view)
 
-        // 5. Set Up Kolom Pencarian & Keyboard
+        // 5. Set Up Kolom Pencarian & Keyboard Otomatis Muncul Saat Diklik
         etSearch = view.findViewById(R.id.etSearch)
-        etSearch.setOnClickListener {
+        val layoutSearchBar = view.findViewById<View>(R.id.layoutSearchBar)
+        val ivSearchIcon = view.findViewById<View>(R.id.ivSearchIcon)
+
+        fun tampilkanKeyboard() {
             etSearch.requestFocus()
             val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-            imm?.showSoftInput(etSearch, InputMethodManager.SHOW_IMPLICIT)
+
+            // Paksa keyboard muncul meskipun emulator mendeteksi keyboard laptop/PC (SHOW_FORCED)
+            imm?.showSoftInput(etSearch, InputMethodManager.SHOW_FORCED)
+            imm?.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
+
+            activity?.window?.let { window ->
+                WindowCompat.getInsetsController(window, etSearch).show(WindowInsetsCompat.Type.ime())
+            }
+
+            etSearch.postDelayed({
+                if (isAdded && context != null) {
+                    val immDelayed = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+                    immDelayed?.showSoftInput(etSearch, InputMethodManager.SHOW_FORCED)
+                    activity?.window?.let { window ->
+                        WindowCompat.getInsetsController(window, etSearch).show(WindowInsetsCompat.Type.ime())
+                    }
+                }
+            }, 120)
+        }
+
+        // Deteksi sentuhan langsung pada kolom input
+        etSearch.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) {
+                tampilkanKeyboard()
+                v.performClick()
+            }
+            false
+        }
+
+        // Buka keyboard saat kolom teks diklik
+        etSearch.setOnClickListener {
+            tampilkanKeyboard()
+        }
+
+        // Buka keyboard saat kolom teks mendapatkan fokus
+        etSearch.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                tampilkanKeyboard()
+            }
+        }
+
+        // Buka keyboard saat kotak pencarian atau ikon loop diklik
+        layoutSearchBar?.setOnClickListener {
+            tampilkanKeyboard()
+        }
+        ivSearchIcon?.setOnClickListener {
+            tampilkanKeyboard()
+        }
+
+        // Sembunyikan keyboard saat menekan tombol Search / Enter pada keyboard
+        etSearch.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_DONE) {
+                val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+                imm?.hideSoftInputFromWindow(etSearch.windowToken, 0)
+                etSearch.clearFocus()
+                true
+            } else {
+                false
+            }
         }
 
         etSearch.addTextChangedListener(object : TextWatcher {
@@ -141,6 +206,9 @@ class BerandaFragment : Fragment() {
         val btnKueKering = view.findViewById<MaterialButton>(R.id.btnKategoriKueKering)
 
         val daftarTombol = listOfNotNull(btnSemua, btnSourdough, btnKue, btnKueKering)
+
+        // Set tombol 'Semua' aktif secara awal dengan animasi naik
+        btnSemua?.let { aturWarnaTombolAktif(it, daftarTombol) }
 
         btnSemua?.setOnClickListener {
             aturWarnaTombolAktif(btnSemua, daftarTombol)
@@ -257,16 +325,40 @@ class BerandaFragment : Fragment() {
     }
 
     private fun aturWarnaTombolAktif(btnAktif: MaterialButton, semuaTombol: List<MaterialButton>) {
+        val density = resources.displayMetrics.density
+        val bounceElevation = 6f * density
+        val bounceTranslationY = -8f * density
+
         for (btn in semuaTombol) {
             btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FCEBE5"))
             btn.setTextColor(Color.parseColor("#802C3E"))
             btn.strokeColor = ColorStateList.valueOf(Color.parseColor("#D7B5AE"))
             btn.strokeWidth = 1
+            btn.elevation = 0f
+
+            // Tombol tidak terpilih kembali normal ke posisi semula
+            btn.animate()
+                .scaleX(1.0f)
+                .scaleY(1.0f)
+                .translationY(0f)
+                .setDuration(200)
+                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .start()
         }
 
         btnAktif.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#802C3E"))
         btnAktif.setTextColor(Color.parseColor("#FFF9F8"))
         btnAktif.strokeWidth = 0
+        btnAktif.elevation = bounceElevation
+
+        // Animasi terangkat naik dan membal seperti navbar melengkung
+        btnAktif.animate()
+            .scaleX(1.08f)
+            .scaleY(1.08f)
+            .translationY(bounceTranslationY)
+            .setDuration(260)
+            .setInterpolator(android.view.animation.OvershootInterpolator(2.5f))
+            .start()
     }
 
     private fun updateDataResep(newData: List<ResepModel>) {

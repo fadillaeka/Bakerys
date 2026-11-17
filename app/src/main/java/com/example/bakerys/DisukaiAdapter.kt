@@ -33,7 +33,7 @@ class DisukaiAdapter(
         holder.ivGambar.setImageResource(item.gambar ?: R.drawable.dubai)
 
         // 1. Klik Kartu Resep -> Pindah ke DetailResepActivity
-        holder.itemView.setOnClickListener {
+        val bukaDetail = View.OnClickListener {
             onItemClick(item)
             val context = holder.itemView.context
             if (context is android.app.Activity) {
@@ -41,13 +41,18 @@ class DisukaiAdapter(
             }
         }
 
+        holder.itemView.setOnClickListener(bukaDetail)
+        holder.ivGambar.setOnClickListener(bukaDetail)
+        holder.tvJudul.setOnClickListener(bukaDetail)
+        holder.tvDeskripsi.setOnClickListener(bukaDetail)
+
         // 2. Aksi ketika ikon hati diklik (Unlike / Hapus dari daftar disukai)
         holder.ivHeart.setOnClickListener {
             val animPulse = android.view.animation.AnimationUtils.loadAnimation(holder.itemView.context, R.anim.scale_pulse)
             holder.ivHeart.startAnimation(animPulse)
 
             val currentPosition = holder.adapterPosition
-            if (currentPosition != RecyclerView.NO_POSITION) {
+            if (currentPosition != RecyclerView.NO_POSITION && currentPosition < listDisukai.size) {
                 val removedItem = listDisukai[currentPosition]
 
                 // Hapus dari list

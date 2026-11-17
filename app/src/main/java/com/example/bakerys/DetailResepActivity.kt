@@ -27,30 +27,31 @@ class DetailResepActivity : AppCompatActivity() {
         binding.tvWaktuMemasak.text = waktu
         binding.tvTentangResep.text = tentang
 
-        // Animasi Masuk Gambar Resep (Pop & Bounce Berputar)
-        val animThumb = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.cake_pop_spin)
-        binding.ivDetailThumb.startAnimation(animThumb)
-
-        // Klik gambar kue di header untuk memutar kue lagi dengan animasi nongol
-        binding.ivDetailThumb.setOnClickListener {
-            val animSpin = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.cake_pop_spin)
-            binding.ivDetailThumb.startAnimation(animSpin)
-        }
-
-        // Tampilkan animasi pop-up kue berputar nongol di tengah layar untuk Dubai Chewy Cookies
+        // Animasi Foto Resep:
+        // Khusus Dubai Chewy Cookies: pop-up kue berputar nongol di tengah layar
+        // Resep selain Dubai Chewy Cookies: Punch Zoom (foto kebuka membesar lalu ketarik kembali ke tempat semula di atas judul)
         if (judul.contains("Dubai", ignoreCase = true)) {
             animasiKueBerputarNongol(gambar, judul)
+        } else {
+            binding.ivDetailThumb.post {
+                jalankanPunchZoomFoto()
+            }
+        }
+
+        // Ketuk gambar untuk mengulang efek Punch Zoom kapan saja
+        binding.ivDetailThumb.setOnClickListener {
+            jalankanPunchZoomFoto()
         }
 
         // Percabangan Memuat Resep Dinamis Sesuai Judul
         when {
             judul.contains("Dubai", ignoreCase = true) -> muatResepDubaiCookies()
             judul.contains("Caramel", ignoreCase = true) || judul.contains("Apple", ignoreCase = true) -> muatResepCaramelApple()
-            judul.contains("Sourdough", ignoreCase = true) -> muatResepSourdough()
+            judul.contains("Sourdough", ignoreCase = true) || judul.contains("Bread", ignoreCase = true) || judul.contains("Baguette", ignoreCase = true) -> muatResepSourdough()
             judul.contains("Lava", ignoreCase = true) -> muatResepLavaCake()
             judul.contains("Rainbow", ignoreCase = true) -> muatResepRainbowCake()
             judul.contains("Fudgy", ignoreCase = true) || judul.contains("Brownies", ignoreCase = true) -> muatResepFudgyBrownies()
-            judul.contains("Cookies", ignoreCase = true) -> muatResepCookies()
+            judul.contains("Cookies", ignoreCase = true) || judul.contains("Nastar", ignoreCase = true) || judul.contains("Kastengel", ignoreCase = true) || judul.contains("Lidah", ignoreCase = true) || judul.contains("Kuping", ignoreCase = true) || judul.contains("Butter", ignoreCase = true) -> muatResepCookies()
             judul.contains("Cheesecake", ignoreCase = true) -> muatResepCheesecake()
             else -> muatResepCheesecake()
         }
@@ -373,23 +374,73 @@ class DetailResepActivity : AppCompatActivity() {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 
+    private fun jalankanPunchZoomFoto() {
+        val thumb = binding.ivDetailThumb
+        thumb.pivotX = thumb.width / 2f
+        thumb.pivotY = thumb.height / 2f
+
+        // Tahap 1: Foto kue "kebuka" membesar ke depan (Punch Zoom In)
+        thumb.animate()
+            .scaleX(1.30f)
+            .scaleY(1.30f)
+            .setDuration(260)
+            .setInterpolator(android.view.animation.DecelerateInterpolator())
+            .withEndAction {
+                // Tahap 2: Foto kue "ketarik kembali" secara membal ke ukuran & posisi semulanya di atas judul (Elastic Snap Back)
+                thumb.animate()
+                    .scaleX(1.0f)
+                    .scaleY(1.0f)
+                    .setDuration(520)
+                    .setInterpolator(android.view.animation.OvershootInterpolator(2.2f))
+                    .start()
+            }
+            .start()
+    }
+
     private fun setActiveTab(selected: MaterialButton, unselected1: MaterialButton, unselected2: MaterialButton) {
+        val density = resources.displayMetrics.density
+        val bounceElevation = 6f * density
+        val bounceTranslationY = -10f * density
+
+        // 1. Animasi tombol terpilih (Terangkat naik & membal seperti contoh navbar)
         selected.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#802C3E"))
         selected.setTextColor(Color.parseColor("#FFF9F8"))
         selected.strokeWidth = 0
+        selected.elevation = bounceElevation
+
+        selected.animate()
+            .scaleX(1.08f)
+            .scaleY(1.08f)
+            .translationY(bounceTranslationY)
+            .setDuration(260)
+            .setInterpolator(android.view.animation.OvershootInterpolator(2.5f))
+            .start()
 
         val unselectedBg = ColorStateList.valueOf(Color.parseColor("#FCEBE5"))
         val unselectedTextColor = Color.parseColor("#802C3E")
 
-        unselected1.backgroundTintList = unselectedBg
-        unselected1.setTextColor(unselectedTextColor)
-        unselected1.strokeColor = ColorStateList.valueOf(Color.parseColor("#D7B5AE"))
-        unselected1.strokeWidth = 1
+        // 2. Tombol tidak terpilih kembali normal
+        for (unselected in listOf(unselected1, unselected2)) {
+            unselected.backgroundTintList = unselectedBg
+            unselected.setTextColor(unselectedTextColor)
+            unselected.strokeColor = ColorStateList.valueOf(Color.parseColor("#D7B5AE"))
+            unselected.strokeWidth = 1
+            unselected.elevation = 0f
 
-        unselected2.backgroundTintList = unselectedBg
-        unselected2.setTextColor(unselectedTextColor)
-        unselected2.strokeColor = ColorStateList.valueOf(Color.parseColor("#D7B5AE"))
-        unselected2.strokeWidth = 1
+            unselected.animate()
+                .scaleX(1.0f)
+                .scaleY(1.0f)
+                .translationY(0f)
+                .setDuration(200)
+                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .start()
+        }
+
+        // 3. Animasi fade halus pada teks bahan saat tab berganti
+        binding.tvBahanKiri.alpha = 0f
+        binding.tvBahanKanan.alpha = 0f
+        binding.tvBahanKiri.animate().alpha(1f).setDuration(220).start()
+        binding.tvBahanKanan.animate().alpha(1f).setDuration(220).start()
     }
 
     private fun animasiKueBerputarNongol(gambarResId: Int, judulKue: String) {

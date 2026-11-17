@@ -162,7 +162,14 @@ class TimerDialog : DialogFragment() {
 
     private fun startTimer() {
         if (timeLeftInMillis == 0L) {
-            timeLeftInMillis = startTimeInMillis
+            val m = etMinutes.text.toString().toLongOrNull() ?: 0L
+            val sec = etSeconds.text.toString().toLongOrNull() ?: 0L
+            if (m > 0 || sec > 0) {
+                startTimeInMillis = (m * 60 + sec) * 1000L
+                timeLeftInMillis = startTimeInMillis
+            } else if (startTimeInMillis > 0) {
+                timeLeftInMillis = startTimeInMillis
+            }
         }
 
         if (timeLeftInMillis == 0L) {
@@ -199,11 +206,16 @@ class TimerDialog : DialogFragment() {
     }
 
     private fun resetTimer() {
+        stopAlarmSound()
         countDownTimer?.cancel()
         isTimerRunning = false
-        timeLeftInMillis = startTimeInMillis
+        startTimeInMillis = 0L
+        timeLeftInMillis = 0L
+        etMinutes.setText("")
+        etSeconds.setText("")
         updateCountDownText()
         btnStart.text = "Mulai Timer"
+        Toast.makeText(context, "Timer direset ke 00:00", Toast.LENGTH_SHORT).show()
     }
 
     private fun updateCountDownText() {

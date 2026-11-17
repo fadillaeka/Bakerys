@@ -79,15 +79,19 @@
 
         <!-- Kolom Pencarian (Search Bar) -->
         <LinearLayout
+            android:id="@+id/layoutSearchBar"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginBottom="16dp"
             android:background="@drawable/bg_input_field"
             android:gravity="center_vertical"
             android:orientation="horizontal"
+            android:clickable="true"
+            android:focusable="true"
             android:paddingHorizontal="16dp">
 
             <ImageView
+                android:id="@+id/ivSearchIcon"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:src="@android:drawable/ic_menu_search"
@@ -107,7 +111,9 @@
                 android:textSize="13sp"
                 android:inputType="text"
                 android:maxLines="1"
-                android:imeOptions="actionSearch" />
+                android:imeOptions="actionSearch"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
 
             <ImageView
                 android:id="@+id/btnFilterIcon"
@@ -121,12 +127,18 @@
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="16dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:paddingTop="10dp"
+            android:paddingBottom="4dp"
             android:scrollbars="none">
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:orientation="horizontal">
 
                 <!-- Chip 1 (Semua) -->
