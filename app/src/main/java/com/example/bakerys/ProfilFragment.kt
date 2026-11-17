@@ -52,29 +52,35 @@ class ProfilFragment : Fragment() {
             startActivity(Intent(requireContext(), EditProfileActivity::class.java))
         }
 
-        // 2. Listener Navigasi
-        binding.btnResepDisimpan.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, TersimpanFragment())
-                .addToBackStack(null)
-                .commit()
-        }
-
+        // 2. Listener Tombol Draft Resep dengan animasi geser (Slide)
         binding.btnDraftResep.setOnClickListener {
             parentFragmentManager.beginTransaction()
+                .setCustomAnimations(
+                    R.anim.slide_in_right,
+                    R.anim.slide_out_left,
+                    android.R.anim.slide_in_left,
+                    android.R.anim.slide_out_right
+                )
                 .replace(R.id.fragment_container, DraftFragment())
                 .addToBackStack(null)
                 .commit()
         }
 
+        // 3. Listener Tombol Disukai dengan animasi geser (Slide)
         binding.btnDisukai.setOnClickListener {
             parentFragmentManager.beginTransaction()
+                .setCustomAnimations(
+                    R.anim.slide_in_right,
+                    R.anim.slide_out_left,
+                    android.R.anim.slide_in_left,
+                    android.R.anim.slide_out_right
+                )
                 .replace(R.id.fragment_container, DisukaiFragment())
                 .addToBackStack(null)
                 .commit()
         }
 
-        // 3. Listener Log Out
+        // 4. Listener Log Out
         binding.btnLogout.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 try {
@@ -94,18 +100,16 @@ class ProfilFragment : Fragment() {
             }
         }
 
-        // 4. Listener Preferensi Pemanggangan
+        // 5. Listener Preferensi Pemanggangan
         setupPreferensiListeners()
     }
 
     override fun onResume() {
         super.onResume()
-        // Mengisi & merefresh data profil dari lokal & Supabase setiap kali fragment ini aktif
         loadProfilUser()
     }
 
     private fun loadProfilUser() {
-        // 1. Muat Foto Profil & Data Teks dari SharedPreferences Lokal (Instan)
         val savedUriStr = sharedPreferences.getString("profile_image_uri", null)
         if (!savedUriStr.isNullOrEmpty()) {
             try {
@@ -120,7 +124,6 @@ class ProfilFragment : Fragment() {
         if (!localNama.isNullOrEmpty()) binding.tvNamaUser.text = localNama
         if (!localBio.isNullOrEmpty()) binding.tvBioUser.text = localBio
 
-        // 2. Sinkronkan dengan Supabase DB
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val currentUser = SupabaseClient.instance.auth.currentUserOrNull() ?: return@launch
@@ -168,28 +171,47 @@ class ProfilFragment : Fragment() {
 
     private fun setupPreferensiListeners() {
         binding.btnMetric.setOnClickListener {
+            animasiMembal(it)
             setOptionSelected(binding.btnMetric, binding.tvMetric, binding.btnImperial, binding.tvImperial)
             savePreference("unit_preference", "metric")
             Toast.makeText(requireContext(), "Satuan diubah ke Metric (Gram/ml)", Toast.LENGTH_SHORT).show()
         }
 
         binding.btnImperial.setOnClickListener {
+            animasiMembal(it)
             setOptionSelected(binding.btnImperial, binding.tvImperial, binding.btnMetric, binding.tvMetric)
             savePreference("unit_preference", "imperial")
             Toast.makeText(requireContext(), "Satuan diubah ke Sendok (Cangkir/ons)", Toast.LENGTH_SHORT).show()
         }
 
         binding.btnCelcius.setOnClickListener {
+            animasiMembal(it)
             setOptionSelected(binding.btnCelcius, binding.tvCelcius, binding.btnFahrenheit, binding.tvFahrenheit)
             savePreference("temp_preference", "celcius")
             Toast.makeText(requireContext(), "Standar suhu diubah ke Celcius (°C)", Toast.LENGTH_SHORT).show()
         }
 
         binding.btnFahrenheit.setOnClickListener {
+            animasiMembal(it)
             setOptionSelected(binding.btnFahrenheit, binding.tvFahrenheit, binding.btnCelcius, binding.tvCelcius)
             savePreference("temp_preference", "fahrenheit")
             Toast.makeText(requireContext(), "Standar suhu diubah ke Fahrenheit (°F)", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun animasiMembal(view: View) {
+        view.animate()
+            .scaleX(0.93f)
+            .scaleY(0.93f)
+            .setDuration(90)
+            .withEndAction {
+                view.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(90)
+                    .start()
+            }
+            .start()
     }
 
     private fun loadSavedPreferences() {

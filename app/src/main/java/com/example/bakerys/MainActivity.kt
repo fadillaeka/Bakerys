@@ -31,6 +31,12 @@ class MainActivity : AppCompatActivity() {
             loadFragment(BerandaFragment())
         }
 
+        // Sibak tirai kue membuka halaman Beranda jika baru selesai Login
+        val pastryTransition = findViewById<PastryTransitionView>(R.id.pastryTransitionView)
+        if (intent.getBooleanExtra("FROM_LOGIN", false)) {
+            pastryTransition?.animateReveal()
+        }
+
         handleIntentNavigation(intent)
         cekKoneksiDatabase()
 

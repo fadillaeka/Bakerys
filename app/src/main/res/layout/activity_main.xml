@@ -33,4 +33,11 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Overlay Transisi Kue Penuh Layar Saat Masuk dari Login -->
+    <com.example.bakerys.PastryTransitionView
+        android:id="@+id/pastryTransitionView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="25dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

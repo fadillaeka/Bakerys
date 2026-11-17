@@ -4,6 +4,8 @@
 )
 package com.example.bakerys
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -14,6 +16,7 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
@@ -30,6 +33,9 @@ class BerandaFragment : Fragment() {
     private lateinit var adapterResep: ResepAdapter
     private lateinit var etSearch: EditText
     private lateinit var cardBakeOfTheDay: MaterialCardView
+    private var floatingAnimator: ObjectAnimator? = null
+    private var shimmerAnimator: ObjectAnimator? = null
+    private var bellAnimator: ObjectAnimator? = null
 
     // Daftar lengkap semua resep makanan & kue
     private val semuaDataResep = listOf(
@@ -85,7 +91,10 @@ class BerandaFragment : Fragment() {
         adapterResep = ResepAdapter(semuaDataResep)
         rvTren.adapter = adapterResep
 
-        // 4. Set Up Kolom Pencarian & Keyboard
+        // 4. Jalankan Animasi Halaman Beranda
+        jalankanAnimasiBeranda(view)
+
+        // 5. Set Up Kolom Pencarian & Keyboard
         etSearch = view.findViewById(R.id.etSearch)
         etSearch.setOnClickListener {
             etSearch.requestFocus()
@@ -101,7 +110,7 @@ class BerandaFragment : Fragment() {
             override fun afterTextChanged(s: Editable?) {}
         })
 
-        // 5. Popup Menu Pengurutan Resep (Ikon Filter)
+        // 6. Popup Menu Pengurutan Resep (Ikon Filter)
         val btnFilterIcon = view.findViewById<ImageView>(R.id.btnFilterIcon)
         btnFilterIcon?.setOnClickListener { viewAnchor ->
             val popup = PopupMenu(requireContext(), viewAnchor)
@@ -125,7 +134,7 @@ class BerandaFragment : Fragment() {
             popup.show()
         }
 
-        // 6. Inisialisasi & Listener Tombol Filter Kategori
+        // 7. Inisialisasi & Listener Tombol Filter Kategori
         val btnSemua = view.findViewById<MaterialButton>(R.id.btnKategoriSemua)
         val btnSourdough = view.findViewById<MaterialButton>(R.id.btnKategoriSourdough)
         val btnKue = view.findViewById<MaterialButton>(R.id.btnKategoriKue)
@@ -184,6 +193,52 @@ class BerandaFragment : Fragment() {
         return view
     }
 
+    private fun jalankanAnimasiBeranda(rootView: View) {
+        // 1. Kartu Bake of the Day mengambang naik-turun terus-menerus
+        floatingAnimator = ObjectAnimator.ofFloat(cardBakeOfTheDay, "translationY", -8f, 8f).apply {
+            duration = 2000
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            interpolator = AccelerateDecelerateInterpolator()
+            start()
+        }
+
+        // 2. Kilau cahaya menyapu kartu Bake of the Day terus-menerus
+        val viewShimmer = rootView.findViewById<View>(R.id.viewShimmerCard)
+        viewShimmer?.let { shimmer ->
+            shimmerAnimator = ObjectAnimator.ofFloat(shimmer, "translationX", -220f, 1100f).apply {
+                duration = 1700
+                startDelay = 800
+                repeatCount = ValueAnimator.INFINITE
+                repeatMode = ValueAnimator.RESTART
+                interpolator = AccelerateDecelerateInterpolator()
+                start()
+            }
+        }
+
+        // 3. Ikon Lonceng Notifikasi berayun kiri-kanan terus-menerus
+        val btnNotifikasi = rootView.findViewById<ImageView>(R.id.btnNotifikasi)
+        btnNotifikasi?.let { bell ->
+            bellAnimator = ObjectAnimator.ofFloat(bell, "rotation", -12f, 12f).apply {
+                duration = 900
+                repeatCount = ValueAnimator.INFINITE
+                repeatMode = ValueAnimator.REVERSE
+                interpolator = AccelerateDecelerateInterpolator()
+                start()
+            }
+        }
+
+        // 4. Daftar resep meluncur naik dari bawah saat halaman dibuka
+        rvTren.alpha = 0f
+        rvTren.translationY = 60f
+        rvTren.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(600)
+            .setStartDelay(150)
+            .start()
+    }
+
     private fun filterResep(query: String) {
         if (query.isNotEmpty()) {
             cardBakeOfTheDay.visibility = View.GONE
@@ -217,5 +272,21 @@ class BerandaFragment : Fragment() {
     private fun updateDataResep(newData: List<ResepModel>) {
         adapterResep = ResepAdapter(newData)
         rvTren.adapter = adapterResep
+
+        // Animasi transisi halus setiap kali daftar resep diperbarui (klik kategori/filter)
+        rvTren.alpha = 0f
+        rvTren.translationY = 25f
+        rvTren.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(350)
+            .start()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        floatingAnimator?.cancel()
+        shimmerAnimator?.cancel()
+        bellAnimator?.cancel()
     }
 }

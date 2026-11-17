@@ -23,7 +23,7 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login) // Sesuaikan nama layout kamu
+        setContentView(R.layout.activity_login)
 
         etLoginUsername = findViewById(R.id.etLoginUsername)
         etLoginPassword = findViewById(R.id.etLoginPassword)
@@ -73,10 +73,25 @@ class LoginActivity : AppCompatActivity() {
 
                 Toast.makeText(this@LoginActivity, "Login berhasil!", Toast.LENGTH_SHORT).show()
 
-                // 3. Pindah ke Halaman Utama (MainActivity / Beranda)
-                val intent = Intent(this@LoginActivity, MainActivity::class.java)
-                startActivity(intent)
-                finish()
+                // 3. Tutup layar Login dengan kue penuh, lalu pindah ke Beranda tanpa kedipan
+                val pastryCover = findViewById<PastryTransitionView>(R.id.pastryTransitionLogin)
+                if (pastryCover != null) {
+                    pastryCover.animateCover {
+                        val intent = Intent(this@LoginActivity, MainActivity::class.java).apply {
+                            putExtra("FROM_LOGIN", true)
+                        }
+                        startActivity(intent)
+                        @Suppress("DEPRECATION")
+                        overridePendingTransition(0, 0)
+                        finish()
+                    }
+                } else {
+                    val intent = Intent(this@LoginActivity, MainActivity::class.java).apply {
+                        putExtra("FROM_LOGIN", true)
+                    }
+                    startActivity(intent)
+                    finish()
+                }
 
             } catch (e: Exception) {
                 Toast.makeText(this@LoginActivity, "Login gagal: ${e.message}", Toast.LENGTH_LONG).show()

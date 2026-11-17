@@ -44,6 +44,17 @@ class JelajahAdapter(
             holder.ivThumb.setImageResource(R.drawable.dubai)
         }
 
+        // Animasi kartu muncul halus saat di-scroll
+        holder.itemView.alpha = 0f
+        holder.itemView.scaleX = 0.94f
+        holder.itemView.scaleY = 0.94f
+        holder.itemView.animate()
+            .alpha(1f)
+            .scaleX(1f)
+            .scaleY(1f)
+            .setDuration(300)
+            .start()
+
         updateLikeUI(holder.btnLike, recipe.isLiked)
 
         holder.itemView.setOnClickListener {
@@ -51,6 +62,7 @@ class JelajahAdapter(
         }
 
         holder.btnLike.setOnClickListener {
+            animasiMembal(holder.btnLike) // Efek hati membal saat diklik
             recipe.isLiked = !recipe.isLiked
             updateLikeUI(holder.btnLike, recipe.isLiked)
             if (recipe.isLiked) {
@@ -59,6 +71,7 @@ class JelajahAdapter(
         }
 
         holder.btnComment.setOnClickListener {
+            animasiMembal(holder.btnComment) // Efek ikon komentar membal saat diklik
             NotifikasiBottomSheet.tambahNotif("Seseorang mengomentari postingan Anda.")
             val activity = holder.itemView.context as? FragmentActivity
             activity?.let {
@@ -69,6 +82,21 @@ class JelajahAdapter(
     }
 
     override fun getItemCount(): Int = recipeList.size
+
+    private fun animasiMembal(view: View) {
+        view.animate()
+            .scaleX(1.3f)
+            .scaleY(1.3f)
+            .setDuration(120)
+            .withEndAction {
+                view.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(120)
+                    .start()
+            }
+            .start()
+    }
 
     private fun updateLikeUI(imageView: ImageView, isLiked: Boolean) {
         if (isLiked) {

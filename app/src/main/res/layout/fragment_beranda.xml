@@ -188,7 +188,7 @@
             </LinearLayout>
         </HorizontalScrollView>
 
-        <!-- Kartu Bake of the Day  -->
+        <!-- Kartu Bake of the Day -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardBakeOfTheDay"
             android:layout_width="match_parent"
@@ -213,6 +213,17 @@
                         android:scaleType="centerCrop"
                         android:src="@drawable/dubai"
                         android:contentDescription="Bake of the day" />
+
+                    <!-- Kilau cahaya menyapu foto kartu -->
+                    <View
+                        android:id="@+id/viewShimmerCard"
+                        android:layout_width="70dp"
+                        android:layout_height="280dp"
+                        android:layout_gravity="center_vertical"
+                        android:alpha="0.35"
+                        android:background="#FFFFFF"
+                        android:rotation="20"
+                        android:translationX="-200dp" />
 
                     <!-- Badge Bake of the Day -->
                     <com.google.android.material.card.MaterialCardView

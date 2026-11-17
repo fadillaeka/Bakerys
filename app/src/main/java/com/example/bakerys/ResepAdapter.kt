@@ -16,9 +16,6 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlin.OptIn
 import kotlinx.serialization.InternalSerializationApi
 
-// 1. Data Model
-
-// 2. Adapter
 class ResepAdapter(private val listResep: List<ResepModel>) :
     RecyclerView.Adapter<ResepAdapter.ViewHolder>() {
 
@@ -45,12 +42,24 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
         // Pasang gambar kue secara dinamik
         holder.imgKue?.setImageResource(item.gambar ?: R.drawable.dubai)
 
+        // Animasi kartu resep muncul halus saat di-scroll
+        holder.itemView.alpha = 0f
+        holder.itemView.scaleX = 0.94f
+        holder.itemView.scaleY = 0.94f
+        holder.itemView.animate()
+            .alpha(1f)
+            .scaleX(1f)
+            .scaleY(1f)
+            .setDuration(300)
+            .start()
+
         // Sinkronkan status favorit awal dari DisukaiFragment agar warna selalu konsisten saat di-scroll
         item.isFavorite = DisukaiFragment.daftarResepDisukai.any { it.judul == item.judul }
         updateHeartColor(holder.btnFavorite, item.isFavorite)
 
         // --- AKSI KLIK TOMBOL FAVORIT / LIKE ---
         holder.btnFavorite?.setOnClickListener {
+            animasiMembal(it) // Efek ikon hati membal saat diklik
             item.isFavorite = !item.isFavorite
 
             if (item.isFavorite) {
@@ -72,7 +81,6 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
                 putExtra("EXTRA_JUDUL", item.judul)
                 putExtra("EXTRA_GAMBAR", item.gambar)
 
-                // Format durasi dinamis agar tidak default ke 50 menit
                 val durasiFormat = if (item.deskripsi.contains("•")) {
                     "⏱️ " + item.deskripsi.split("•").last().trim()
                 } else {
@@ -87,7 +95,21 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
 
     override fun getItemCount(): Int = listResep.size
 
-    // Helper function untuk mengubah warna ikon secara langsung & aman
+    private fun animasiMembal(view: View) {
+        view.animate()
+            .scaleX(1.3f)
+            .scaleY(1.3f)
+            .setDuration(120)
+            .withEndAction {
+                view.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(120)
+                    .start()
+            }
+            .start()
+    }
+
     private fun updateHeartColor(imageView: ImageView?, isFavorite: Boolean) {
         if (isFavorite) {
             imageView?.setColorFilter(Color.parseColor("#FF3B30")) // Merah menyala

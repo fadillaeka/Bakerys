@@ -14,11 +14,16 @@
         android:src="@drawable/bg_pastry_login"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <View
+    <!-- Gelombang highlight bergoyang menggantikan gradasi statis -->
+    <com.example.bakerys.WavyBackgroundView
+        android:id="@+id/wavyBackground"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
-        android:background="@drawable/bg_gradient_transparent_to_peach"
-        app:layout_constraintBottom_toBottomOf="@id/ivBackgroundWelcome" />
+        android:layout_height="0dp"
+        android:layout_marginTop="-95dp"
+        app:layout_constraintTop_toBottomOf="@id/ivBackgroundWelcome"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <ImageView
         android:id="@+id/ivLogoWelcome"
@@ -70,5 +75,13 @@
         android:textStyle="bold"
         app:cornerRadius="24dp"
         app:layout_constraintTop_toBottomOf="@id/btnLoginWelcome" />
+
+    <!-- Partikel kilau emas & pastel melayang terus di seluruh layar -->
+    <com.example.bakerys.BakerySparkleView
+        android:id="@+id/bakerySparkleView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
