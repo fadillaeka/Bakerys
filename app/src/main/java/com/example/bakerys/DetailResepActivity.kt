@@ -5,8 +5,11 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.bakerys.databinding.ActivityDetailResepBinding
 import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.launch
+import android.util.Log
 
 class DetailResepActivity : AppCompatActivity() {
 
@@ -21,6 +24,7 @@ class DetailResepActivity : AppCompatActivity() {
         val gambar = intent.getIntExtra("EXTRA_GAMBAR", R.drawable.dubai)
         val waktu = intent.getStringExtra("EXTRA_WAKTU") ?: "⏱️ 1h 15m"
         val tentang = intent.getStringExtra("EXTRA_TENTANG") ?: "Resep olahan lezat yang mudah dibuat di rumah."
+        val resepId = intent.getLongExtra("EXTRA_RESEP_ID", if (judul.contains("Dubai", ignoreCase = true)) 1L else 11L)
 
         binding.tvDetailTitle.text = judul
         binding.ivDetailThumb.setImageResource(gambar)
@@ -43,7 +47,7 @@ class DetailResepActivity : AppCompatActivity() {
             jalankanPunchZoomFoto()
         }
 
-        // Percabangan Memuat Resep Dinamis Sesuai Judul
+        // Percabangan Memuat Resep Dinamis Sesuai Judul (Fallback bawaan)
         when {
             judul.contains("Dubai", ignoreCase = true) -> muatResepDubaiCookies()
             judul.contains("Caramel", ignoreCase = true) || judul.contains("Apple", ignoreCase = true) -> muatResepCaramelApple()
@@ -56,10 +60,16 @@ class DetailResepActivity : AppCompatActivity() {
             else -> muatResepCheesecake()
         }
 
+        // Sinkronisasi data bahan dari tabel bahan_resep Supabase
+        muatBahanDariSupabase(resepId)
+
+        // Sinkronisasi langkah instruksi memasak dari tabel langkah_resep Supabase
+        muatLangkahDariSupabase(resepId)
+
         setupBottomNavigation()
 
         binding.btnSetAlarm.setOnClickListener {
-            TimerDialog().show(supportFragmentManager, "TimerDialog")
+            TimerDialog.newInstance(resepId).show(supportFragmentManager, "TimerDialog")
         }
     }
 
@@ -481,5 +491,94 @@ class DetailResepActivity : AppCompatActivity() {
                 tutupOverlay()
             }
         }, 1800)
+    }
+
+    // =========================================================================
+    // INTEGRASI SUPABASE: BAHAN RESEP (TABEL: bahan_resep)
+    // =========================================================================
+    private fun muatBahanDariSupabase(resepId: Long) {
+        lifecycleScope.launch {
+            val listBahan = BakeryStorageManager.ambilBahanResep(resepId)
+            if (listBahan.isNotEmpty()) {
+                Log.d("SUPABASE_BAHAN", "Memuat ${listBahan.size} bahan untuk resep #$resepId dari Supabase")
+                tampilkanBahanSupabase(listBahan)
+            }
+        }
+    }
+
+    private fun tampilkanBahanSupabase(listBahan: List<BahanResep>) {
+        val bahanUtama = listBahan.filter { it.tipe_bahan == null || !it.tipe_bahan.equals("pengganti", ignoreCase = true) }
+        val bahanPengganti = listBahan.filter { it.tipe_bahan != null && it.tipe_bahan.equals("pengganti", ignoreCase = true) }
+
+        if (bahanPengganti.isNotEmpty()) {
+            binding.tvBahanPengganti.text = bahanPengganti.joinToString("\n") { "• ${it.nama_bahan}" }
+        }
+
+        val half = (bahanUtama.size + 1) / 2
+        val kiriUtama = bahanUtama.take(half).joinToString("\n") { "• ${it.nama_bahan}" }
+        val kananUtama = bahanUtama.drop(half).joinToString("\n") { "• ${it.nama_bahan}" }
+
+        val kiriSendok = bahanUtama.take(half).joinToString("\n") {
+            "• ${if (!it.takaran_sendok.isNullOrEmpty()) "${it.takaran_sendok} " else ""}${it.nama_bahan}"
+        }
+        val kananSendok = bahanUtama.drop(half).joinToString("\n") {
+            "• ${if (!it.takaran_sendok.isNullOrEmpty()) "${it.takaran_sendok} " else ""}${it.nama_bahan}"
+        }
+
+        val kiriGram = bahanUtama.take(half).joinToString("\n") {
+            "• ${if (!it.takaran_gram.isNullOrEmpty()) "${it.takaran_gram} " else ""}${it.nama_bahan}"
+        }
+        val kananGram = bahanUtama.drop(half).joinToString("\n") {
+            "• ${if (!it.takaran_gram.isNullOrEmpty()) "${it.takaran_gram} " else ""}${it.nama_bahan}"
+        }
+
+        binding.btnTabBahanUtama.setOnClickListener {
+            setActiveTab(binding.btnTabBahanUtama, binding.btnTabTakaranSendok, binding.btnTabTakaranGram)
+            binding.tvBahanKiri.text = kiriUtama
+            binding.tvBahanKanan.text = kananUtama
+        }
+
+        binding.btnTabTakaranSendok.setOnClickListener {
+            setActiveTab(binding.btnTabTakaranSendok, binding.btnTabBahanUtama, binding.btnTabTakaranGram)
+            binding.tvBahanKiri.text = kiriSendok
+            binding.tvBahanKanan.text = kananSendok
+        }
+
+        binding.btnTabTakaranGram.setOnClickListener {
+            setActiveTab(binding.btnTabTakaranGram, binding.btnTabBahanUtama, binding.btnTabTakaranSendok)
+            binding.tvBahanKiri.text = kiriGram
+            binding.tvBahanKanan.text = kananGram
+        }
+
+        binding.btnTabBahanUtama.performClick()
+    }
+
+    // =========================================================================
+    // INTEGRASI SUPABASE: LANGKAH RESEP (TABEL: langkah_resep)
+    // =========================================================================
+    private fun muatLangkahDariSupabase(resepId: Long) {
+        lifecycleScope.launch {
+            val listLangkah = BakeryStorageManager.ambilLangkahResep(resepId)
+            if (listLangkah.isNotEmpty()) {
+                Log.d("SUPABASE_LANGKAH", "Memuat ${listLangkah.size} langkah untuk resep #$resepId dari Supabase")
+                tampilkanLangkahSupabase(listLangkah)
+            }
+        }
+    }
+
+    private fun tampilkanLangkahSupabase(listLangkah: List<LangkahResep>) {
+        val stepViews = listOf(
+            binding.tvLangkah1,
+            binding.tvLangkah2,
+            binding.tvLangkah3,
+            binding.tvLangkah4,
+            binding.tvLangkah5
+        )
+        for (i in stepViews.indices) {
+            if (i < listLangkah.size) {
+                stepViews[i].text = listLangkah[i].instruksi
+                stepViews[i].visibility = android.view.View.VISIBLE
+            }
+        }
     }
 }

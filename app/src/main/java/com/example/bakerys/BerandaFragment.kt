@@ -26,10 +26,13 @@ import android.widget.PopupMenu
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
+import kotlinx.coroutines.launch
+import android.util.Log
 
 class BerandaFragment : Fragment() {
 
@@ -256,6 +259,14 @@ class BerandaFragment : Fragment() {
                         it.judul.contains("Kuping", ignoreCase = true)
             }
             updateDataResep(dataKueKering)
+        }
+
+        // Sinkronisasi kategori dari Supabase
+        viewLifecycleOwner.lifecycleScope.launch {
+            val listKategori = BakeryStorageManager.ambilDaftarKategori()
+            if (listKategori.isNotEmpty()) {
+                Log.d("SUPABASE_KATEGORI", "Berhasil sinkronisasi ${listKategori.size} kategori dari Supabase: ${listKategori.map { it.nama_kategori.trim() }}")
+            }
         }
 
         return view

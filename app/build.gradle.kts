@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    kotlin("plugin.serialization") // Gunakan baris ini saja, hapus id("org.jetbrains...")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -48,13 +48,14 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
 
     // Supabase SDK
-    implementation(platform("io.github.jan-tennert.supabase:bom:3.0.0"))
-    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.postgrest)
     implementation(libs.supabase.auth)
-    implementation("io.ktor:ktor-client-android:3.0.0")
+    implementation(libs.ktor.client.cio)
+    implementation(libs.kotlinx.coroutines.android)
 
     // Kotlinx Serialization JSON (Wajib untuk Supabase Insert)
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

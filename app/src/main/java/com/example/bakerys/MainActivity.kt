@@ -170,7 +170,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val dataJson = buildJsonObject {
-                    put("nama_resep", namaResep)
+                    put("judul", namaResep)
                     put("deskripsi", deskripsiResep)
                 }
 

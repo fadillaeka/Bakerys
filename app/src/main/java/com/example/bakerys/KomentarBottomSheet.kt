@@ -20,7 +20,8 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
 class KomentarBottomSheet(
-    private val commentsList: MutableList<CommentItem>
+    private val commentsList: MutableList<CommentItem>,
+    private val resepId: Long = 11L
 ) : BottomSheetDialogFragment() {
 
     private lateinit var adapter: KomentarAdapter
@@ -119,8 +120,8 @@ class KomentarBottomSheet(
             rvComments?.smoothScrollToPosition(adapter.itemCount - 1)
             Toast.makeText(requireContext(), "Komentar berhasil dikirim!", Toast.LENGTH_SHORT).show()
 
-            // Simpan komentar ke Supabase Database (resep_id 11L yang valid)
-            BakeryStorageManager.simpanKomentarKeSupabase(11L, text, requireContext())
+            // Simpan komentar ke Supabase Database menggunakan resepId yang benar
+            BakeryStorageManager.simpanKomentarKeSupabase(resepId, text, requireContext())
         }
 
         fun kirimKomentar(resepId: Long, teksKomentar: String) {

@@ -16,11 +16,26 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 class TimerDialog : DialogFragment() {
 
+    companion object {
+        private const val ARG_RESEP_ID = "arg_resep_id"
+
+        fun newInstance(resepId: Long = 11L): TimerDialog {
+            val dialog = TimerDialog()
+            dialog.arguments = Bundle().apply {
+                putLong(ARG_RESEP_ID, resepId)
+            }
+            return dialog
+        }
+    }
+
+    private var targetResepId: Long = 11L
     private var countDownTimer: CountDownTimer? = null
     private var isTimerRunning = false
 
@@ -69,7 +84,19 @@ class TimerDialog : DialogFragment() {
         btnRestart = view.findViewById(R.id.btnRestartTimer)
         btnClose = view.findViewById(R.id.btnCloseTimer)
 
+        targetResepId = arguments?.getLong(ARG_RESEP_ID) ?: 11L
+
         updateCountDownText()
+
+        // Sinkronisasi status timer aktif dari Supabase jika ada
+        viewLifecycleOwner.lifecycleScope.launch {
+            val savedTimer = BakeryStorageManager.ambilStatusTimerDariSupabase(targetResepId, requireContext())
+            if (savedTimer != null && savedTimer.sisa_detik > 0 && !isTimerRunning) {
+                startTimeInMillis = savedTimer.durasi_awal_menit * 60 * 1000L
+                timeLeftInMillis = savedTimer.sisa_detik * 1000L
+                updateCountDownText()
+            }
+        }
 
         // 1. Terapkan Waktu Kustom dari Input EditText
         btnSetCustom.setOnClickListener {
@@ -187,6 +214,9 @@ class TimerDialog : DialogFragment() {
                 isTimerRunning = false
                 btnStart.text = "Mulai Timer"
 
+                val durasiAwal = (startTimeInMillis / (60 * 1000)).toInt().coerceAtLeast(1)
+                BakeryStorageManager.simpanAtauUpdateTimerKeSupabase(targetResepId, durasiAwal, 0, "finished", context)
+
                 timeLeftInMillis = 0L
                 updateCountDownText()
 
@@ -197,12 +227,20 @@ class TimerDialog : DialogFragment() {
 
         isTimerRunning = true
         btnStart.text = "Jeda (Pause)"
+
+        val durasiAwal = (startTimeInMillis / (60 * 1000)).toInt().coerceAtLeast(1)
+        val sisaDetik = (timeLeftInMillis / 1000).toInt()
+        BakeryStorageManager.simpanAtauUpdateTimerKeSupabase(targetResepId, durasiAwal, sisaDetik, "running", context)
     }
 
     private fun pauseTimer() {
         countDownTimer?.cancel()
         isTimerRunning = false
         btnStart.text = "Lanjutkan"
+
+        val durasiAwal = (startTimeInMillis / (60 * 1000)).toInt().coerceAtLeast(1)
+        val sisaDetik = (timeLeftInMillis / 1000).toInt()
+        BakeryStorageManager.simpanAtauUpdateTimerKeSupabase(targetResepId, durasiAwal, sisaDetik, "paused", context)
     }
 
     private fun resetTimer() {
@@ -215,6 +253,8 @@ class TimerDialog : DialogFragment() {
         etSeconds.setText("")
         updateCountDownText()
         btnStart.text = "Mulai Timer"
+
+        BakeryStorageManager.simpanAtauUpdateTimerKeSupabase(targetResepId, 0, 0, "stopped", context)
         Toast.makeText(context, "Timer direset ke 00:00", Toast.LENGTH_SHORT).show()
     }
 

@@ -1,26 +1,31 @@
 package com.example.bakerys
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import kotlinx.coroutines.launch
 
 class NotifikasiBottomSheet : BottomSheetDialogFragment() {
 
     companion object {
-        // Biarkan KOSONG saat awal aplikasi berjalan
         val listNotif = mutableListOf<String>()
 
-        // Fungsi penambah notifikasi
-        fun tambahNotif(pesan: String) {
-            listNotif.add(0, pesan)
+        // Fungsi penambah notifikasi sekaligus simpan ke Supabase
+        fun tambahNotif(pesan: String, context: Context? = null) {
+            if (!listNotif.contains(pesan)) {
+                listNotif.add(0, pesan)
+            }
+            BakeryStorageManager.simpanNotifikasiKeSupabase(pesan, context)
         }
     }
 
@@ -36,7 +41,30 @@ class NotifikasiBottomSheet : BottomSheetDialogFragment() {
 
         val rvNotif = view.findViewById<RecyclerView>(R.id.rvNotifDialog)
         rvNotif?.layoutManager = LinearLayoutManager(requireContext())
-        rvNotif?.adapter = SimpleNotifAdapter(listNotif)
+        val adapter = SimpleNotifAdapter(listNotif)
+        rvNotif?.adapter = adapter
+
+        // Muat notifikasi dari tabel notifikasi Supabase
+        lifecycleScope.launch {
+            try {
+                val ctx = context ?: return@launch
+                val notifSupabase = BakeryStorageManager.ambilNotifikasiDariSupabase(ctx)
+                if (notifSupabase.isNotEmpty()) {
+                    var adaBaru = false
+                    for (item in notifSupabase) {
+                        if (!listNotif.contains(item.pesan)) {
+                            listNotif.add(item.pesan)
+                            adaBaru = true
+                        }
+                    }
+                    if (adaBaru) {
+                        adapter.notifyDataSetChanged()
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("NOTIF_BS", "Gagal muat notifikasi: ${e.message}")
+            }
+        }
 
         return view
     }

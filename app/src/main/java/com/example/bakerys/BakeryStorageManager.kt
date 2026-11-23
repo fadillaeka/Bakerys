@@ -1,4 +1,4 @@
-package com.example.bakerys
+﻿package com.example.bakerys
 
 import android.content.Context
 import android.net.Uri
@@ -8,6 +8,7 @@ import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.json.JSONArray
@@ -24,9 +25,15 @@ object BakeryStorageManager {
     private const val DEFAULT_FALLBACK_USER_ID = "5f56f432-b24a-434c-8ce1-b3669d34b303"
 
     fun dapatkanUserId(context: Context? = null): String {
-        val authId = SupabaseClient.instance.auth.currentUserOrNull()?.id
+        // Coba ambil dari Supabase auth session
+        val authId = try {
+            SupabaseClient.instance.auth.currentUserOrNull()?.id
+        } catch (e: Exception) {
+            null
+        }
         if (!authId.isNullOrEmpty()) return authId
 
+        // Fallback: ambil dari SharedPreferences (disimpan saat login)
         val savedId = context?.getSharedPreferences("BakerysPrefs", Context.MODE_PRIVATE)
             ?.getString("current_user_id", null)
         if (!savedId.isNullOrEmpty()) return savedId
@@ -35,7 +42,7 @@ object BakeryStorageManager {
     }
 
     // =========================================================================
-    // 1. KELOLA DRAFT (TABEL: draft_postingan_user & LOKAL CACHE)
+    // 1. KELOLA DRAFT (TABEL: draft_resep_admin & draft_postingan_user & LOKAL CACHE)
     // =========================================================================
     fun simpanDraftKeSupabase(
         caption: String,
@@ -44,8 +51,27 @@ object BakeryStorageManager {
         onComplete: ((Boolean) -> Unit)? = null
     ) {
         CoroutineScope(Dispatchers.IO).launch {
+            val currentUserId = dapatkanUserId(context)
+            var berhasil = false
+
+            // 1. Simpan ke tabel draft_resep_admin
             try {
-                val currentUserId = dapatkanUserId(context)
+                val draft = DraftResepAdmin(
+                    user_id = currentUserId,
+                    judul = caption,
+                    deskripsi = "Draft resep olahan kreasi baker.",
+                    gambar = gambarUrl.ifEmpty { null },
+                    status = "draft"
+                )
+                SupabaseClient.instance.from("draft_resep_admin").insert(draft)
+                Log.d("SUPABASE_DRAFT", "Berhasil simpan ke draft_resep_admin: $caption")
+                berhasil = true
+            } catch (e: Exception) {
+                Log.e("SUPABASE_DRAFT", "Gagal simpan ke draft_resep_admin: ${e.message}")
+            }
+
+            // 2. Simpan ke tabel draft_postingan_user (jika tabel ada)
+            try {
                 val dataDraft = buildJsonObject {
                     put("user_id", currentUserId)
                     put("caption", caption)
@@ -53,11 +79,12 @@ object BakeryStorageManager {
                 }
                 SupabaseClient.instance.from("draft_postingan_user").insert(dataDraft)
                 Log.d("SUPABASE_DRAFT", "Berhasil simpan ke draft_postingan_user: $caption")
-                onComplete?.invoke(true)
+                berhasil = true
             } catch (e: Exception) {
-                Log.e("SUPABASE_DRAFT", "Gagal simpan ke draft_postingan_user: ${e.message}")
-                onComplete?.invoke(false)
+                Log.e("SUPABASE_DRAFT", "Gagal simpan ke draft_postingan_user (mungkin tabel belum ada): ${e.message}")
             }
+
+            onComplete?.invoke(berhasil)
         }
     }
 
@@ -65,6 +92,19 @@ object BakeryStorageManager {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val currentUserId = dapatkanUserId(context)
+                // Hapus dari draft_resep_admin
+                try {
+                    SupabaseClient.instance.from("draft_resep_admin").delete {
+                        filter {
+                            eq("user_id", currentUserId)
+                            eq("judul", caption)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("SUPABASE_DRAFT", "Gagal hapus dari draft_resep_admin: ${e.message}")
+                }
+
+                // Hapus dari draft_postingan_user
                 SupabaseClient.instance.from("draft_postingan_user").delete {
                     filter {
                         eq("user_id", currentUserId)
@@ -74,6 +114,20 @@ object BakeryStorageManager {
                 Log.d("SUPABASE_DRAFT", "Berhasil hapus draft dari Supabase: $caption")
             } catch (e: Exception) {
                 Log.e("SUPABASE_DRAFT", "Gagal hapus draft dari Supabase: ${e.message}")
+            }
+        }
+    }
+
+    suspend fun muatDraftAdminDariSupabase(context: Context? = null): List<DraftResepAdmin> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val currentUserId = dapatkanUserId(context)
+                SupabaseClient.instance.from("draft_resep_admin").select {
+                    filter { eq("user_id", currentUserId) }
+                }.decodeList<DraftResepAdmin>()
+            } catch (e: Exception) {
+                Log.e("SUPABASE_DRAFT", "Gagal muat draft_resep_admin: ${e.message}")
+                emptyList()
             }
         }
     }
@@ -171,8 +225,7 @@ object BakeryStorageManager {
             } catch (e: Exception) {
                 Log.e("SUPABASE_RESEP", "Gagal simpan ke resep: ${e.message}")
                 onComplete?.invoke(false)
-            }
-        }
+            }        }
     }
 
     // =========================================================================
@@ -405,6 +458,159 @@ object BakeryStorageManager {
                 Log.d("SUPABASE_USERS", "Berhasil update preferensi $kunci: $nilai ke tabel users!")
             } catch (e: Exception) {
                 Log.e("SUPABASE_USERS", "Gagal update preferensi ke tabel users: ${e.message}")
+            }
+        }
+    }
+
+    // =========================================================================
+    // 7. KELOLA KATEGORI (TABEL: kategori)
+    // =========================================================================
+    suspend fun ambilDaftarKategori(): List<Kategori> {
+        return withContext(Dispatchers.IO) {
+            try {
+                SupabaseClient.instance.from("kategori")
+                    .select()
+                    .decodeList<Kategori>()
+            } catch (e: Exception) {
+                Log.e("SUPABASE_KATEGORI", "Gagal memuat kategori: ${e.message}")
+                emptyList()
+            }
+        }
+    }
+
+    // =========================================================================
+    // 8. KELOLA BAHAN RESEP (TABEL: bahan_resep)
+    // =========================================================================
+    suspend fun ambilBahanResep(resepId: Long): List<BahanResep> {
+        return withContext(Dispatchers.IO) {
+            try {
+                SupabaseClient.instance.from("bahan_resep").select {
+                    filter { eq("resep_id", resepId) }
+                }.decodeList<BahanResep>()
+            } catch (e: Exception) {
+                Log.e("SUPABASE_BAHAN", "Gagal memuat bahan_resep #$resepId: ${e.message}")
+                emptyList()
+            }
+        }
+    }
+
+    fun simpanBahanResep(bahan: BahanResep, onComplete: ((Boolean) -> Unit)? = null) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                SupabaseClient.instance.from("bahan_resep").insert(bahan)
+                Log.d("SUPABASE_BAHAN", "Berhasil simpan bahan: ${bahan.nama_bahan}")
+                onComplete?.invoke(true)
+            } catch (e: Exception) {
+                Log.e("SUPABASE_BAHAN", "Gagal simpan bahan: ${e.message}")
+                onComplete?.invoke(false)
+            }
+        }
+    }
+
+    // =========================================================================
+    // 9. KELOLA LANGKAH RESEP (TABEL: langkah_resep)
+    // =========================================================================
+    suspend fun ambilLangkahResep(resepId: Long): List<LangkahResep> {
+        return withContext(Dispatchers.IO) {
+            try {
+                SupabaseClient.instance.from("langkah_resep").select {
+                    filter { eq("resep_id", resepId) }
+                }.decodeList<LangkahResep>().sortedBy { it.nomor_langkah }
+            } catch (e: Exception) {
+                Log.e("SUPABASE_LANGKAH", "Gagal memuat langkah_resep #$resepId: ${e.message}")
+                emptyList()
+            }
+        }
+    }
+
+    fun simpanLangkahResep(langkah: LangkahResep, onComplete: ((Boolean) -> Unit)? = null) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                SupabaseClient.instance.from("langkah_resep").insert(langkah)
+                Log.d("SUPABASE_LANGKAH", "Berhasil simpan langkah ${langkah.nomor_langkah}")
+                onComplete?.invoke(true)
+            } catch (e: Exception) {
+                Log.e("SUPABASE_LANGKAH", "Gagal simpan langkah: ${e.message}")
+                onComplete?.invoke(false)
+            }
+        }
+    }
+
+    // =========================================================================
+    // 10. KELOLA TIMER RESEP (TABEL: timer_resep)
+    // =========================================================================
+    fun simpanAtauUpdateTimerKeSupabase(
+        resepId: Long,
+        durasiAwalMenit: Int,
+        sisaDetik: Int,
+        status: String,
+        context: Context? = null
+    ) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val currentUserId = dapatkanUserId(context)
+                val dataTimer = buildJsonObject {
+                    put("user_id", currentUserId)
+                    put("resep_id", resepId)
+                    put("durasi_awal_menit", durasiAwalMenit)
+                    put("sisa_detik", sisaDetik)
+                    put("status", status)
+                }
+                SupabaseClient.instance.from("timer_resep").insert(dataTimer)
+                Log.d("SUPABASE_TIMER", "Berhasil simpan status timer resep #$resepId: $status ($sisaDetik s)")
+            } catch (e: Exception) {
+                Log.e("SUPABASE_TIMER", "Gagal simpan timer: ${e.message}")
+            }
+        }
+    }
+
+    suspend fun ambilStatusTimerDariSupabase(resepId: Long, context: Context? = null): TimerResep? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val currentUserId = dapatkanUserId(context)
+                SupabaseClient.instance.from("timer_resep").select {
+                    filter {
+                        eq("user_id", currentUserId)
+                        eq("resep_id", resepId)
+                    }
+                }.decodeList<TimerResep>().lastOrNull()
+            } catch (e: Exception) {
+                Log.e("SUPABASE_TIMER", "Gagal ambil timer: ${e.message}")
+                null
+            }
+        }
+    }
+
+    // =========================================================================
+    // 11. KELOLA NOTIFIKASI (TABEL: notifikasi)
+    // =========================================================================
+    fun simpanNotifikasiKeSupabase(pesan: String, context: Context? = null) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val currentUserId = dapatkanUserId(context)
+                val dataNotif = buildJsonObject {
+                    put("user_id", currentUserId)
+                    put("pesan", pesan)
+                    put("is_read", false)
+                }
+                SupabaseClient.instance.from("notifikasi").insert(dataNotif)
+                Log.d("SUPABASE_NOTIF", "Berhasil simpan notifikasi: $pesan")
+            } catch (e: Exception) {
+                Log.e("SUPABASE_NOTIF", "Gagal simpan notifikasi: ${e.message}")
+            }
+        }
+    }
+
+    suspend fun ambilNotifikasiDariSupabase(context: Context? = null): List<NotifikasiSupabase> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val currentUserId = dapatkanUserId(context)
+                SupabaseClient.instance.from("notifikasi").select {
+                    filter { eq("user_id", currentUserId) }
+                }.decodeList<NotifikasiSupabase>()
+            } catch (e: Exception) {
+                Log.e("SUPABASE_NOTIF", "Gagal memuat notifikasi: ${e.message}")
+                emptyList()
             }
         }
     }

@@ -55,7 +55,7 @@ class RegisterActivity : AppCompatActivity() {
                         put("id", userId)
                         put("username", usernameInput)
                         put("email", emailInput)
-                        put("password", passwordInput)
+                        // JANGAN simpan password plaintext di tabel!
                     }
                     SupabaseClient.instance.from("users").insert(userProfile)
                 } catch (eUsers: Exception) {

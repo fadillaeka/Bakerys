@@ -61,7 +61,9 @@ class JelajahFragment : Fragment() {
 
                 var adaDataBaru = false
                 for (item in listData) {
-                    val nama = item["nama_resep"]?.jsonPrimitive?.content ?: continue
+                    val nama = item["judul"]?.jsonPrimitive?.content
+                        ?: item["nama_resep"]?.jsonPrimitive?.content
+                        ?: continue
                     val deskripsi = item["deskripsi"]?.jsonPrimitive?.content ?: "Resep olahan lezat"
                     val id = item["id"]?.jsonPrimitive?.intOrNull ?: (nama.hashCode().let { if (it < 0) -it else it })
 
