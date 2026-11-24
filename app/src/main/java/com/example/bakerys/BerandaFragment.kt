@@ -23,8 +23,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.PopupMenu
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
@@ -118,24 +116,7 @@ class BerandaFragment : Fragment() {
         fun tampilkanKeyboard() {
             etSearch.requestFocus()
             val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-
-            // Paksa keyboard muncul meskipun emulator mendeteksi keyboard laptop/PC (SHOW_FORCED)
-            imm?.showSoftInput(etSearch, InputMethodManager.SHOW_FORCED)
-            imm?.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
-
-            activity?.window?.let { window ->
-                WindowCompat.getInsetsController(window, etSearch).show(WindowInsetsCompat.Type.ime())
-            }
-
-            etSearch.postDelayed({
-                if (isAdded && context != null) {
-                    val immDelayed = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-                    immDelayed?.showSoftInput(etSearch, InputMethodManager.SHOW_FORCED)
-                    activity?.window?.let { window ->
-                        WindowCompat.getInsetsController(window, etSearch).show(WindowInsetsCompat.Type.ime())
-                    }
-                }
-            }, 120)
+            imm?.showSoftInput(etSearch, InputMethodManager.SHOW_IMPLICIT)
         }
 
         // Deteksi sentuhan langsung pada kolom input

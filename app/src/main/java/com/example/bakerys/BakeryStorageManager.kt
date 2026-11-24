@@ -14,6 +14,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -1097,7 +1098,8 @@ object BakeryStorageManager {
                     val idVal = r["id"]?.jsonPrimitive?.content?.toLongOrNull()
                     val judul = r["judul"]?.jsonPrimitive?.content ?: "Resep #${idVal ?: 0}"
                     val deskripsi = r["deskripsi"]?.jsonPrimitive?.content ?: ""
-                    val status = r["status"]?.jsonPrimitive?.content ?: "published"
+                    val statusRaw = r["status"]?.jsonPrimitive?.contentOrNull
+                    val status = if (statusRaw.isNullOrEmpty() || statusRaw == "null") "published" else statusRaw
                     val userId = r["user_id"]?.jsonPrimitive?.content
                     val createdAt = r["created_at"]?.jsonPrimitive?.content
 

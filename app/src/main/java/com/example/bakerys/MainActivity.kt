@@ -7,8 +7,13 @@ package com.example.bakerys
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -23,9 +28,38 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Edge-to-edge: konten bisa scroll naik saat keyboard muncul, navbar tetap di bawah
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_main)
 
         bottomNav = findViewById(R.id.bottom_nav_main)
+
+        // Navbar hanya merespons system bar insets (tidak termasuk IME) — navbar tidak naik saat keyboard muncul
+        ViewCompat.setOnApplyWindowInsetsListener(bottomNav) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(0, 0, 0, systemBars.bottom)
+            insets
+        }
+
+        // Fragment container: padding atas = status bar, padding bawah = max(tinggi keyboard, tinggi BottomNavigationView)
+        // Sehingga konten selalu di bawah status bar, di atas navbar saat keyboard tutup, dan di atas keyboard saat keyboard buka
+        val fragmentContainer = findViewById<View>(R.id.fragment_container)
+        ViewCompat.setOnApplyWindowInsetsListener(fragmentContainer) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val imeHeight = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+            val fallbackBottomNav = (80 * resources.displayMetrics.density).toInt() + systemBars.bottom
+            val bottomNavHeight = if (bottomNav.height > 0) bottomNav.height else fallbackBottomNav
+            val paddingBottom = maxOf(imeHeight, bottomNavHeight)
+            v.setPadding(0, systemBars.top, 0, paddingBottom)
+            insets
+        }
+
+        // Pastikan insets diterapkan ulang setelah bottomNav selesai diukur tingginya
+        bottomNav.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
+            if ((bottom - top) != (oldBottom - oldTop)) {
+                ViewCompat.requestApplyInsets(fragmentContainer)
+            }
+        }
 
         if (savedInstanceState == null) {
             loadFragment(BerandaFragment())

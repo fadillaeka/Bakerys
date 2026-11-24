@@ -8,22 +8,26 @@
     android:layout_height="match_parent"
     android:background="#FFF9F8">
 
-    <!-- Wadah / Container untuk menampilkan Fragment (Beranda, Jelajah, dll) -->
+    <!-- Wadah / Container untuk menampilkan Fragment
+         Extend ke seluruh parent — padding bawah diatur via IME insets di MainActivity.kt
+         clipToPadding=false agar ScrollView di dalam fragment bisa scroll ke bawah padding -->
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:clipToPadding="false"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bottom_nav_main" />
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-    <!-- Navigasi Bawah -->
+    <!-- Navigasi Bawah — elevation tinggi agar selalu tampil di atas fragment -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_nav_main"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="#FFF9F8"
+        android:elevation="8dp"
         app:itemIconTint="@color/selector_bottom_nav"
         app:itemTextColor="@color/selector_bottom_nav"
         app:itemActiveIndicatorStyle="@style/CustomActiveIndicator"
