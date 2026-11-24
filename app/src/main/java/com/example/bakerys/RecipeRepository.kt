@@ -51,6 +51,21 @@ object RecipeRepository {
     // List khusus draft
     val draftList: MutableList<Recipe> = mutableListOf()
 
+    // Cache daftar resep Beranda untuk Optimistic UI (tanpa menunggu full re-fetch)
+    val berandaResepCache: MutableList<ResepModel> = mutableListOf()
+
+    fun tambahResepBerandaKeCache(resep: ResepModel) {
+        berandaResepCache.removeAll { it.judul.equals(resep.judul, ignoreCase = true) || (resep.id != null && it.id == resep.id) }
+        berandaResepCache.add(0, resep)
+    }
+
+    fun hapusResepBerandaDariCache(resepId: Long?, judul: String?) {
+        berandaResepCache.removeAll {
+            (resepId != null && it.id == resepId) ||
+            (!judul.isNullOrEmpty() && it.judul.equals(judul, ignoreCase = true))
+        }
+    }
+
     // Fungsi untuk menambah/menghapus resep dari daftar tersimpan (Bookmark Toggle)
     fun toggleSimpanResep(recipe: Recipe): Boolean {
         val index = recipeList.indexOfFirst { it.id == recipe.id }

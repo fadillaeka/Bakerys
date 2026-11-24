@@ -121,6 +121,22 @@
             android:indeterminateTint="#802C3E"
             android:visibility="gone" />
 
+        <FrameLayout
+            android:id="@+id/overlayLoadingAdmin"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#80FFF9F8"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone">
+
+            <ProgressBar
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:indeterminateTint="#802C3E" />
+        </FrameLayout>
+
         <TextView
             android:id="@+id/tvEmptyAdmin"
             android:layout_width="wrap_content"

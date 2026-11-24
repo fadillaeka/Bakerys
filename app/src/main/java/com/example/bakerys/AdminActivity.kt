@@ -18,13 +18,16 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 class AdminActivity : AppCompatActivity() {
 
     private lateinit var rvAdmin: RecyclerView
     private var pbLoadingAdmin: ProgressBar? = null
+    private var overlayLoadingAdmin: View? = null
     private var tvEmptyAdmin: TextView? = null
+    private var isActionInProgress = false
     private lateinit var btnTabKonten: MaterialButton
     private lateinit var btnTabUser: MaterialButton
 
@@ -70,6 +73,7 @@ class AdminActivity : AppCompatActivity() {
         btnTabUser = findViewById(R.id.btnTabUser)
         rvAdmin = findViewById(R.id.rvAdmin)
         pbLoadingAdmin = findViewById(R.id.pbLoadingAdmin)
+        overlayLoadingAdmin = findViewById(R.id.overlayLoadingAdmin)
         tvEmptyAdmin = findViewById(R.id.tvEmptyAdmin)
 
         rvAdmin.layoutManager = LinearLayoutManager(this)
@@ -77,34 +81,72 @@ class AdminActivity : AppCompatActivity() {
         kontenAdapter = KontenModerasiAdapter(
             kontenList = kontenList,
             onHideClick = { konten ->
+                if (isActionInProgress) return@KontenModerasiAdapter
                 if (konten.tipe == "RESEP" && konten.rawId != null) {
                     val isHidden = konten.status == "hidden"
                     val newHiddenState = !isHidden
+                    val newStatusStr = if (newHiddenState) "hidden" else "published"
+                    setLoadingOverlay(true)
                     lifecycleScope.launch {
-                        val success = BakeryStorageManager.sembunyikanResepModerasi(konten.rawId, newHiddenState)
-                        if (success) {
-                            Toast.makeText(this@AdminActivity, if (newHiddenState) "Resep disembunyikan" else "Resep ditampilkan", Toast.LENGTH_SHORT).show()
-                            loadData()
-                        } else {
+                        try {
+                            val success = BakeryStorageManager.sembunyikanResepModerasi(konten.rawId, newHiddenState)
+                            if (success) {
+                                // Update state lokal langsung tanpa full re-fetch
+                                val idx = kontenList.indexOfFirst { it.id == konten.id && it.tipe == konten.tipe }
+                                if (idx >= 0) {
+                                    kontenList[idx] = konten.copy(status = newStatusStr)
+                                    kontenAdapter.notifyItemChanged(idx)
+                                }
+                                Toast.makeText(this@AdminActivity, if (newHiddenState) "Resep disembunyikan" else "Resep ditampilkan", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(this@AdminActivity, "Gagal mengubah status resep", Toast.LENGTH_SHORT).show()
+                            }
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
                             Toast.makeText(this@AdminActivity, "Gagal mengubah status resep", Toast.LENGTH_SHORT).show()
+                        } finally {
+                            setLoadingOverlay(false)
                         }
                     }
                 }
             },
             onDeleteClick = { konten ->
+                if (isActionInProgress) return@KontenModerasiAdapter
                 AlertDialog.Builder(this)
                     .setTitle("Hapus Konten")
                     .setMessage("Yakin ingin menghapus ${konten.tipe}: \"${konten.judul}\"?")
                     .setPositiveButton("Hapus") { _, _ ->
+                        if (isActionInProgress) return@setPositiveButton
+                        // Tampilkan overlay loading yang memblokir interaksi list seketika
+                        setLoadingOverlay(true)
                         lifecycleScope.launch {
-                            val success = BakeryStorageManager.hapusKontenModerasi(konten.tipe, konten.rawId)
-                            if (success) {
-                                // Segera sinkronkan penghapusan ke RecipeRepository agar konten langsung hilang dari Jelajah
-                                RecipeRepository.hapusPostingan(konten.rawId?.toInt() ?: 0, konten.judul)
-                                Toast.makeText(this@AdminActivity, "Konten berhasil dihapus", Toast.LENGTH_SHORT).show()
-                                loadData()
-                            } else {
+                            try {
+                                val success = BakeryStorageManager.hapusKontenModerasi(konten.tipe, konten.rawId)
+                                if (success) {
+                                    // Optimistic UI: hapus langsung dari list lokal tanpa full re-fetch
+                                    val idx = kontenList.indexOfFirst { it.id == konten.id && it.tipe == konten.tipe }
+                                    if (idx >= 0) {
+                                        kontenList.removeAt(idx)
+                                        kontenAdapter.notifyItemRemoved(idx)
+                                    }
+                                    updateEmptyState()
+
+                                    // Sinkronkan penghapusan ke cache lokal Jelajah & Beranda
+                                    RecipeRepository.hapusPostingan(konten.rawId?.toInt() ?: 0, konten.judul)
+                                    if (konten.tipe == "RESEP") {
+                                        RecipeRepository.hapusResepBerandaDariCache(konten.rawId, konten.judul)
+                                    }
+                                    Toast.makeText(this@AdminActivity, "Konten berhasil dihapus", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(this@AdminActivity, "Gagal menghapus konten", Toast.LENGTH_SHORT).show()
+                                }
+                            } catch (e: CancellationException) {
+                                throw e
+                            } catch (e: Exception) {
                                 Toast.makeText(this@AdminActivity, "Gagal menghapus konten", Toast.LENGTH_SHORT).show()
+                            } finally {
+                                setLoadingOverlay(false)
                             }
                         }
                     }
@@ -116,6 +158,7 @@ class AdminActivity : AppCompatActivity() {
         userAdapter = UserModerasiAdapter(
             userList = userList,
             onBlockClick = { user ->
+                if (isActionInProgress) return@UserModerasiAdapter
                 val isBlocked = user.role == "blocked"
                 val newBlockState = !isBlocked
                 val actionName = if (newBlockState) "memblokir" else "membuka blokir"
@@ -123,13 +166,28 @@ class AdminActivity : AppCompatActivity() {
                     .setTitle("Manajemen User")
                     .setMessage("Yakin ingin $actionName user ${user.username}?")
                     .setPositiveButton("Ya") { _, _ ->
+                        if (isActionInProgress) return@setPositiveButton
+                        setLoadingOverlay(true)
                         lifecycleScope.launch {
-                            val success = BakeryStorageManager.ubahStatusBlokirUser(user.id, newBlockState)
-                            if (success) {
-                                Toast.makeText(this@AdminActivity, "Status user berhasil diperbarui", Toast.LENGTH_SHORT).show()
-                                loadData()
-                            } else {
+                            try {
+                                val success = BakeryStorageManager.ubahStatusBlokirUser(user.id, newBlockState)
+                                if (success) {
+                                    // Update state lokal langsung tanpa full re-fetch
+                                    val idx = userList.indexOfFirst { it.id == user.id }
+                                    if (idx >= 0) {
+                                        userList[idx] = user.copy(role = if (newBlockState) "blocked" else "user")
+                                        userAdapter.notifyItemChanged(idx)
+                                    }
+                                    Toast.makeText(this@AdminActivity, "Status user berhasil diperbarui", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(this@AdminActivity, "Gagal memperbarui status user", Toast.LENGTH_SHORT).show()
+                                }
+                            } catch (e: CancellationException) {
+                                throw e
+                            } catch (e: Exception) {
                                 Toast.makeText(this@AdminActivity, "Gagal memperbarui status user", Toast.LENGTH_SHORT).show()
+                            } finally {
+                                setLoadingOverlay(false)
                             }
                         }
                     }
@@ -170,6 +228,11 @@ class AdminActivity : AppCompatActivity() {
         }
     }
 
+    private fun setLoadingOverlay(active: Boolean) {
+        isActionInProgress = active
+        overlayLoadingAdmin?.visibility = if (active) View.VISIBLE else View.GONE
+    }
+
     private fun loadData() {
         pbLoadingAdmin?.visibility = View.VISIBLE
         lifecycleScope.launch {
@@ -185,6 +248,8 @@ class AdminActivity : AppCompatActivity() {
                     userList.addAll(list)
                     userAdapter.notifyDataSetChanged()
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(this@AdminActivity, "Gagal memuat data moderator", Toast.LENGTH_SHORT).show()

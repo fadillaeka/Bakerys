@@ -29,6 +29,10 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import android.util.Log
 
@@ -97,13 +101,14 @@ class BerandaFragment : Fragment() {
         rvTren = view.findViewById(R.id.rvKueTren)
         rvTren.layoutManager = GridLayoutManager(requireContext(), 2)
         if (daftarSemuaResep.isEmpty()) {
-            daftarSemuaResep.addAll(semuaDataResep)
+            if (RecipeRepository.berandaResepCache.isNotEmpty()) {
+                daftarSemuaResep.addAll(RecipeRepository.berandaResepCache)
+            } else {
+                daftarSemuaResep.addAll(semuaDataResep)
+            }
         }
         adapterResep = ResepAdapter(daftarSemuaResep)
         rvTren.adapter = adapterResep
-
-        // Muat resep dinamis yang dipublikasikan dari Supabase
-        muatResepDariSupabase()
 
         // 4. Jalankan Animasi Halaman Beranda
         jalankanAnimasiBeranda(view)
@@ -378,48 +383,70 @@ class BerandaFragment : Fragment() {
             .start()
     }
 
-    private fun muatResepDariSupabase() {
-        viewLifecycleOwner.lifecycleScope.launch {
+    private var syncJob: Job? = null
+
+    private fun muatResepDanDisukaiParalel() {
+        syncJob?.cancel()
+        syncJob = viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val resepDb = BakeryStorageManager.ambilResepBerandaDariSupabase()
-                if (resepDb.isNotEmpty()) {
-                    val hasilGabung = mutableListOf<ResepModel>()
+                val ctx = context ?: return@launch
+                coroutineScope {
+                    val resepDeferred = async { BakeryStorageManager.ambilResepBerandaDariSupabase() }
+                    val disukaiDeferred = async { BakeryStorageManager.muatResepDisukaiDariSupabase(ctx) }
 
-                    // 1. Resep buatan pengguna yang baru dipublikasikan: tampil paling atas di bawah Bake of the Day
-                    val resepUserPublikasi = resepDb.filter { dbItem ->
-                        semuaDataResep.none { it.judul.equals(dbItem.judul, ignoreCase = true) }
+                    val resepDb = resepDeferred.await()
+                    val listDbDisukai = disukaiDeferred.await()
+
+                    if (listDbDisukai.isNotEmpty()) {
+                        DisukaiFragment.daftarResepDisukai.clear()
+                        DisukaiFragment.daftarResepDisukai.addAll(listDbDisukai)
                     }
-                    for (dbItem in resepUserPublikasi) {
-                        val itemFinal = if (dbItem.gambar == null || dbItem.gambar == R.drawable.dubai) {
-                            dbItem.copy(gambar = dapatkanGambarResepSesuai(dbItem.judul, dbItem.gambar))
-                        } else {
-                            dbItem
+
+                    if (resepDb.isNotEmpty()) {
+                        val hasilGabung = mutableListOf<ResepModel>()
+
+                        // 1. Resep buatan pengguna yang baru dipublikasikan: tampil paling atas di bawah Bake of the Day
+                        val resepUserPublikasi = resepDb.filter { dbItem ->
+                            semuaDataResep.none { it.judul.equals(dbItem.judul, ignoreCase = true) }
                         }
-                        hasilGabung.add(itemFinal)
-                    }
-
-                    // 2. Resep katalog bawaan (dimulai dari San Francisco Sourdough)
-                    // Jika ada data di Supabase untuk resep katalog, perbarui detailnya
-                    for (item in semuaDataResep) {
-                        val dbMatch = resepDb.find { it.judul.equals(item.judul, ignoreCase = true) }
-                        val itemFinal = if (dbMatch != null) {
-                            if (dbMatch.fotoUrl.isNullOrEmpty() && dbMatch.imageUri == null) {
-                                dbMatch.copy(gambar = item.gambar)
+                        for (dbItem in resepUserPublikasi) {
+                            val itemFinal = if (dbItem.gambar == null || dbItem.gambar == R.drawable.dubai) {
+                                dbItem.copy(gambar = dapatkanGambarResepSesuai(dbItem.judul, dbItem.gambar))
                             } else {
-                                dbMatch
+                                dbItem
                             }
-                        } else {
-                            item
+                            hasilGabung.add(itemFinal)
                         }
-                        hasilGabung.add(itemFinal)
-                    }
 
-                    daftarSemuaResep.clear()
-                    daftarSemuaResep.addAll(hasilGabung)
-                    if (::adapterResep.isInitialized) {
-                        updateDataResep(daftarSemuaResep)
+                        // 2. Resep katalog bawaan (dimulai dari San Francisco Sourdough)
+                        for (item in semuaDataResep) {
+                            val dbMatch = resepDb.find { it.judul.equals(item.judul, ignoreCase = true) }
+                            val itemFinal = if (dbMatch != null) {
+                                if (dbMatch.fotoUrl.isNullOrEmpty() && dbMatch.imageUri == null) {
+                                    dbMatch.copy(gambar = item.gambar)
+                                } else {
+                                    dbMatch
+                                }
+                            } else {
+                                item
+                            }
+                            hasilGabung.add(itemFinal)
+                        }
+
+                        RecipeRepository.berandaResepCache.clear()
+                        RecipeRepository.berandaResepCache.addAll(hasilGabung)
+
+                        daftarSemuaResep.clear()
+                        daftarSemuaResep.addAll(hasilGabung)
+                        if (::adapterResep.isInitialized) {
+                            updateDataResep(daftarSemuaResep)
+                        }
+                    } else if (::adapterResep.isInitialized) {
+                        adapterResep.notifyDataSetChanged()
                     }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.e("BERANDA_SUPABASE", "Gagal sinkronisasi resep Supabase: ${e.message}")
             }
@@ -428,21 +455,7 @@ class BerandaFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        muatResepDariSupabase()
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val listDb = BakeryStorageManager.muatResepDisukaiDariSupabase(requireContext())
-                if (listDb.isNotEmpty()) {
-                    DisukaiFragment.daftarResepDisukai.clear()
-                    DisukaiFragment.daftarResepDisukai.addAll(listDb)
-                }
-                if (::adapterResep.isInitialized) {
-                    adapterResep.notifyDataSetChanged()
-                }
-            } catch (e: Exception) {
-                // Ignore
-            }
-        }
+        muatResepDanDisukaiParalel()
     }
 
     override fun onDestroyView() {

@@ -21,6 +21,8 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class UnggahFragment : Fragment() {
@@ -44,6 +46,9 @@ class UnggahFragment : Fragment() {
     private var listKategori = listOf<Kategori>()
     private var draftResepIdEdit: String? = null
     private var draftResepJudulAsal: String? = null
+    private var pendingDraftKategoriId: Long? = null
+    private var postCompressJob: Job? = null
+    private var resepCompressJob: Job? = null
 
     private lateinit var ivPreviewFotoResep: ImageView
     private lateinit var btnUploadFotoResep: MaterialCardView
@@ -67,32 +72,52 @@ class UnggahFragment : Fragment() {
     private lateinit var btnTabUnggahPostingan: MaterialButton
     private lateinit var tvJudulHalamanUnggah: TextView
 
-    // Launcher Foto Postingan
+    // Launcher Foto Postingan (kompresi di Dispatchers.IO agar UI tidak macet)
     private val pickImageLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-            val localUri = saveImageToInternalStorage(uri, "post") ?: uri
-            imageUri = localUri
+            val ctx = context ?: return@registerForActivityResult
+            imageUri = uri
             draftImageRes = null
-            ivPreviewFoto.setImageURI(localUri)
+            ivPreviewFoto.setImageURI(uri)
             ivPreviewFoto.scaleType = ImageView.ScaleType.CENTER_CROP
             ivPreviewFoto.imageTintList = null
-            Toast.makeText(requireContext(), "Foto berhasil dipilih!", Toast.LENGTH_SHORT).show()
+            postCompressJob?.cancel()
+            postCompressJob = viewLifecycleOwner.lifecycleScope.launch {
+                val compressed = BakeryStorageManager.kompresDanSimpanGambar(
+                    ctx, uri, "post_${System.currentTimeMillis()}.jpg"
+                )
+                if (compressed != null) {
+                    imageUri = compressed
+                    if (isAdded) ivPreviewFoto.setImageURI(compressed)
+                }
+                if (isAdded) Toast.makeText(ctx, "Foto berhasil dipilih!", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
-    // Launcher Foto Resep
+    // Launcher Foto Resep (kompresi di Dispatchers.IO agar UI tidak macet)
     private val pickResepImageLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-            val localUri = saveImageToInternalStorage(uri, "resep") ?: uri
-            resepImageUri = localUri
-            ivPreviewFotoResep.setImageURI(localUri)
+            val ctx = context ?: return@registerForActivityResult
+            resepImageUri = uri
+            ivPreviewFotoResep.setImageURI(uri)
             ivPreviewFotoResep.scaleType = ImageView.ScaleType.CENTER_CROP
             ivPreviewFotoResep.imageTintList = null
-            Toast.makeText(requireContext(), "Foto resep berhasil dipilih!", Toast.LENGTH_SHORT).show()
+            resepCompressJob?.cancel()
+            resepCompressJob = viewLifecycleOwner.lifecycleScope.launch {
+                val compressed = BakeryStorageManager.kompresDanSimpanGambar(
+                    ctx, uri, "resep_${System.currentTimeMillis()}.jpg"
+                )
+                if (compressed != null) {
+                    resepImageUri = compressed
+                    if (isAdded) ivPreviewFotoResep.setImageURI(compressed)
+                }
+                if (isAdded) Toast.makeText(ctx, "Foto resep berhasil dipilih!", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -240,14 +265,26 @@ class UnggahFragment : Fragment() {
                 val namaList = mutableListOf("Pilih Kategori (Default)")
                 namaList.addAll(listKategori.map { it.nama_kategori.trim() })
 
+                val ctx = context ?: return@launch
                 val adapter = ArrayAdapter(
-                    requireContext(),
+                    ctx,
                     android.R.layout.simple_spinner_dropdown_item,
                     namaList
                 )
                 spinnerKategoriResep.adapter = adapter
+
+                // Sinkronkan pilihan kategori jika dibuka dari Draft Resep
+                pendingDraftKategoriId?.let { targetId ->
+                    val idx = listKategori.indexOfFirst { it.id == targetId }
+                    if (idx >= 0) {
+                        spinnerKategoriResep.setSelection(idx + 1)
+                    }
+                    pendingDraftKategoriId = null
+                }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                // Ignore
+                Log.e("UNGGAH_KATEGORI", "Gagal memuat kategori: ${e.message}")
             }
         }
     }
@@ -262,6 +299,7 @@ class UnggahFragment : Fragment() {
     }
 
     private fun prosesPublikasiResep() {
+        if (!btnPublikasikanResep.isEnabled) return
         val judul = etJudulResep.text.toString().trim()
         if (judul.isEmpty()) {
             etJudulResep.error = "Judul resep wajib diisi!"
@@ -354,34 +392,74 @@ class UnggahFragment : Fragment() {
             )
         }
 
+        btnPublikasikanResep.isEnabled = false
+        btnSimpanDraftResep.isEnabled = false
+        btnPublikasikanResep.text = "Mempublikasikan..."
+
         viewLifecycleOwner.lifecycleScope.launch {
-            val newId = BakeryStorageManager.publikasikanResep(resepBaru, listBahan, listLangkah)
-            if (newId != null && newId > 0) {
-                // Hapus draft resep dari database Supabase jika berasal dari draft atau ada draft yang sama
-                try {
-                    BakeryStorageManager.hapusDraftResep(draftResepIdEdit, draftResepJudulAsal ?: judul)
-                    if (draftResepJudulAsal != null && !draftResepJudulAsal.equals(judul, ignoreCase = true)) {
-                        BakeryStorageManager.hapusDraftResep(null, judul)
+            try {
+                // Pastikan kompresi gambar selesai sebelum publikasi
+                resepCompressJob?.join()
+                val finalResep = resepBaru.copy(gambar = resepImageUri?.toString())
+                val newId = BakeryStorageManager.publikasikanResep(finalResep, listBahan, listLangkah)
+                if (newId != null && newId > 0) {
+                    // Optimistic UI: langsung tambahkan ke cache Beranda di urutan paling atas
+                    val deskripsiCard = if (waktuPanggang != null && waktuPanggang > 0) {
+                        val porsiStr = if (porsi.isNotEmpty()) " • $porsi" else ""
+                        "⏱️ ${waktuPanggang}m$porsiStr • ${finalResep.deskripsi ?: ""}"
+                    } else {
+                        finalResep.deskripsi ?: "Resep olahan lezat kreasi baker."
                     }
-                } catch (e: Exception) {
-                    Log.e("UNGGAH_RESEP", "Gagal hapus draft resep setelah publikasi: ${e.message}")
+                    RecipeRepository.tambahResepBerandaKeCache(
+                        ResepModel(
+                            id = newId,
+                            judul = judul,
+                            deskripsi = deskripsiCard,
+                            gambar = if (resepImageUri == null) dapatkanGambarResepSesuai(judul) else null,
+                            imageUri = resepImageUri,
+                            fotoUrl = resepImageUri?.toString()
+                        )
+                    )
+
+                    // Hapus draft resep dari database Supabase jika berasal dari draft atau ada draft yang sama
+                    try {
+                        BakeryStorageManager.hapusDraftResep(draftResepIdEdit, draftResepJudulAsal ?: judul)
+                        if (draftResepJudulAsal != null && !draftResepJudulAsal.equals(judul, ignoreCase = true)) {
+                            BakeryStorageManager.hapusDraftResep(null, judul)
+                        }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        Log.e("UNGGAH_RESEP", "Gagal hapus draft resep setelah publikasi: ${e.message}")
+                    }
+
+                    NotifikasiBottomSheet.tambahNotif("Resep '${judul}' berhasil dipublikasikan ke Beranda!")
+                    Toast.makeText(requireContext(), "Resep berhasil dipublikasikan!", Toast.LENGTH_SHORT).show()
+                    resetFormResep()
+
+                    // Navigasi ke Beranda
+                    activity?.supportFragmentManager?.beginTransaction()
+                        ?.replace(R.id.fragment_container, BerandaFragment())
+                        ?.commit()
+                } else {
+                    Toast.makeText(requireContext(), "Gagal mempublikasikan resep ke database.", Toast.LENGTH_SHORT).show()
                 }
-
-                NotifikasiBottomSheet.tambahNotif("Resep '${judul}' berhasil dipublikasikan ke Beranda!")
-                Toast.makeText(requireContext(), "Resep berhasil dipublikasikan!", Toast.LENGTH_SHORT).show()
-                resetFormResep()
-
-                // Navigasi ke Beranda
-                activity?.supportFragmentManager?.beginTransaction()
-                    ?.replace(R.id.fragment_container, BerandaFragment())
-                    ?.commit()
-            } else {
-                Toast.makeText(requireContext(), "Gagal mempublikasikan resep ke database.", Toast.LENGTH_SHORT).show()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Gagal mempublikasikan resep: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                if (isAdded) {
+                    btnPublikasikanResep.isEnabled = true
+                    btnSimpanDraftResep.isEnabled = true
+                    btnPublikasikanResep.text = "Publikasikan Resep"
+                }
             }
         }
     }
 
     private fun prosesSimpanDraftResep() {
+        if (!btnSimpanDraftResep.isEnabled) return
         val judul = etJudulResep.text.toString().trim()
         if (judul.isEmpty()) {
             etJudulResep.error = "Judul resep wajib diisi untuk menyimpan draf!"
@@ -415,13 +493,31 @@ class UnggahFragment : Fragment() {
             langkah_memasak = langkahMemasak.ifEmpty { null }
         )
 
+        btnSimpanDraftResep.isEnabled = false
+        btnPublikasikanResep.isEnabled = false
+        btnSimpanDraftResep.text = "Menyimpan..."
+
         viewLifecycleOwner.lifecycleScope.launch {
-            val berhasil = BakeryStorageManager.simpanDraftResep(draft)
-            if (berhasil) {
-                Toast.makeText(requireContext(), "Draft resep berhasil disimpan!", Toast.LENGTH_SHORT).show()
-                resetFormResep()
-            } else {
-                Toast.makeText(requireContext(), "Gagal menyimpan draft resep.", Toast.LENGTH_SHORT).show()
+            try {
+                resepCompressJob?.join()
+                val finalDraft = draft.copy(gambar = resepImageUri?.toString())
+                val berhasil = BakeryStorageManager.simpanDraftResep(finalDraft)
+                if (berhasil) {
+                    Toast.makeText(requireContext(), "Draft resep berhasil disimpan!", Toast.LENGTH_SHORT).show()
+                    resetFormResep()
+                } else {
+                    Toast.makeText(requireContext(), "Gagal menyimpan draft resep.", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Gagal menyimpan draft: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                if (isAdded) {
+                    btnSimpanDraftResep.isEnabled = true
+                    btnPublikasikanResep.isEnabled = true
+                    btnSimpanDraftResep.text = "Simpan Draft"
+                }
             }
         }
     }
@@ -429,6 +525,7 @@ class UnggahFragment : Fragment() {
     private fun resetFormResep() {
         draftResepIdEdit = null
         draftResepJudulAsal = null
+        pendingDraftKategoriId = null
         etJudulResep.setText("")
         etWaktuPanggang.setText("")
         etPorsiResep.setText("")
@@ -454,6 +551,8 @@ class UnggahFragment : Fragment() {
 
         // 1. Publikasikan ke Jelajah
         btnPublikasikan.setOnClickListener {
+            if (!btnPublikasikan.isEnabled) return@setOnClickListener
+
             val punyaFoto = (imageUri != null) || (draftImageRes != null && draftImageRes != 0)
             if (!punyaFoto) {
                 Toast.makeText(requireContext(), "⚠️ Foto postingan tidak boleh kosong! Wajib pilih foto terlebih dahulu.", Toast.LENGTH_LONG).show()
@@ -466,50 +565,86 @@ class UnggahFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            // Pastikan URI gambar persisten
-            var gambarFinal = imageUri?.toString() ?: ""
-            if (imageUri != null && gambarFinal.startsWith("content://")) {
-                val localUri = saveImageToInternalStorage(imageUri!!, "post")
-                if (localUri != null) {
-                    imageUri = localUri
-                    gambarFinal = localUri.toString()
-                }
-            }
-
             val currentCtx = requireContext()
-            Toast.makeText(currentCtx, "Mempublikasikan postingan...", Toast.LENGTH_SHORT).show()
+            btnPublikasikan.isEnabled = false
+            btnSimpanDraft.isEnabled = false
+            btnPublikasikan.text = "Mempublikasikan..."
 
-            BakeryStorageManager.simpanPostinganKeSupabase(
-                caption = caption,
-                gambarUrl = gambarFinal,
-                context = currentCtx
-            ) { berhasil, errorMsg ->
-                activity?.runOnUiThread {
-                    if (berhasil) {
-                        // Jika postingan berasal dari draft, hapus draft dari lokal & Supabase
-                        draftIdEdit?.let { id ->
-                            RecipeRepository.draftList.removeAll { it.id == id }
-                            BakeryStorageManager.simpanDaftarDraft(currentCtx, RecipeRepository.draftList)
-                            BakeryStorageManager.hapusDraftDariSupabase(caption, currentCtx)
-                            draftIdEdit = null
+            viewLifecycleOwner.lifecycleScope.launch {
+                try {
+                    // Tunggu kompresi background jika masih berjalan
+                    postCompressJob?.join()
+
+                    // Pastikan URI gambar persisten & terkompresi di Dispatchers.IO
+                    var gambarFinal = imageUri?.toString() ?: ""
+                    val currentUri = imageUri
+                    if (currentUri != null && gambarFinal.startsWith("content://")) {
+                        val compressed = BakeryStorageManager.kompresDanSimpanGambar(
+                            currentCtx, currentUri, "post_${System.currentTimeMillis()}.jpg"
+                        )
+                        if (compressed != null) {
+                            imageUri = compressed
+                            gambarFinal = compressed.toString()
                         }
+                    }
 
-                        NotifikasiBottomSheet.tambahNotif("Postingan kamu berhasil dipublikasikan!")
-                        Toast.makeText(currentCtx, "Postingan berhasil terbit di Jelajah!", Toast.LENGTH_SHORT).show()
-                        resetFormPostingan()
+                    BakeryStorageManager.simpanPostinganKeSupabase(
+                        caption = caption,
+                        gambarUrl = gambarFinal,
+                        context = currentCtx
+                    ) { berhasil, errorMsg ->
+                        activity?.runOnUiThread {
+                            if (isAdded) {
+                                btnPublikasikan.isEnabled = true
+                                btnSimpanDraft.isEnabled = true
+                                btnPublikasikan.text = "Publikasikan"
+                            }
+                            if (berhasil) {
+                                // Jika postingan berasal dari draft, hapus draft dari lokal & Supabase
+                                draftIdEdit?.let { id ->
+                                    RecipeRepository.draftList.removeAll { it.id == id }
+                                    BakeryStorageManager.simpanDaftarDraft(currentCtx, RecipeRepository.draftList)
+                                    BakeryStorageManager.hapusDraftDariSupabase(caption, currentCtx)
+                                    draftIdEdit = null
+                                }
 
-                        // Arahkan ke tab Jelajah agar pengguna langsung melihat postingannya
-                        val bottomNav = activity?.findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottom_nav_main)
-                        if (bottomNav != null) {
-                            bottomNav.selectedItemId = R.id.nav_jelajah
-                        } else {
-                            activity?.supportFragmentManager?.beginTransaction()
-                                ?.replace(R.id.fragment_container, JelajahFragment())
-                                ?.commit()
+                                // Optimistic UI: langsung tambahkan postingan baru ke urutan paling atas Jelajah
+                                val postBaru = Recipe(
+                                    id = (System.currentTimeMillis() % Int.MAX_VALUE).toInt(),
+                                    title = caption,
+                                    description = "",
+                                    imageUri = imageUri,
+                                    imageResId = if (imageUri == null) (draftImageRes ?: R.drawable.cookies) else null
+                                )
+                                RecipeRepository.recipeList.add(0, postBaru)
+
+                                NotifikasiBottomSheet.tambahNotif("Postingan kamu berhasil dipublikasikan!")
+                                Toast.makeText(currentCtx, "Postingan berhasil terbit di Jelajah!", Toast.LENGTH_SHORT).show()
+                                resetFormPostingan()
+
+                                // Arahkan ke tab Jelajah agar pengguna langsung melihat postingannya
+                                val bottomNav = activity?.findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottom_nav_main)
+                                if (bottomNav != null) {
+                                    bottomNav.selectedItemId = R.id.nav_jelajah
+                                } else {
+                                    activity?.supportFragmentManager?.beginTransaction()
+                                        ?.replace(R.id.fragment_container, JelajahFragment())
+                                        ?.commit()
+                                }
+                            } else {
+                                val pesan = errorMsg ?: "Kesalahan koneksi database Supabase"
+                                Toast.makeText(currentCtx, "Gagal mengunggah postingan: $pesan", Toast.LENGTH_LONG).show()
+                            }
                         }
-                    } else {
-                        val pesan = errorMsg ?: "Kesalahan koneksi database Supabase"
-                        Toast.makeText(currentCtx, "Gagal mengunggah postingan: $pesan", Toast.LENGTH_LONG).show()
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    if (isAdded) {
+                        btnPublikasikan.isEnabled = true
+                        btnSimpanDraft.isEnabled = true
+                        btnPublikasikan.text = "Publikasikan"
+                        Toast.makeText(currentCtx, "Gagal mengunggah postingan: ${e.message}", Toast.LENGTH_LONG).show()
                     }
                 }
             }
@@ -590,18 +725,23 @@ class UnggahFragment : Fragment() {
                     }
                 }
 
-                // Set spinner kategori setelah daftar kategori dimuat
+                // Set spinner kategori setelah daftar kategori dimuat (atau langsung jika sudah dimuat)
                 val kategoriId = bundle.getLong("EXTRA_DRAFT_RESEP_KATEGORI_ID", -1L)
                 if (kategoriId > 0) {
-                    viewLifecycleOwner.lifecycleScope.launch {
+                    pendingDraftKategoriId = kategoriId
+                    if (listKategori.isNotEmpty()) {
                         val idx = listKategori.indexOfFirst { it.id == kategoriId }
-                        if (idx >= 0) spinnerKategoriResep.setSelection(idx + 1)
+                        if (idx >= 0) {
+                            spinnerKategoriResep.setSelection(idx + 1)
+                            pendingDraftKategoriId = null
+                        }
                     }
                 }
 
                 // Bersihkan argumen agar tidak terpanggil ulang secara tidak sengaja
                 arguments?.remove("EXTRA_DRAFT_RESEP_ID")
                 arguments?.remove("EXTRA_DRAFT_RESEP_JUDUL")
+                arguments?.remove("EXTRA_DRAFT_RESEP_KATEGORI_ID")
             }
 
             // =====================================================================

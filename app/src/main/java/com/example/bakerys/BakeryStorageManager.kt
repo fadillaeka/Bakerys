@@ -1,13 +1,19 @@
 ﻿package com.example.bakerys
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
@@ -17,6 +23,9 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 
 object BakeryStorageManager {
 
@@ -27,6 +36,116 @@ object BakeryStorageManager {
 
     // Default UUID fallback jika auth session kosong agar foreign key database tetap valid
     private const val DEFAULT_FALLBACK_USER_ID = "5f56f432-b24a-434c-8ce1-b3669d34b303"
+
+    /**
+     * Helper kompresi gambar di background (Dispatchers.IO):
+     * - Resize dimensi maksimal menjadi 1080px dengan menjaga rasio aspek
+     * - Kompres ke format JPEG kualitas 75% (turunkan bertahap jika masih > 300 KB)
+     */
+    suspend fun kompresDanSimpanGambar(
+        context: Context,
+        uri: Uri,
+        fileName: String,
+        maxDimension: Int = 1080,
+        initialQuality: Int = 75,
+        maxBytes: Int = 300 * 1024
+    ): Uri? = withContext(Dispatchers.IO) {
+        try {
+            val boundsOpts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                BitmapFactory.decodeStream(stream, null, boundsOpts)
+            }
+
+            val srcWidth = boundsOpts.outWidth
+            val srcHeight = boundsOpts.outHeight
+            if (srcWidth <= 0 || srcHeight <= 0) return@withContext null
+
+            var inSampleSize = 1
+            while ((srcWidth / inSampleSize) > maxDimension * 2 || (srcHeight / inSampleSize) > maxDimension * 2) {
+                inSampleSize *= 2
+            }
+
+            val decodeOpts = BitmapFactory.Options().apply { this.inSampleSize = inSampleSize }
+            val decoded = context.contentResolver.openInputStream(uri)?.use { stream ->
+                BitmapFactory.decodeStream(stream, null, decodeOpts)
+            } ?: return@withContext null
+
+            val maxSide = maxOf(decoded.width, decoded.height)
+            val scaledBitmap = if (maxSide > maxDimension) {
+                val scale = maxDimension.toFloat() / maxSide.toFloat()
+                val targetW = (decoded.width * scale).toInt().coerceAtLeast(1)
+                val targetH = (decoded.height * scale).toInt().coerceAtLeast(1)
+                Bitmap.createScaledBitmap(decoded, targetW, targetH, true).also {
+                    if (it !== decoded) decoded.recycle()
+                }
+            } else {
+                decoded
+            }
+
+            val baos = ByteArrayOutputStream()
+            var quality = initialQuality
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, quality, baos)
+            while (baos.size() > maxBytes && quality > 40) {
+                baos.reset()
+                quality -= 10
+                scaledBitmap.compress(Bitmap.CompressFormat.JPEG, quality, baos)
+            }
+            scaledBitmap.recycle()
+
+            val outFile = File(context.filesDir, fileName)
+            FileOutputStream(outFile).use { fos ->
+                fos.write(baos.toByteArray())
+                fos.flush()
+            }
+            Log.d("IMAGE_COMPRESS", "Gambar dikompres: ${baos.size() / 1024} KB (quality=$quality)")
+            Uri.fromFile(outFile)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e("IMAGE_COMPRESS", "Gagal kompres gambar: ${e.message}")
+            null
+        }
+    }
+
+    /**
+     * Mengambil ringkasan jumlah suka & status suka user untuk daftar postingan dalam 1 query paralel
+     * agar tidak terjadi N+1 / 2N query berurutan.
+     */
+    suspend fun ambilRingkasanSukaPostingan(
+        context: Context?,
+        postIds: List<Long>
+    ): Map<Long, Pair<Int, Boolean>> = withContext(Dispatchers.IO) {
+        if (postIds.isEmpty()) return@withContext emptyMap()
+        try {
+            val currentUserId = dapatkanUserId(context)
+            val rows = SupabaseClient.instance.from("suka")
+                .select(Columns.list("resep_id", "user_id"))
+                .decodeList<JsonObject>()
+
+            val targetSet = postIds.toHashSet()
+            val countMap = HashMap<Long, Int>()
+            val likedSet = HashSet<Long>()
+
+            for (row in rows) {
+                val resepId = row["resep_id"]?.jsonPrimitive?.contentOrNull?.toLongOrNull() ?: continue
+                if (!targetSet.contains(resepId)) continue
+                countMap[resepId] = (countMap[resepId] ?: 0) + 1
+                val uid = row["user_id"]?.jsonPrimitive?.contentOrNull
+                if (uid == currentUserId) {
+                    likedSet.add(resepId)
+                }
+            }
+
+            postIds.associateWith { id ->
+                Pair(countMap[id] ?: 0, likedSet.contains(id))
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e("SUPABASE_SUKA", "Gagal ambil ringkasan suka: ${e.message}")
+            emptyMap()
+        }
+    }
 
     fun dapatkanUserId(context: Context? = null): String {
         // Coba ambil dari Supabase auth session
@@ -914,31 +1033,43 @@ object BakeryStorageManager {
                     select()
                 }.decodeList<JsonObject>()
 
-                val newResepId = insertedResep.firstOrNull()?.get("id")?.jsonPrimitive?.content?.toLongOrNull()
+                val newResepId = insertedResep.firstOrNull()?.get("id")?.jsonPrimitive?.contentOrNull?.toLongOrNull()
                 if (newResepId != null && newResepId > 0) {
-                    // 2. Insert bahan_resep
-                    for (bahan in listBahan) {
-                        try {
-                            val bahanData = bahan.copy(resep_id = newResepId)
-                            SupabaseClient.instance.from("bahan_resep").insert(bahanData)
-                        } catch (e: Exception) {
-                            Log.e("SUPABASE_RESEP", "Gagal insert bahan: ${e.message}")
+                    // 2 & 3. Batch insert bahan_resep & langkah_resep secara paralel
+                    coroutineScope {
+                        val bahanJob = async {
+                            if (listBahan.isNotEmpty()) {
+                                try {
+                                    val batchBahan = listBahan.map { it.copy(resep_id = newResepId) }
+                                    SupabaseClient.instance.from("bahan_resep").insert(batchBahan)
+                                } catch (e: CancellationException) {
+                                    throw e
+                                } catch (e: Exception) {
+                                    Log.e("SUPABASE_RESEP", "Gagal batch insert bahan: ${e.message}")
+                                }
+                            }
                         }
-                    }
-
-                    // 3. Insert langkah_resep
-                    for (langkah in listLangkah) {
-                        try {
-                            val langkahData = langkah.copy(resep_id = newResepId)
-                            SupabaseClient.instance.from("langkah_resep").insert(langkahData)
-                        } catch (e: Exception) {
-                            Log.e("SUPABASE_RESEP", "Gagal insert langkah: ${e.message}")
+                        val langkahJob = async {
+                            if (listLangkah.isNotEmpty()) {
+                                try {
+                                    val batchLangkah = listLangkah.map { it.copy(resep_id = newResepId) }
+                                    SupabaseClient.instance.from("langkah_resep").insert(batchLangkah)
+                                } catch (e: CancellationException) {
+                                    throw e
+                                } catch (e: Exception) {
+                                    Log.e("SUPABASE_RESEP", "Gagal batch insert langkah: ${e.message}")
+                                }
+                            }
                         }
+                        bahanJob.await()
+                        langkahJob.await()
                     }
-                    Log.d("SUPABASE_RESEP", "Berhasil publikasikan resep #$newResepId beserta bahan dan langkah")
+                    Log.d("SUPABASE_RESEP", "Berhasil publikasikan resep #$newResepId secara batch paralel")
                     return@withContext newResepId
                 }
                 null
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.e("SUPABASE_RESEP", "Gagal publikasikan resep: ${e.message}")
                 null
@@ -1089,91 +1220,117 @@ object BakeryStorageManager {
     // =========================================================================
     suspend fun ambilSemuaKontenModerasi(): List<KontenModerasi> {
         return withContext(Dispatchers.IO) {
-            val list = mutableListOf<KontenModerasi>()
+            coroutineScope {
+                // Jalankan 3 query tabel secara paralel dengan kolom spesifik
+                val resepDeferred = async {
+                    val resepList = mutableListOf<KontenModerasi>()
+                    try {
+                        val resepRows = SupabaseClient.instance.from("resep")
+                            .select(Columns.list("id", "judul", "deskripsi", "status", "user_id", "created_at"))
+                            .decodeList<JsonObject>()
+                        for (r in resepRows) {
+                            val idVal = r["id"]?.jsonPrimitive?.contentOrNull?.toLongOrNull()
+                            val judul = r["judul"]?.jsonPrimitive?.contentOrNull ?: "Resep #${idVal ?: 0}"
+                            val deskripsi = r["deskripsi"]?.jsonPrimitive?.contentOrNull ?: ""
+                            val statusRaw = r["status"]?.jsonPrimitive?.contentOrNull
+                            val status = if (statusRaw.isNullOrEmpty() || statusRaw == "null") "published" else statusRaw
+                            val userId = r["user_id"]?.jsonPrimitive?.contentOrNull
+                            val createdAt = r["created_at"]?.jsonPrimitive?.contentOrNull
 
-            // 1. Ambil Resep
-            try {
-                val resepRows = SupabaseClient.instance.from("resep").select().decodeList<JsonObject>()
-                for (r in resepRows) {
-                    val idVal = r["id"]?.jsonPrimitive?.content?.toLongOrNull()
-                    val judul = r["judul"]?.jsonPrimitive?.content ?: "Resep #${idVal ?: 0}"
-                    val deskripsi = r["deskripsi"]?.jsonPrimitive?.content ?: ""
-                    val statusRaw = r["status"]?.jsonPrimitive?.contentOrNull
-                    val status = if (statusRaw.isNullOrEmpty() || statusRaw == "null") "published" else statusRaw
-                    val userId = r["user_id"]?.jsonPrimitive?.content
-                    val createdAt = r["created_at"]?.jsonPrimitive?.content
-
-                    list.add(
-                        KontenModerasi(
-                            id = (idVal ?: 0L).toString(),
-                            rawId = idVal,
-                            tipe = "RESEP",
-                            judul = judul,
-                            deskripsi = deskripsi,
-                            status = status,
-                            userId = userId,
-                            createdAt = createdAt
-                        )
-                    )
+                            resepList.add(
+                                KontenModerasi(
+                                    id = (idVal ?: 0L).toString(),
+                                    rawId = idVal,
+                                    tipe = "RESEP",
+                                    judul = judul,
+                                    deskripsi = deskripsi,
+                                    status = status,
+                                    userId = userId,
+                                    createdAt = createdAt
+                                )
+                            )
+                        }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        Log.e("SUPABASE_MODERASI", "Gagal ambil resep untuk moderasi: ${e.message}")
+                    }
+                    resepList
                 }
-            } catch (e: Exception) {
-                Log.e("SUPABASE_MODERASI", "Gagal ambil resep untuk moderasi: ${e.message}")
-            }
 
-            // 2. Ambil Postingan Users
-            try {
-                val postRows = SupabaseClient.instance.from("postingan_users").select().decodeList<JsonObject>()
-                for (p in postRows) {
-                    val idVal = p["id"]?.jsonPrimitive?.content?.toLongOrNull()
-                    val caption = p["caption"]?.jsonPrimitive?.content ?: "(Postingan tanpa teks)"
-                    val userId = p["user_id"]?.jsonPrimitive?.content
-                    val createdAt = p["created_at"]?.jsonPrimitive?.content
+                val postDeferred = async {
+                    val postList = mutableListOf<KontenModerasi>()
+                    try {
+                        val postRows = SupabaseClient.instance.from("postingan_users")
+                            .select(Columns.list("id", "caption", "user_id", "created_at"))
+                            .decodeList<JsonObject>()
+                        for (p in postRows) {
+                            val idVal = p["id"]?.jsonPrimitive?.contentOrNull?.toLongOrNull()
+                            val caption = p["caption"]?.jsonPrimitive?.contentOrNull ?: "(Postingan tanpa teks)"
+                            val userId = p["user_id"]?.jsonPrimitive?.contentOrNull
+                            val createdAt = p["created_at"]?.jsonPrimitive?.contentOrNull
 
-                    list.add(
-                        KontenModerasi(
-                            id = (idVal ?: 0L).toString(),
-                            rawId = idVal,
-                            tipe = "POSTINGAN",
-                            judul = caption,
-                            deskripsi = "Postingan kreasi pengguna",
-                            status = "aktif",
-                            userId = userId,
-                            createdAt = createdAt
-                        )
-                    )
+                            postList.add(
+                                KontenModerasi(
+                                    id = (idVal ?: 0L).toString(),
+                                    rawId = idVal,
+                                    tipe = "POSTINGAN",
+                                    judul = caption,
+                                    deskripsi = "Postingan kreasi pengguna",
+                                    status = "aktif",
+                                    userId = userId,
+                                    createdAt = createdAt
+                                )
+                            )
+                        }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        Log.e("SUPABASE_MODERASI", "Gagal ambil postingan untuk moderasi: ${e.message}")
+                    }
+                    postList
                 }
-            } catch (e: Exception) {
-                Log.e("SUPABASE_MODERASI", "Gagal ambil postingan untuk moderasi: ${e.message}")
-            }
 
-            // 3. Ambil Komentar
-            try {
-                val komenRows = SupabaseClient.instance.from("komentar").select().decodeList<JsonObject>()
-                for (k in komenRows) {
-                    val idVal = k["id"]?.jsonPrimitive?.content?.toLongOrNull()
-                    val resepId = k["resep_id"]?.jsonPrimitive?.content ?: "?"
-                    val isi = k["isi_komentar"]?.jsonPrimitive?.content ?: ""
-                    val userId = k["user_id"]?.jsonPrimitive?.content
-                    val createdAt = k["created_at"]?.jsonPrimitive?.content
+                val komenDeferred = async {
+                    val komenList = mutableListOf<KontenModerasi>()
+                    try {
+                        val komenRows = SupabaseClient.instance.from("komentar")
+                            .select(Columns.list("id", "resep_id", "isi_komentar", "user_id", "created_at"))
+                            .decodeList<JsonObject>()
+                        for (k in komenRows) {
+                            val idVal = k["id"]?.jsonPrimitive?.contentOrNull?.toLongOrNull()
+                            val resepId = k["resep_id"]?.jsonPrimitive?.contentOrNull ?: "?"
+                            val isi = k["isi_komentar"]?.jsonPrimitive?.contentOrNull ?: ""
+                            val userId = k["user_id"]?.jsonPrimitive?.contentOrNull
+                            val createdAt = k["created_at"]?.jsonPrimitive?.contentOrNull
 
-                    list.add(
-                        KontenModerasi(
-                            id = (idVal ?: 0L).toString(),
-                            rawId = idVal,
-                            tipe = "KOMENTAR",
-                            judul = "Komentar pada Resep #$resepId",
-                            deskripsi = isi,
-                            status = "aktif",
-                            userId = userId,
-                            createdAt = createdAt
-                        )
-                    )
+                            komenList.add(
+                                KontenModerasi(
+                                    id = (idVal ?: 0L).toString(),
+                                    rawId = idVal,
+                                    tipe = "KOMENTAR",
+                                    judul = "Komentar pada Resep #$resepId",
+                                    deskripsi = isi,
+                                    status = "aktif",
+                                    userId = userId,
+                                    createdAt = createdAt
+                                )
+                            )
+                        }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        Log.e("SUPABASE_MODERASI", "Gagal ambil komentar untuk moderasi: ${e.message}")
+                    }
+                    komenList
                 }
-            } catch (e: Exception) {
-                Log.e("SUPABASE_MODERASI", "Gagal ambil komentar untuk moderasi: ${e.message}")
-            }
 
-            list.reversed()
+                val list = mutableListOf<KontenModerasi>()
+                list.addAll(resepDeferred.await())
+                list.addAll(postDeferred.await())
+                list.addAll(komenDeferred.await())
+                list.reversed()
+            }
         }
     }
 
@@ -1189,6 +1346,8 @@ object BakeryStorageManager {
                 }
                 Log.d("SUPABASE_MODERASI", "Resep #$resepId berhasil diubah status menjadi $newStatus")
                 true
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.e("SUPABASE_MODERASI", "Gagal ubah status resep #$resepId: ${e.message}")
                 false
@@ -1202,33 +1361,49 @@ object BakeryStorageManager {
             try {
                 when (tipe) {
                     "RESEP" -> {
-                        // Hapus bahan dan langkah terkait terlebih dahulu
-                        try {
-                            SupabaseClient.instance.from("bahan_resep").delete {
-                                filter { eq("resep_id", targetId) }
+                        // Hapus bahan dan langkah terkait secara paralel terlebih dahulu
+                        coroutineScope {
+                            val bJob = async {
+                                try {
+                                    SupabaseClient.instance.from("bahan_resep").delete {
+                                        filter { eq("resep_id", targetId) }
+                                    }
+                                } catch (e: CancellationException) { throw e } catch (_: Exception) {}
                             }
-                        } catch (e: Exception) { /* ignore */ }
-                        try {
-                            SupabaseClient.instance.from("langkah_resep").delete {
-                                filter { eq("resep_id", targetId) }
+                            val lJob = async {
+                                try {
+                                    SupabaseClient.instance.from("langkah_resep").delete {
+                                        filter { eq("resep_id", targetId) }
+                                    }
+                                } catch (e: CancellationException) { throw e } catch (_: Exception) {}
                             }
-                        } catch (e: Exception) { /* ignore */ }
+                            bJob.await()
+                            lJob.await()
+                        }
 
                         SupabaseClient.instance.from("resep").delete {
                             filter { eq("id", targetId) }
                         }
                     }
                     "POSTINGAN" -> {
-                        try {
-                            SupabaseClient.instance.from("suka").delete {
-                                filter { eq("resep_id", targetId) }
+                        coroutineScope {
+                            val sJob = async {
+                                try {
+                                    SupabaseClient.instance.from("suka").delete {
+                                        filter { eq("resep_id", targetId) }
+                                    }
+                                } catch (e: CancellationException) { throw e } catch (_: Exception) {}
                             }
-                        } catch (e: Exception) { /* ignore */ }
-                        try {
-                            SupabaseClient.instance.from("komentar").delete {
-                                filter { eq("resep_id", targetId) }
+                            val kJob = async {
+                                try {
+                                    SupabaseClient.instance.from("komentar").delete {
+                                        filter { eq("resep_id", targetId) }
+                                    }
+                                } catch (e: CancellationException) { throw e } catch (_: Exception) {}
                             }
-                        } catch (e: Exception) { /* ignore */ }
+                            sJob.await()
+                            kJob.await()
+                        }
 
                         SupabaseClient.instance.from("postingan_users").delete {
                             filter { eq("id", targetId) }

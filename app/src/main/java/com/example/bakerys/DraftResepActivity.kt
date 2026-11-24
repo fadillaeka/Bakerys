@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 class DraftResepActivity : AppCompatActivity() {
@@ -87,6 +88,8 @@ class DraftResepActivity : AppCompatActivity() {
                 draftList.clear()
                 draftList.addAll(list)
                 adapter.notifyDataSetChanged()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(this@DraftResepActivity, "Gagal memuat draft resep", Toast.LENGTH_SHORT).show()

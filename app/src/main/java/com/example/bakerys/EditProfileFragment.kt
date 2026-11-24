@@ -17,6 +17,8 @@ import androidx.lifecycle.lifecycleScope
 import com.example.bakerys.databinding.ActivityEditProfileBinding
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -30,14 +32,21 @@ class EditProfileFragment : Fragment() {
     private var _binding: ActivityEditProfileBinding? = null
     private val binding get() = _binding!!
     private var imageUri: Uri? = null
+    private var compressJob: Job? = null
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
-            val localUri = saveImageToInternalStorage(uri)
-            if (localUri != null) {
-                imageUri = localUri
-                binding.ivFotoProfil.setImageURI(localUri)
-                Toast.makeText(requireContext(), "Foto berhasil dipilih!", Toast.LENGTH_SHORT).show()
+            val ctx = context ?: return@registerForActivityResult
+            imageUri = uri
+            binding.ivFotoProfil.setImageURI(uri)
+            compressJob?.cancel()
+            compressJob = viewLifecycleOwner.lifecycleScope.launch {
+                val compressed = BakeryStorageManager.kompresDanSimpanGambar(ctx, uri, "profile_image.jpg")
+                if (compressed != null) {
+                    imageUri = compressed
+                    if (_binding != null) binding.ivFotoProfil.setImageURI(compressed)
+                }
+                if (isAdded) Toast.makeText(ctx, "Foto berhasil dipilih!", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -130,6 +139,8 @@ class EditProfileFragment : Fragment() {
                 }
 
                 binding.etEmail.setText(currentUser?.email ?: "")
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 android.util.Log.e("EDIT_PROFILE_LOAD", "Error: ${e.message}")
             }
@@ -137,6 +148,10 @@ class EditProfileFragment : Fragment() {
     }
 
     private fun simpanPerubahanProfil() {
+        if (!binding.btnSimpan.isEnabled) return
+        binding.btnSimpan.isEnabled = false
+        binding.btnSimpan.text = "Menyimpan..."
+
         val fullNameBaru = binding.etNamaLengkap.text.toString().trim()
         var usernameBaru = binding.etUsername.text.toString().trim()
         val bioBaru = binding.etBio.text.toString().trim()
@@ -145,21 +160,24 @@ class EditProfileFragment : Fragment() {
             usernameBaru = if (fullNameBaru.isNotEmpty()) fullNameBaru else "Baker"
         }
 
-        // Simpan ke SharedPreferences Lokal (Instan)
-        val sharedPref = requireContext().getSharedPreferences("BakerysPrefs", Context.MODE_PRIVATE)
-        val editor = sharedPref.edit()
-        editor.putString("profile_name", usernameBaru)
-        editor.putString("profile_bio", bioBaru)
-        if (imageUri != null) {
-            editor.putString("profile_image_uri", imageUri.toString())
-        }
-        editor.apply()
-
-        // Simpan ke Supabase DB
+        // Simpan ke Supabase DB (tunggu kompresi foto jika masih berjalan)
         viewLifecycleOwner.lifecycleScope.launch {
             try {
+                compressJob?.join()
+
+                val ctx = requireContext()
+                // Simpan ke SharedPreferences Lokal (Instan)
+                val sharedPref = ctx.getSharedPreferences("BakerysPrefs", Context.MODE_PRIVATE)
+                val editor = sharedPref.edit()
+                editor.putString("profile_name", usernameBaru)
+                editor.putString("profile_bio", bioBaru)
+                if (imageUri != null) {
+                    editor.putString("profile_image_uri", imageUri.toString())
+                }
+                editor.apply()
+
                 val currentUser = SupabaseClient.instance.auth.currentUserOrNull()
-                val userId = currentUser?.id ?: BakeryStorageManager.dapatkanUserId(requireContext())
+                val userId = currentUser?.id ?: BakeryStorageManager.dapatkanUserId(ctx)
                 val updatedData = buildJsonObject {
                     put("nama_lengkap", fullNameBaru)
                     put("username", usernameBaru)
@@ -171,12 +189,22 @@ class EditProfileFragment : Fragment() {
                 SupabaseClient.instance.from("users").update(updatedData) {
                     filter { eq("id", userId) }
                 }
+
+                Toast.makeText(ctx, "Profil berhasil diperbarui!", Toast.LENGTH_SHORT).show()
+                parentFragmentManager.popBackStack()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 android.util.Log.e("EDIT_PROFILE_ERROR", "Error: ${e.message}")
+                if (isAdded) {
+                    Toast.makeText(requireContext(), "Gagal memperbarui profil: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            } finally {
+                if (_binding != null) {
+                    binding.btnSimpan.isEnabled = true
+                    binding.btnSimpan.text = "Simpan Perubahan"
+                }
             }
-
-            Toast.makeText(requireContext(), "Profil berhasil diperbarui!", Toast.LENGTH_SHORT).show()
-            parentFragmentManager.popBackStack()
         }
     }
 

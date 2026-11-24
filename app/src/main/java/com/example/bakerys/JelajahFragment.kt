@@ -11,10 +11,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -59,35 +62,41 @@ class JelajahFragment : Fragment() {
         loadJob = viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val listData = SupabaseClient.instance.from("postingan_users")
-                    .select {
+                    .select(Columns.list("id", "caption", "foto_url")) {
                         order("id", Order.DESCENDING)
                     }
                     .decodeList<JsonObject>()
 
                 val ctx = context ?: return@launch
 
-                val listUserPosts = mutableListOf<Recipe>()
+                val parsedPosts = mutableListOf<Triple<Int, String, Uri?>>()
                 val seenIds = mutableSetOf<Int>()
 
                 for (item in listData) {
-                    val id = item["id"]?.jsonPrimitive?.content?.toIntOrNull()
+                    val id = item["id"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()
                         ?: item["id"]?.jsonPrimitive?.intOrNull
                         ?: continue
 
-                    if (seenIds.contains(id)) continue
-                    seenIds.add(id)
+                    if (!seenIds.add(id)) continue
 
-                    val caption = item["caption"]?.jsonPrimitive?.content ?: continue
-                    val fotoUrl = item["foto_url"]?.jsonPrimitive?.content
-                        ?: item["gambar_url"]?.jsonPrimitive?.content
+                    val caption = item["caption"]?.jsonPrimitive?.contentOrNull ?: continue
+                    val fotoUrl = item["foto_url"]?.jsonPrimitive?.contentOrNull
                     val uri = if (!fotoUrl.isNullOrEmpty()) {
-                        try { Uri.parse(fotoUrl) } catch (e: Exception) { null }
+                        try { Uri.parse(fotoUrl) } catch (_: Exception) { null }
                     } else null
 
-                    val likeCount = BakeryStorageManager.ambilJumlahSuka(id.toLong())
-                    val isLiked = BakeryStorageManager.cekUserMenyukaiPostingan(ctx, id.toLong())
+                    parsedPosts.add(Triple(id, caption, uri))
+                }
 
-                    val postRecipe = Recipe(
+                // Ambil ringkasan suka untuk semua postingan dalam 1 query (bukan 2N query berurutan)
+                val sukaMap = BakeryStorageManager.ambilRingkasanSukaPostingan(
+                    ctx,
+                    parsedPosts.map { it.first.toLong() }
+                )
+
+                val listUserPosts = parsedPosts.map { (id, caption, uri) ->
+                    val (likeCount, isLiked) = sukaMap[id.toLong()] ?: Pair(0, false)
+                    Recipe(
                         id = id,
                         title = caption,
                         description = "",
@@ -97,7 +106,6 @@ class JelajahFragment : Fragment() {
                         isBookmarked = false,
                         likeCount = likeCount
                     )
-                    listUserPosts.add(postRecipe)
                 }
 
                 // Bersihkan postingan user lama dari memory list, hanya pertahankan 5 resep bawaan (ID 1..5)
@@ -109,6 +117,8 @@ class JelajahFragment : Fragment() {
                 if (::jelajahAdapter.isInitialized) {
                     jelajahAdapter.notifyDataSetChanged()
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.e("SUPABASE_JELAJAH", "Gagal memuat postingan dari Supabase: ${e.message}")
             }

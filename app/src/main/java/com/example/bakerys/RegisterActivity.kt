@@ -10,6 +10,7 @@ import com.example.bakerys.databinding.ActivityRegisterBinding
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -26,11 +27,15 @@ class RegisterActivity : AppCompatActivity() {
 
         // Event saat tombol Daftar diklik
         binding.btnDaftarSubmit.setOnClickListener {
+            if (!binding.btnDaftarSubmit.isEnabled) return@setOnClickListener
+
             val email = binding.etEmailReg.text.toString().trim()
             val password = binding.etPasswordReg.text.toString().trim()
             val username = binding.etUsernameReg.text.toString().trim()
 
             if (email.isNotEmpty() && password.isNotEmpty() && username.isNotEmpty()) {
+                binding.btnDaftarSubmit.isEnabled = false
+                binding.btnDaftarSubmit.text = "Mendaftar..."
                 daftarAkun(email, password, username)
             } else {
                 Toast.makeText(this, "Semua field wajib diisi!", Toast.LENGTH_SHORT).show()
@@ -58,6 +63,8 @@ class RegisterActivity : AppCompatActivity() {
                         // JANGAN simpan password plaintext di tabel!
                     }
                     SupabaseClient.instance.from("users").insert(userProfile)
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (eUsers: Exception) {
                     Log.e("REGISTER_USERS_TABLE", "Catatan insert tabel users: ${eUsers.message}")
                 }
@@ -72,7 +79,11 @@ class RegisterActivity : AppCompatActivity() {
                 Toast.makeText(this@RegisterActivity, "Registrasi berhasil! Silakan masuk.", Toast.LENGTH_SHORT).show()
                 finish() // Tutup halaman register & pindah ke Login
                 overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                binding.btnDaftarSubmit.isEnabled = true
+                binding.btnDaftarSubmit.text = "Daftar"
                 Toast.makeText(this@RegisterActivity, "Gagal daftar: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }

@@ -11,6 +11,8 @@ import com.google.android.material.button.MaterialButton
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -31,15 +33,24 @@ class LoginActivity : AppCompatActivity() {
         btnMasukLogin = findViewById(R.id.btnMasukLogin)
 
         btnMasukLogin.setOnClickListener {
+            if (!btnMasukLogin.isEnabled) return@setOnClickListener
+
             val username = etLoginUsername.text.toString().trim()
             val password = etLoginPassword.text.toString().trim()
 
             if (username.isNotEmpty() && password.isNotEmpty()) {
+                btnMasukLogin.isEnabled = false
+                btnMasukLogin.text = "Memproses..."
                 loginDenganUsername(username, password)
             } else {
                 Toast.makeText(this, "Masukkan username dan password!", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun resetTombolMasuk() {
+        btnMasukLogin.isEnabled = true
+        btnMasukLogin.text = "Masuk"
     }
 
     private fun loginDenganUsername(usernameInput: String, passwordInput: String) {
@@ -54,15 +65,18 @@ class LoginActivity : AppCompatActivity() {
                     // Cari email di tabel 'users' berdasarkan username
                     try {
                         val result = SupabaseClient.instance.from("users")
-                            .select {
+                            .select(Columns.list("email")) {
                                 filter {
                                     eq("username", usernameInput)
                                 }
+                                limit(1)
                             }.decodeList<JsonObject>()
 
                         if (result.isNotEmpty()) {
                             userEmail = result.first()["email"]?.jsonPrimitive?.content ?: ""
                         }
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (eUsers: Exception) {
                         android.util.Log.e("LOGIN_USERS_QUERY", "Catatan query users: ${eUsers.message}")
                     }
@@ -79,6 +93,7 @@ class LoginActivity : AppCompatActivity() {
 
                 if (userEmail.isEmpty()) {
                     Toast.makeText(this@LoginActivity, "Username/Email tidak ditemukan!", Toast.LENGTH_SHORT).show()
+                    resetTombolMasuk()
                     return@launch
                 }
 
@@ -90,10 +105,11 @@ class LoginActivity : AppCompatActivity() {
 
                 // Periksa apakah user diblokir oleh moderator di tabel 'users'
                 try {
-                    val userCheck = SupabaseClient.instance.from("users").select {
+                    val userCheck = SupabaseClient.instance.from("users").select(Columns.list("role", "username")) {
                         filter {
                             eq("email", userEmail)
                         }
+                        limit(1)
                     }.decodeList<JsonObject>()
 
                     val userObj = userCheck.firstOrNull()
@@ -103,6 +119,7 @@ class LoginActivity : AppCompatActivity() {
                     if (userRole.equals("blocked", ignoreCase = true) || userRole.equals("nonaktif", ignoreCase = true)) {
                         SupabaseClient.instance.auth.signOut()
                         Toast.makeText(this@LoginActivity, "Akun Anda telah dinonaktifkan / diblokir oleh Moderator.", Toast.LENGTH_LONG).show()
+                        resetTombolMasuk()
                         return@launch
                     }
 
@@ -118,6 +135,8 @@ class LoginActivity : AppCompatActivity() {
                         .putBoolean("is_admin", isAdmin)
                         .putString("profile_role", userRole)
                         .apply()
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (eCheck: Exception) {
                     android.util.Log.e("LOGIN_BLOCK_CHECK", "Gagal cek status role: ${eCheck.message}")
                 }
@@ -156,7 +175,10 @@ class LoginActivity : AppCompatActivity() {
                     finish()
                 }
 
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                resetTombolMasuk()
                 Toast.makeText(this@LoginActivity, "Login gagal: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
