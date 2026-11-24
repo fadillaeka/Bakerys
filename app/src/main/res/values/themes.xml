@@ -1,13 +1,21 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.Bakerys" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- Warna latar window = krem Bakerys, menggantikan ungu default Material3 -->
+        <item name="android:windowBackground">#FFF9F8</item>
+        <item name="android:colorBackground">#FFF9F8</item>
 
-        <!-- TAMBAHKAN TIGA BARIS INI AGAR FULL SCREEN -->
+        <!-- Status bar transparan + ikon gelap agar terbaca di latar terang -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
+
+        <!-- Override warna Material3 agar tidak muncul ungu -->
+        <item name="colorPrimary">#802C3E</item>
+        <item name="colorPrimaryVariant">#802C3E</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">#FCEBE5</item>
+        <item name="colorOnSecondary">#3E2723</item>
     </style>
 
     <style name="Theme.Bakerys" parent="Base.Theme.Bakerys" />
@@ -25,4 +33,5 @@
         <item name="android:windowEnterAnimation">@anim/scale_bounce</item>
         <item name="android:windowExitAnimation">@anim/fade_out</item>
     </style>
+
 </resources>

@@ -2,12 +2,15 @@ package com.example.bakerys
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.launch
 
 @kotlinx.serialization.InternalSerializationApi
 class DisukaiFragment : Fragment() {
@@ -40,6 +43,9 @@ class DisukaiFragment : Fragment() {
                 val intent = Intent(requireContext(), DetailResepActivity::class.java).apply {
                     putExtra("EXTRA_JUDUL", resep.judul)
                     putExtra("EXTRA_GAMBAR", resep.gambar ?: R.drawable.dubai)
+                    if (resep.id != null) {
+                        putExtra("EXTRA_RESEP_ID", resep.id)
+                    }
 
                     val durasiFormat = if (resep.deskripsi.contains("•")) {
                         "⏱️ " + resep.deskripsi.split("•").last().trim()
@@ -55,14 +61,41 @@ class DisukaiFragment : Fragment() {
         rvDisukai.adapter = adapterDisukai
         rvDisukai.scheduleLayoutAnimation()
 
+        // Muat dari cache lokal terlebih dahulu
+        val lokal = BakeryStorageManager.muatDaftarDisukai(requireContext())
+        if (lokal.isNotEmpty() && daftarResepDisukai.isEmpty()) {
+            daftarResepDisukai.addAll(lokal)
+            adapterDisukai.notifyDataSetChanged()
+        }
+
+        muatResepDisukaiDariSupabase()
+
         return view
     }
 
-    // Agar setiap kali halaman Disukai dibuka kembali, datanya otomatis ter-update
     override fun onResume() {
         super.onResume()
         if (::adapterDisukai.isInitialized) {
             adapterDisukai.notifyDataSetChanged()
+        }
+        muatResepDisukaiDariSupabase()
+    }
+
+    private fun muatResepDisukaiDariSupabase() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val dataDb = BakeryStorageManager.muatResepDisukaiDariSupabase(requireContext())
+                if (dataDb.isNotEmpty()) {
+                    daftarResepDisukai.clear()
+                    daftarResepDisukai.addAll(dataDb)
+                    BakeryStorageManager.simpanDaftarDisukai(requireContext(), daftarResepDisukai)
+                    if (::adapterDisukai.isInitialized) {
+                        adapterDisukai.notifyDataSetChanged()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("DISUKAI_FRAGMENT", "Gagal memuat resep disukai dari Supabase: ${e.message}")
+            }
         }
     }
 }

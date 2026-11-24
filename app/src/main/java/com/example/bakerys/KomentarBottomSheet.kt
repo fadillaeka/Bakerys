@@ -52,6 +52,21 @@ class KomentarBottomSheet(
         rvComments?.layoutManager = LinearLayoutManager(context)
         rvComments?.adapter = adapter
 
+        // Muat komentar dari Supabase saat bottom sheet dibuka
+        lifecycleScope.launch {
+            try {
+                val listDariDb = BakeryStorageManager.muatKomentarDariSupabase(resepId)
+                commentsList.clear()
+                commentsList.addAll(listDariDb)
+                adapter.notifyDataSetChanged()
+                if (commentsList.isNotEmpty()) {
+                    rvComments?.smoothScrollToPosition(commentsList.size - 1)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("KOMENTAR_SHEET", "Gagal muat komentar: ${e.message}")
+            }
+        }
+
         btnClose?.setOnClickListener {
             dismiss()
         }
@@ -109,36 +124,43 @@ class KomentarBottomSheet(
                 return
             }
 
-            val nextProfileNumber = adapter.itemCount + 1
-            val username = "Baker $nextProfileNumber"
+            // Tambahkan langsung ke tampilan (optimistic UI) dengan nama pengguna yang ramah (bukan UUID mentah)
             val avatarColor = avatarColors[adapter.itemCount % avatarColors.size]
-
-            val newComment = CommentItem(username, text, avatarColor)
+            val currentUsername = context?.getSharedPreferences("BakerysPrefs", android.content.Context.MODE_PRIVATE)
+                ?.getString("profile_name", null)
+                ?: try { SupabaseClient.instance.auth.currentUserOrNull()?.email?.substringBefore("@") } catch (e: Exception) { null }
+                ?: "Baker"
+            val newComment = CommentItem(currentUsername, text, avatarColor)
             adapter.addComment(newComment)
 
             etComment?.text?.clear()
             rvComments?.smoothScrollToPosition(adapter.itemCount - 1)
-            Toast.makeText(requireContext(), "Komentar berhasil dikirim!", Toast.LENGTH_SHORT).show()
 
-            // Simpan komentar ke Supabase Database menggunakan resepId yang benar
-            BakeryStorageManager.simpanKomentarKeSupabase(resepId, text, requireContext())
-        }
-
-        fun kirimKomentar(resepId: Long, teksKomentar: String) {
-            lifecycleScope.launch {
-                try {
-                    val currentUserId = SupabaseClient.instance.auth.currentUserOrNull()?.id ?: return@launch
-
-                    val dataKomentar = buildJsonObject {
-                        put("user_id", currentUserId)
-                        put("resep_id", resepId)
-                        put("isi_komentar", teksKomentar)
+            // Simpan ke Supabase secara asinkron menggunakan fungsi BakeryStorageManager.simpanKomentarKeSupabase
+            val targetResepId = if (resepId > 0L) resepId else null
+            BakeryStorageManager.simpanKomentarKeSupabase(
+                resepId = targetResepId,
+                isiKomentar = text,
+                context = requireContext()
+            ) { berhasil, errorMsg ->
+                activity?.runOnUiThread {
+                    if (berhasil) {
+                        Toast.makeText(requireContext(), "Komentar berhasil dikirim!", Toast.LENGTH_SHORT).show()
+                        lifecycleScope.launch {
+                            val validId = BakeryStorageManager.dapatkanResepIdValid(targetResepId)
+                            val updated = BakeryStorageManager.muatKomentarDariSupabase(validId)
+                            if (updated.isNotEmpty()) {
+                                commentsList.clear()
+                                commentsList.addAll(updated)
+                                adapter.notifyDataSetChanged()
+                                rvComments?.smoothScrollToPosition(commentsList.size - 1)
+                            }
+                        }
+                    } else {
+                        val pesan = errorMsg ?: "Kesalahan koneksi database"
+                        Toast.makeText(requireContext(), "Gagal: $pesan", Toast.LENGTH_LONG).show()
+                        android.util.Log.e("KOMENTAR_SHEET", "Gagal kirim komentar: $pesan")
                     }
-
-                    SupabaseClient.instance.from("komentar").insert(dataKomentar)
-                    Toast.makeText(requireContext(), "Komentar terkirim!", Toast.LENGTH_SHORT).show()
-                } catch (e: Exception) {
-                    Toast.makeText(requireContext(), "Gagal kirim komentar: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
         }

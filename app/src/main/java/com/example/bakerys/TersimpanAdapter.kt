@@ -30,12 +30,25 @@ class TersimpanAdapter(
     override fun onBindViewHolder(holder: TersimpanViewHolder, position: Int) {
         val recipe = bookmarkedList[position]
 
-        if (recipe.imageUri != null) {
-            holder.ivThumb.setImageURI(recipe.imageUri)
-        } else if (recipe.imageResId != null) {
-            holder.ivThumb.setImageResource(recipe.imageResId)
-        } else {
-            holder.ivThumb.setImageResource(R.drawable.dubai)
+        try {
+            var imageLoaded = false
+            if (recipe.imageUri != null) {
+                holder.ivThumb.setImageURI(recipe.imageUri)
+                if (holder.ivThumb.drawable != null) {
+                    imageLoaded = true
+                }
+            }
+            if (!imageLoaded) {
+                val resId = if (recipe.imageResId != null && recipe.imageResId != 0 && recipe.imageResId != R.drawable.dubai) {
+                    recipe.imageResId
+                } else {
+                    dapatkanGambarResepSesuai(recipe.title, recipe.imageResId)
+                }
+                holder.ivThumb.setImageResource(resId)
+            }
+        } catch (e: Exception) {
+            val resId = dapatkanGambarResepSesuai(recipe.title, recipe.imageResId)
+            holder.ivThumb.setImageResource(resId)
         }
 
         holder.btnRemove.setOnClickListener {

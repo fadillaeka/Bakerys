@@ -67,6 +67,9 @@ class BerandaFragment : Fragment() {
         ResepModel(judul = "Kue Kuping Gajah Renyah", deskripsi = "Easy • 45m", gambar = R.drawable.gajah)
     )
 
+    // Daftar dinamis yang menggabungkan resep Supabase dan lokal
+    private val daftarSemuaResep = mutableListOf<ResepModel>()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -95,8 +98,14 @@ class BerandaFragment : Fragment() {
         // 3. Set Up RecyclerView Resep
         rvTren = view.findViewById(R.id.rvKueTren)
         rvTren.layoutManager = GridLayoutManager(requireContext(), 2)
-        adapterResep = ResepAdapter(semuaDataResep)
+        if (daftarSemuaResep.isEmpty()) {
+            daftarSemuaResep.addAll(semuaDataResep)
+        }
+        adapterResep = ResepAdapter(daftarSemuaResep)
         rvTren.adapter = adapterResep
+
+        // Muat resep dinamis yang dipublikasikan dari Supabase
+        muatResepDariSupabase()
 
         // 4. Jalankan Animasi Halaman Beranda
         jalankanAnimasiBeranda(view)
@@ -189,11 +198,11 @@ class BerandaFragment : Fragment() {
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     1 -> {
-                        updateDataResep(semuaDataResep.reversed())
+                        updateDataResep(daftarSemuaResep.reversed())
                         true
                     }
                     2, 3 -> {
-                        updateDataResep(semuaDataResep)
+                        updateDataResep(daftarSemuaResep)
                         true
                     }
                     else -> false
@@ -217,14 +226,14 @@ class BerandaFragment : Fragment() {
             aturWarnaTombolAktif(btnSemua, daftarTombol)
             etSearch.setText("")
             cardBakeOfTheDay.visibility = View.VISIBLE
-            updateDataResep(semuaDataResep)
+            updateDataResep(daftarSemuaResep)
         }
 
         btnSourdough?.setOnClickListener {
             aturWarnaTombolAktif(btnSourdough, daftarTombol)
             etSearch.setText("")
             cardBakeOfTheDay.visibility = View.GONE
-            val dataSourdough = semuaDataResep.filter {
+            val dataSourdough = daftarSemuaResep.filter {
                 it.judul.contains("Sourdough", ignoreCase = true) ||
                         it.judul.contains("Bread", ignoreCase = true) ||
                         it.judul.contains("loaf", ignoreCase = true)
@@ -236,7 +245,7 @@ class BerandaFragment : Fragment() {
             aturWarnaTombolAktif(btnKue, daftarTombol)
             etSearch.setText("")
             cardBakeOfTheDay.visibility = View.GONE
-            val dataKue = semuaDataResep.filter {
+            val dataKue = daftarSemuaResep.filter {
                 it.judul.contains("Cake", ignoreCase = true) ||
                         it.judul.contains("Brownies", ignoreCase = true) ||
                         it.judul.contains("Cheesecake", ignoreCase = true)
@@ -248,7 +257,7 @@ class BerandaFragment : Fragment() {
             aturWarnaTombolAktif(btnKueKering, daftarTombol)
             etSearch.setText("")
             cardBakeOfTheDay.visibility = View.GONE
-            val dataKueKering = semuaDataResep.filter {
+            val dataKueKering = daftarSemuaResep.filter {
                 it.judul.contains("Cookie", ignoreCase = true) ||
                         it.judul.contains("Cookies", ignoreCase = true) ||
                         it.judul.contains("Nastar", ignoreCase = true) ||
@@ -326,9 +335,9 @@ class BerandaFragment : Fragment() {
         }
 
         val hasil = if (query.isEmpty()) {
-            semuaDataResep
+            daftarSemuaResep
         } else {
-            semuaDataResep.filter {
+            daftarSemuaResep.filter {
                 it.judul.contains(query, ignoreCase = true) || it.deskripsi.contains(query, ignoreCase = true)
             }
         }
@@ -384,6 +393,61 @@ class BerandaFragment : Fragment() {
             .translationY(0f)
             .setDuration(350)
             .start()
+    }
+
+    private fun muatResepDariSupabase() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val resepDb = BakeryStorageManager.ambilResepBerandaDariSupabase()
+                if (resepDb.isNotEmpty()) {
+                    val hasilGabung = mutableListOf<ResepModel>()
+                    // Untuk setiap resep dari database Supabase, pastikan fotonya sesuai
+                    for (dbItem in resepDb) {
+                        val localMatch = semuaDataResep.find { it.judul.equals(dbItem.judul, ignoreCase = true) }
+                        val itemFinal = if (localMatch != null && dbItem.fotoUrl.isNullOrEmpty() && dbItem.imageUri == null) {
+                            dbItem.copy(gambar = localMatch.gambar)
+                        } else if (dbItem.gambar == null || dbItem.gambar == R.drawable.dubai) {
+                            dbItem.copy(gambar = dapatkanGambarResepSesuai(dbItem.judul, dbItem.gambar))
+                        } else {
+                            dbItem
+                        }
+                        hasilGabung.add(itemFinal)
+                    }
+                    // Tambahkan sisa resep lokal yang belum ada di database
+                    for (item in semuaDataResep) {
+                        if (hasilGabung.none { it.judul.equals(item.judul, ignoreCase = true) }) {
+                            hasilGabung.add(item)
+                        }
+                    }
+                    daftarSemuaResep.clear()
+                    daftarSemuaResep.addAll(hasilGabung)
+                    if (::adapterResep.isInitialized) {
+                        updateDataResep(daftarSemuaResep)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("BERANDA_SUPABASE", "Gagal sinkronisasi resep Supabase: ${e.message}")
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        muatResepDariSupabase()
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val listDb = BakeryStorageManager.muatResepDisukaiDariSupabase(requireContext())
+                if (listDb.isNotEmpty()) {
+                    DisukaiFragment.daftarResepDisukai.clear()
+                    DisukaiFragment.daftarResepDisukai.addAll(listDb)
+                }
+                if (::adapterResep.isInitialized) {
+                    adapterResep.notifyDataSetChanged()
+                }
+            } catch (e: Exception) {
+                // Ignore
+            }
+        }
     }
 
     override fun onDestroyView() {

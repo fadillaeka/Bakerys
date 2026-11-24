@@ -1,5 +1,6 @@
 package com.example.bakerys
 
+import android.app.Activity
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.view.LayoutInflater
@@ -19,8 +20,8 @@ class JelajahAdapter(
         val ivThumb: ImageView = itemView.findViewById(R.id.ivJelajahThumb)
         val tvTitle: TextView = itemView.findViewById(R.id.tvJelajahTitle)
         val tvDesc: TextView = itemView.findViewById(R.id.tvJelajahDesc)
-
         val btnLike: ImageView = itemView.findViewById(R.id.btnLike)
+        val tvJumlahLike: TextView = itemView.findViewById(R.id.tvJumlahLike)
         val btnComment: ImageView = itemView.findViewById(R.id.btnComment)
     }
 
@@ -35,13 +36,21 @@ class JelajahAdapter(
 
         holder.tvTitle.text = recipe.title
         holder.tvDesc.text = recipe.description
+        holder.tvJumlahLike.text = "${recipe.likeCount}"
 
-        if (recipe.imageUri != null) {
-            holder.ivThumb.setImageURI(recipe.imageUri)
-        } else if (recipe.imageResId != null) {
-            holder.ivThumb.setImageResource(recipe.imageResId)
-        } else {
-            holder.ivThumb.setImageResource(R.drawable.dubai)
+        try {
+            if (recipe.imageUri != null) {
+                holder.ivThumb.setImageURI(recipe.imageUri)
+            } else if (recipe.imageResId != null) {
+                holder.ivThumb.setImageResource(recipe.imageResId)
+            } else {
+                holder.ivThumb.setImageResource(R.drawable.dubai)
+            }
+            if (holder.ivThumb.drawable == null) {
+                holder.ivThumb.setImageResource(recipe.imageResId ?: R.drawable.dubai)
+            }
+        } catch (e: Exception) {
+            holder.ivThumb.setImageResource(recipe.imageResId ?: R.drawable.dubai)
         }
 
         updateLikeUI(holder.btnLike, recipe.isLiked)
@@ -53,13 +62,29 @@ class JelajahAdapter(
         holder.btnLike.setOnClickListener {
             val animPulse = android.view.animation.AnimationUtils.loadAnimation(holder.itemView.context, R.anim.scale_pulse)
             holder.btnLike.startAnimation(animPulse)
+
             recipe.isLiked = !recipe.isLiked
+            if (recipe.isLiked) {
+                recipe.likeCount++
+            } else if (recipe.likeCount > 0) {
+                recipe.likeCount--
+            }
+
             updateLikeUI(holder.btnLike, recipe.isLiked)
+            holder.tvJumlahLike.text = "${recipe.likeCount}"
+
+            val targetId = if (recipe.id > 0) recipe.id.toLong() else 11L
             BakeryStorageManager.simpanSukaKeSupabase(
                 holder.itemView.context,
-                if (recipe.id > 0) recipe.id.toLong() else 11L,
+                targetId,
                 recipe.isLiked
-            )
+            ) { serverCount ->
+                recipe.likeCount = serverCount
+                (holder.itemView.context as? Activity)?.runOnUiThread {
+                    holder.tvJumlahLike.text = "$serverCount"
+                }
+            }
+
             if (recipe.isLiked) {
                 NotifikasiBottomSheet.tambahNotif("Seseorang menyukai postingan Anda.")
             }
@@ -69,7 +94,8 @@ class JelajahAdapter(
             NotifikasiBottomSheet.tambahNotif("Seseorang mengomentari postingan Anda.")
             val activity = holder.itemView.context as? FragmentActivity
             activity?.let {
-                val commentSheet = KomentarBottomSheet(mutableListOf())
+                val targetResepId = if (recipe.id > 0) recipe.id.toLong() else 11L
+                val commentSheet = KomentarBottomSheet(mutableListOf(), targetResepId)
                 commentSheet.show(it.supportFragmentManager, "KomentarBottomSheet")
             }
         }

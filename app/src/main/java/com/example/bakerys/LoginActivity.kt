@@ -88,6 +88,24 @@ class LoginActivity : AppCompatActivity() {
                     password = passwordInput
                 }
 
+                // Periksa apakah user diblokir oleh moderator di tabel 'users'
+                try {
+                    val userCheck = SupabaseClient.instance.from("users").select {
+                        filter {
+                            eq("email", userEmail)
+                        }
+                    }.decodeList<JsonObject>()
+
+                    val userRole = userCheck.firstOrNull()?.get("role")?.jsonPrimitive?.content
+                    if (userRole.equals("blocked", ignoreCase = true) || userRole.equals("nonaktif", ignoreCase = true)) {
+                        SupabaseClient.instance.auth.signOut()
+                        Toast.makeText(this@LoginActivity, "Akun Anda telah dinonaktifkan / diblokir oleh Moderator.", Toast.LENGTH_LONG).show()
+                        return@launch
+                    }
+                } catch (eCheck: Exception) {
+                    android.util.Log.e("LOGIN_BLOCK_CHECK", "Gagal cek status role: ${eCheck.message}")
+                }
+
                 // Simpan profil nama ke SharedPreferences
                 val sharedPref = getSharedPreferences("BakerysPrefs", Context.MODE_PRIVATE)
                 val displayName = if (usernameInput.contains("@")) usernameInput.substringBefore("@") else usernameInput

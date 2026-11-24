@@ -1,5 +1,6 @@
 package com.example.bakerys
 
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,7 +31,28 @@ class DisukaiAdapter(
         val item = listDisukai[position]
         holder.tvJudul.text = item.judul
         holder.tvDeskripsi.text = item.deskripsi
-        holder.ivGambar.setImageResource(item.gambar ?: R.drawable.dubai)
+
+        try {
+            var imageLoaded = false
+            val uriStr = item.fotoUrl ?: item.imageUri?.toString()
+            if (!uriStr.isNullOrEmpty()) {
+                holder.ivGambar.setImageURI(Uri.parse(uriStr))
+                if (holder.ivGambar.drawable != null) {
+                    imageLoaded = true
+                }
+            }
+            if (!imageLoaded) {
+                val resId = if (item.gambar != null && item.gambar != 0 && item.gambar != R.drawable.dubai) {
+                    item.gambar
+                } else {
+                    dapatkanGambarResepSesuai(item.judul, item.gambar)
+                }
+                holder.ivGambar.setImageResource(resId)
+            }
+        } catch (e: Exception) {
+            val resId = dapatkanGambarResepSesuai(item.judul, item.gambar)
+            holder.ivGambar.setImageResource(resId)
+        }
 
         // 1. Klik Kartu Resep -> Pindah ke DetailResepActivity
         val bukaDetail = View.OnClickListener {
@@ -58,7 +80,8 @@ class DisukaiAdapter(
                 // Hapus dari list
                 listDisukai.removeAt(currentPosition)
                 BakeryStorageManager.simpanDaftarDisukai(holder.itemView.context, listDisukai)
-                BakeryStorageManager.simpanSukaKeSupabase(holder.itemView.context, 11L, false)
+                val targetId = removedItem.id ?: 11L
+                BakeryStorageManager.simpanResepDisukaiKeSupabase(holder.itemView.context, targetId, false)
                 notifyItemRemoved(currentPosition)
                 notifyItemRangeChanged(currentPosition, listDisukai.size - currentPosition)
 

@@ -22,14 +22,35 @@ class DetailResepActivity : AppCompatActivity() {
 
         val judul = intent.getStringExtra("EXTRA_JUDUL") ?: "Dubai Chewy Cookies"
         val gambar = intent.getIntExtra("EXTRA_GAMBAR", R.drawable.dubai)
+        val fotoUrl = intent.getStringExtra("EXTRA_FOTO_URL")
         val waktu = intent.getStringExtra("EXTRA_WAKTU") ?: "⏱️ 1h 15m"
         val tentang = intent.getStringExtra("EXTRA_TENTANG") ?: "Resep olahan lezat yang mudah dibuat di rumah."
         val resepId = intent.getLongExtra("EXTRA_RESEP_ID", if (judul.contains("Dubai", ignoreCase = true)) 1L else 11L)
 
         binding.tvDetailTitle.text = judul
-        binding.ivDetailThumb.setImageResource(gambar)
         binding.tvWaktuMemasak.text = waktu
         binding.tvTentangResep.text = tentang
+
+        // Pasang foto asli resep dari draft/Supabase jika ada
+        var fotoTerpasang = false
+        if (!fotoUrl.isNullOrEmpty()) {
+            try {
+                binding.ivDetailThumb.setImageURI(android.net.Uri.parse(fotoUrl))
+                if (binding.ivDetailThumb.drawable != null) {
+                    fotoTerpasang = true
+                }
+            } catch (e: Exception) {
+                Log.e("DETAIL_RESEP", "Gagal memuat fotoUrl: ${e.message}")
+            }
+        }
+        if (!fotoTerpasang) {
+            val resId = if (gambar != 0 && gambar != R.drawable.dubai) {
+                gambar
+            } else {
+                dapatkanGambarResepSesuai(judul, gambar)
+            }
+            binding.ivDetailThumb.setImageResource(resId)
+        }
 
         // Animasi Foto Resep:
         // Khusus Dubai Chewy Cookies: pop-up kue berputar nongol di tengah layar
@@ -70,6 +91,11 @@ class DetailResepActivity : AppCompatActivity() {
 
         binding.btnSetAlarm.setOnClickListener {
             TimerDialog.newInstance(resepId).show(supportFragmentManager, "TimerDialog")
+        }
+
+        binding.btnLihatKomentar.setOnClickListener {
+            KomentarBottomSheet(mutableListOf(), resepId)
+                .show(supportFragmentManager, "KomentarBottomSheet")
         }
     }
 

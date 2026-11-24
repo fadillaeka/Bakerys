@@ -347,6 +347,21 @@
                     <TextView android:id="@+id/tvLangkah5" android:layout_width="0dp" android:layout_height="wrap_content" android:minHeight="45dp" android:layout_weight="1" android:layout_marginStart="12dp" android:background="@drawable/bg_ffd2be_input" android:padding="12dp" android:gravity="center_vertical" android:textColor="#3E2723" android:textSize="12sp" />
                 </LinearLayout>
 
+                <!-- Tombol Komentar Resep -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLihatKomentar"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="💬  Komentar Resep"
+                    android:textColor="#FFF9F8"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="#802C3E"
+                    app:cornerRadius="14dp"
+                    app:icon="@null" />
+
             </LinearLayout>
 
         </LinearLayout>

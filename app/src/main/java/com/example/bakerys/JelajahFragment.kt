@@ -1,5 +1,6 @@
 package com.example.bakerys
 
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -41,7 +42,7 @@ class JelajahFragment : Fragment() {
         rvJelajah.adapter = jelajahAdapter
         rvJelajah.scheduleLayoutAnimation()
 
-        muatResepDariDatabase()
+        muatPostinganDariDatabase()
     }
 
     override fun onResume() {
@@ -49,44 +50,60 @@ class JelajahFragment : Fragment() {
         if (::jelajahAdapter.isInitialized) {
             jelajahAdapter.notifyDataSetChanged()
         }
-        muatResepDariDatabase()
+        muatPostinganDariDatabase()
     }
 
-    private fun muatResepDariDatabase() {
+    private fun muatPostinganDariDatabase() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val listData = SupabaseClient.instance.from("resep")
+                val listData = SupabaseClient.instance.from("postingan_users")
                     .select()
                     .decodeList<JsonObject>()
 
-                var adaDataBaru = false
-                for (item in listData) {
-                    val nama = item["judul"]?.jsonPrimitive?.content
-                        ?: item["nama_resep"]?.jsonPrimitive?.content
-                        ?: continue
-                    val deskripsi = item["deskripsi"]?.jsonPrimitive?.content ?: "Resep olahan lezat"
-                    val id = item["id"]?.jsonPrimitive?.intOrNull ?: (nama.hashCode().let { if (it < 0) -it else it })
+                val ctx = context
 
-                    // Tambahkan ke feed Jelajah jika belum ada
-                    if (RecipeRepository.recipeList.none { it.title.equals(nama, ignoreCase = true) }) {
+                // Bersihkan list lama (hanya postingan dari postingan_users, bukan resep hardcoded)
+                // Kita gunakan in-memory list dari RecipeRepository.postinganList (pisah dari recipeList hardcoded)
+
+                for (item in listData) {
+                    val id = item["id"]?.jsonPrimitive?.content?.toIntOrNull()
+                        ?: item["id"]?.jsonPrimitive?.intOrNull
+                        ?: continue
+                    val caption = item["caption"]?.jsonPrimitive?.content ?: continue
+                    val fotoUrl = item["foto_url"]?.jsonPrimitive?.content
+                        ?: item["gambar_url"]?.jsonPrimitive?.content
+                    val uri = if (!fotoUrl.isNullOrEmpty()) {
+                        try { Uri.parse(fotoUrl) } catch (e: Exception) { null }
+                    } else null
+
+                    val existingRecipe = RecipeRepository.recipeList.find { it.id == id }
+
+                    val likeCount = BakeryStorageManager.ambilJumlahSuka(id.toLong())
+                    val isLiked = BakeryStorageManager.cekUserMenyukaiPostingan(ctx, id.toLong())
+
+                    if (existingRecipe != null) {
+                        existingRecipe.likeCount = likeCount
+                        existingRecipe.isLiked = isLiked
+                    } else {
                         val newRecipe = Recipe(
                             id = id,
-                            title = nama,
-                            description = deskripsi,
-                            imageResId = R.drawable.cookies,
-                            isLiked = false,
-                            isBookmarked = false
+                            title = caption,
+                            description = "",
+                            imageUri = uri,
+                            imageResId = if (uri == null) R.drawable.cookies else null,
+                            isLiked = isLiked,
+                            isBookmarked = false,
+                            likeCount = likeCount
                         )
                         RecipeRepository.tambahPostingan(newRecipe)
-                        adaDataBaru = true
                     }
                 }
 
-                if (adaDataBaru && ::jelajahAdapter.isInitialized) {
+                if (::jelajahAdapter.isInitialized) {
                     jelajahAdapter.notifyDataSetChanged()
                 }
             } catch (e: Exception) {
-                Log.e("SUPABASE_JELAJAH", "Gagal memuat resep dari Supabase: ${e.message}")
+                Log.e("SUPABASE_JELAJAH", "Gagal memuat postingan dari Supabase: ${e.message}")
             }
         }
     }

@@ -115,7 +115,38 @@ class MainActivity : AppCompatActivity() {
         val target = intent?.getStringExtra("EXTRA_NAV_TARGET") ?: return
         when (target) {
             "TARGET_BERANDA" -> bottomNav.selectedItemId = R.id.nav_beranda
-            "TARGET_UNGGAH" -> bottomNav.selectedItemId = R.id.nav_unggah
+            "TARGET_UNGGAH" -> {
+                // Jika ada data draft resep → commit fragment dengan Bundle,
+                // lalu tandai bottomNav secara visual TANPA memicu listener
+                if (intent.hasExtra("EXTRA_DRAFT_RESEP_JUDUL")) {
+                    val fragment = UnggahFragment().apply {
+                        arguments = Bundle().apply {
+                            intent.getStringExtra("EXTRA_DRAFT_RESEP_ID")?.let { putString("EXTRA_DRAFT_RESEP_ID", it) }
+                            putString("EXTRA_DRAFT_RESEP_JUDUL", intent.getStringExtra("EXTRA_DRAFT_RESEP_JUDUL"))
+                            putString("EXTRA_DRAFT_RESEP_DESKRIPSI", intent.getStringExtra("EXTRA_DRAFT_RESEP_DESKRIPSI"))
+                            putString("EXTRA_DRAFT_RESEP_GAMBAR", intent.getStringExtra("EXTRA_DRAFT_RESEP_GAMBAR"))
+                            putInt("EXTRA_DRAFT_RESEP_WAKTU", intent.getIntExtra("EXTRA_DRAFT_RESEP_WAKTU", 0))
+                            putString("EXTRA_DRAFT_RESEP_PORSI", intent.getStringExtra("EXTRA_DRAFT_RESEP_PORSI"))
+                            putString("EXTRA_DRAFT_RESEP_BAHAN_UTAMA", intent.getStringExtra("EXTRA_DRAFT_RESEP_BAHAN_UTAMA"))
+                            putString("EXTRA_DRAFT_RESEP_TAKARAN_GRAM", intent.getStringExtra("EXTRA_DRAFT_RESEP_TAKARAN_GRAM"))
+                            putString("EXTRA_DRAFT_RESEP_TAKARAN_SENDOK", intent.getStringExtra("EXTRA_DRAFT_RESEP_TAKARAN_SENDOK"))
+                            putString("EXTRA_DRAFT_RESEP_BAHAN_PENGGANTI", intent.getStringExtra("EXTRA_DRAFT_RESEP_BAHAN_PENGGANTI"))
+                            putString("EXTRA_DRAFT_RESEP_LANGKAH", intent.getStringExtra("EXTRA_DRAFT_RESEP_LANGKAH"))
+                            if (intent.hasExtra("EXTRA_DRAFT_RESEP_KATEGORI_ID")) {
+                                putLong("EXTRA_DRAFT_RESEP_KATEGORI_ID", intent.getLongExtra("EXTRA_DRAFT_RESEP_KATEGORI_ID", -1L))
+                            }
+                        }
+                    }
+                    supportFragmentManager.beginTransaction()
+                        .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
+                        .replace(R.id.fragment_container, fragment)
+                        .commit()
+                    // ✅ Tandai nav_unggah aktif TANPA trigger listener (tidak membuat UnggahFragment baru)
+                    bottomNav.menu.findItem(R.id.nav_unggah)?.isChecked = true
+                } else {
+                    bottomNav.selectedItemId = R.id.nav_unggah
+                }
+            }
             "TARGET_JELAJAH" -> bottomNav.selectedItemId = R.id.nav_jelajah
             "TARGET_PROFIL" -> bottomNav.selectedItemId = R.id.nav_profil
         }
@@ -194,10 +225,11 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
-    // MEMBUKA UNGGAH FRAGMENT DENGAN DATA DRAFT (Mendukung segala tipe objek Recipe/ResepModel)
+    // MEMBUKA UNGGAH FRAGMENT DENGAN DATA DRAFT POSTINGAN
     fun bukaUnggahDenganData(recipe: Recipe) {
         val fragment = UnggahFragment().apply {
             arguments = Bundle().apply {
+                putBoolean("DRAFT_IS_POSTINGAN", true)   // ✅ Marker: buka tab Postingan
                 putInt("DRAFT_ID", recipe.id)
                 putString("DRAFT_TITLE", recipe.title)
                 putString("DRAFT_DESC", recipe.description)
@@ -206,11 +238,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Pindah ke Fragment Unggah dan aktifkan tab Bottom Navigation
+        // Commit fragment dengan Bundle, lalu tandai nav_unggah secara visual
+        // ✅ JANGAN pakai selectedItemId — itu memicu listener yang membuat UnggahFragment baru tanpa Bundle
         supportFragmentManager.beginTransaction()
+            .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
             .replace(R.id.fragment_container, fragment)
             .commit()
-
-        bottomNav.selectedItemId = R.id.nav_unggah
+        bottomNav.menu.findItem(R.id.nav_unggah)?.isChecked = true
     }
 }

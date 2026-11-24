@@ -246,64 +246,6 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Standar Suhu Oven -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Standar Suhu Oven"
-                    android:textColor="#3E2723"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:orientation="horizontal">
-
-                    <!-- Celcius -->
-                    <LinearLayout
-                        android:id="@+id/btnCelcius"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_input_field"
-                        android:backgroundTint="#802C3E"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center">
-                        <TextView
-                            android:id="@+id/tvCelcius"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Celcius (°C)"
-                            android:textColor="#FFFFFF"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Fahrenheit -->
-                    <LinearLayout
-                        android:id="@+id/btnFahrenheit"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/bg_input_field"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center">
-                        <TextView
-                            android:id="@+id/tvFahrenheit"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Farenheit (°F)"
-                            android:textColor="#802C3E"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-                </LinearLayout>
-
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -333,7 +275,40 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <!-- Menu Draft -->
+                <!-- Menu Draft Postingan -->
+                <LinearLayout
+                    android:id="@+id/btnDraftPostingan"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Draft Postingan"
+                        android:textColor="#3E2723"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@android:drawable/ic_media_play"
+                        app:tint="#3E2723" />
+                </LinearLayout>
+
+                <!-- Garis Pemisah (Divider) -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="12dp"
+                    android:background="#EED5CE" />
+
+                <!-- Menu Draft Resep -->
                 <LinearLayout
                     android:id="@+id/btnDraftResep"
                     android:layout_width="match_parent"
@@ -347,7 +322,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Draft"
+                        android:text="Draft Resep"
                         android:textColor="#3E2723"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -390,6 +365,39 @@
                         android:layout_height="20dp"
                         android:src="@android:drawable/ic_media_play"
                         app:tint="#3E2723" />
+                </LinearLayout>
+
+                <!-- Garis Pemisah (Divider) -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="12dp"
+                    android:background="#EED5CE" />
+
+                <!-- Menu Khusus Moderator (Moderasi Konten & User) -->
+                <LinearLayout
+                    android:id="@+id/btnModeratorPanel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Panel Moderator"
+                        android:textColor="#802C3E"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@android:drawable/ic_media_play"
+                        app:tint="#802C3E" />
                 </LinearLayout>
 
             </LinearLayout>

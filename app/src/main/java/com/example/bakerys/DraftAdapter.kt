@@ -33,12 +33,26 @@ class DraftAdapter(
 
         holder.tvJudulDraft.text = recipe.title
 
-        if (recipe.imageUri != null) {
-            holder.imgDraft.setImageURI(recipe.imageUri)
-        } else if (recipe.imageResId != null) {
-            holder.imgDraft.setImageResource(recipe.imageResId)
-        } else {
-            holder.imgDraft.setImageResource(R.drawable.bakery_mark)
+        // Pasang gambar draft dengan proteksi SecurityException
+        var imgLoaded = false
+        val uri = recipe.imageUri
+        if (uri != null) {
+            try {
+                holder.imgDraft.setImageURI(uri)
+                if (holder.imgDraft.drawable != null) {
+                    imgLoaded = true
+                }
+            } catch (e: Exception) {
+                imgLoaded = false
+            }
+        }
+
+        if (!imgLoaded) {
+            if (recipe.imageResId != null && recipe.imageResId != 0) {
+                holder.imgDraft.setImageResource(recipe.imageResId)
+            } else {
+                holder.imgDraft.setImageResource(R.drawable.bakery_mark)
+            }
         }
 
         // Aksi Tombol Hapus Draft dengan Konfirmasi

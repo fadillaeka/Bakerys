@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class DraftResepAdmin(
+data class DraftResep(
     @SerialName("id")
     val id: String? = null,
     @SerialName("user_id")
@@ -40,3 +40,6 @@ data class DraftResepAdmin(
     @SerialName("updated_at")
     val updated_at: String? = null
 )
+
+// Alias untuk kompatibilitas jika ada file lama yang masih mereferensikan DraftResepAdmin
+typealias DraftResepAdmin = DraftResep

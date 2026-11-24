@@ -7,7 +7,8 @@ data class Recipe(
     val title: String,
     val description: String,
     val imageResId: Int? = null,
-    val imageUri: Uri? = null, // Tambahkan baris ini
+    val imageUri: Uri? = null,
     var isLiked: Boolean = false,
-    var isBookmarked: Boolean = false
+    var isBookmarked: Boolean = false,
+    var likeCount: Int = 0
 )

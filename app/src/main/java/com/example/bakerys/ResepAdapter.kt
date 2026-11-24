@@ -6,6 +6,7 @@ package com.example.bakerys
 
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlin.OptIn
 import kotlinx.serialization.InternalSerializationApi
 
@@ -39,8 +43,27 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
         holder.tvJudulKue?.text = item.judul
         holder.tvWaktuLevel?.text = item.deskripsi
 
-        // Pasang gambar kue secara dinamik
-        holder.imgKue?.setImageResource(item.gambar ?: R.drawable.dubai)
+        // Pasang gambar kue secara dinamik dengan pengamanan SecurityException
+        var gambarBerhasil = false
+        val targetUriStr = item.fotoUrl ?: item.imageUri?.toString()
+        if (!targetUriStr.isNullOrEmpty()) {
+            try {
+                holder.imgKue?.setImageURI(Uri.parse(targetUriStr))
+                if (holder.imgKue?.drawable != null) {
+                    gambarBerhasil = true
+                }
+            } catch (e: Exception) {
+                gambarBerhasil = false
+            }
+        }
+        if (!gambarBerhasil) {
+            val resId = if (item.gambar != null && item.gambar != 0 && item.gambar != R.drawable.dubai) {
+                item.gambar
+            } else {
+                dapatkanGambarResepSesuai(item.judul, item.gambar)
+            }
+            holder.imgKue?.setImageResource(resId)
+        }
 
         // Animasi kartu resep muncul halus saat di-scroll
         holder.itemView.alpha = 0f
@@ -54,24 +77,30 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
             .start()
 
         // Sinkronkan status favorit awal dari DisukaiFragment agar warna selalu konsisten saat di-scroll
-        item.isFavorite = DisukaiFragment.daftarResepDisukai.any { it.judul == item.judul }
+        item.isFavorite = DisukaiFragment.daftarResepDisukai.any { it.judul == item.judul || (it.id != null && it.id == item.id) }
         updateHeartColor(holder.btnFavorite, item.isFavorite)
 
-        // --- AKSI KLIK TOMBOL FAVORIT / LIKE ---
+        // --- AKSI KLIK TOMBOL FAVORIT / LIKE (TABEL: resep_disukai) ---
         holder.btnFavorite?.setOnClickListener {
             animasiMembal(it) // Efek ikon hati membal saat diklik
             item.isFavorite = !item.isFavorite
 
+            val context = holder.itemView.context
             if (item.isFavorite) {
                 DisukaiFragment.tambahKeDisukai(item)
-                Toast.makeText(holder.itemView.context, "${item.judul} ditambahkan ke Disukai", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "${item.judul} ditambahkan ke Disukai", Toast.LENGTH_SHORT).show()
             } else {
-                DisukaiFragment.daftarResepDisukai.removeAll { it.judul == item.judul }
-                Toast.makeText(holder.itemView.context, "${item.judul} dihapus dari Disukai", Toast.LENGTH_SHORT).show()
+                DisukaiFragment.daftarResepDisukai.removeAll { it.judul == item.judul || (it.id != null && it.id == item.id) }
+                Toast.makeText(context, "${item.judul} dihapus dari Disukai", Toast.LENGTH_SHORT).show()
             }
 
-            BakeryStorageManager.simpanDaftarDisukai(holder.itemView.context, DisukaiFragment.daftarResepDisukai)
-            BakeryStorageManager.simpanSukaKeSupabase(holder.itemView.context, 11L, item.isFavorite)
+            BakeryStorageManager.simpanDaftarDisukai(context, DisukaiFragment.daftarResepDisukai)
+
+            // Simpan perubahan ke tabel resep_disukai Supabase
+            CoroutineScope(Dispatchers.IO).launch {
+                val resepId = item.id ?: BakeryStorageManager.cariAtauBuatResep(item.judul, item.deskripsi, item.fotoUrl, context)
+                BakeryStorageManager.simpanResepDisukaiKeSupabase(context, resepId, item.isFavorite)
+            }
 
             // Update warna secara instan
             updateHeartColor(holder.btnFavorite, item.isFavorite)
@@ -82,7 +111,16 @@ class ResepAdapter(private val listResep: List<ResepModel>) :
             val context = holder.itemView.context
             val intent = Intent(context, DetailResepActivity::class.java).apply {
                 putExtra("EXTRA_JUDUL", item.judul)
-                putExtra("EXTRA_GAMBAR", item.gambar)
+                val resGambar = if (item.gambar != null && item.gambar != 0 && item.gambar != R.drawable.dubai) {
+                    item.gambar
+                } else {
+                    dapatkanGambarResepSesuai(item.judul, item.gambar)
+                }
+                putExtra("EXTRA_GAMBAR", resGambar)
+                putExtra("EXTRA_FOTO_URL", item.fotoUrl ?: item.imageUri?.toString())
+                if (item.id != null) {
+                    putExtra("EXTRA_RESEP_ID", item.id)
+                }
 
                 val durasiFormat = if (item.deskripsi.contains("•")) {
                     "⏱️ " + item.deskripsi.split("•").last().trim()

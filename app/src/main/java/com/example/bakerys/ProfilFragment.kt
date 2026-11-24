@@ -61,8 +61,8 @@ class ProfilFragment : Fragment() {
                 .commit()
         }
 
-        // 2. Listener Tombol Draft Resep dengan animasi geser (Slide)
-        binding.btnDraftResep.setOnClickListener {
+        // 2A. Listener Tombol Draft Postingan (Feed kuliner pengguna)
+        binding.btnDraftPostingan.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .setCustomAnimations(
                     R.anim.slide_in_right,
@@ -73,6 +73,13 @@ class ProfilFragment : Fragment() {
                 .replace(R.id.fragment_container, DraftFragment())
                 .addToBackStack(null)
                 .commit()
+        }
+
+        // 2B. Listener Tombol Draft Resep (Resep pengguna yang tersimpan)
+        binding.btnDraftResep.setOnClickListener {
+            val intent = Intent(requireContext(), DraftResepActivity::class.java)
+            startActivity(intent)
+            activity?.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
         // 3. Listener Tombol Disukai dengan animasi geser (Slide)
@@ -87,6 +94,13 @@ class ProfilFragment : Fragment() {
                 .replace(R.id.fragment_container, DisukaiFragment())
                 .addToBackStack(null)
                 .commit()
+        }
+
+        // 3B. Listener Tombol Panel Moderator
+        binding.btnModeratorPanel.setOnClickListener {
+            val intent = Intent(requireContext(), AdminActivity::class.java)
+            startActivity(intent)
+            activity?.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
         // 4. Listener Log Out
@@ -184,16 +198,6 @@ class ProfilFragment : Fragment() {
                             setOptionSelected(binding.btnMetric, binding.tvMetric, binding.btnImperial, binding.tvImperial)
                         }
                     }
-
-                    val dbSuhu = userObj["standar_suhu"]?.jsonPrimitive?.content
-                    if (!dbSuhu.isNullOrEmpty()) {
-                        sharedPreferences.edit().putString("temp_preference", dbSuhu).apply()
-                        if (dbSuhu == "fahrenheit") {
-                            setOptionSelected(binding.btnFahrenheit, binding.tvFahrenheit, binding.btnCelcius, binding.tvCelcius)
-                        } else {
-                            setOptionSelected(binding.btnCelcius, binding.tvCelcius, binding.btnFahrenheit, binding.tvFahrenheit)
-                        }
-                    }
                 }
 
                 if (_binding != null) {
@@ -221,20 +225,6 @@ class ProfilFragment : Fragment() {
             savePreference("unit_preference", "imperial")
             Toast.makeText(requireContext(), "Satuan diubah ke Sendok (Cangkir/ons)", Toast.LENGTH_SHORT).show()
         }
-
-        binding.btnCelcius.setOnClickListener {
-            animasiMembal(it)
-            setOptionSelected(binding.btnCelcius, binding.tvCelcius, binding.btnFahrenheit, binding.tvFahrenheit)
-            savePreference("temp_preference", "celcius")
-            Toast.makeText(requireContext(), "Standar suhu diubah ke Celcius (°C)", Toast.LENGTH_SHORT).show()
-        }
-
-        binding.btnFahrenheit.setOnClickListener {
-            animasiMembal(it)
-            setOptionSelected(binding.btnFahrenheit, binding.tvFahrenheit, binding.btnCelcius, binding.tvCelcius)
-            savePreference("temp_preference", "fahrenheit")
-            Toast.makeText(requireContext(), "Standar suhu diubah ke Fahrenheit (°F)", Toast.LENGTH_SHORT).show()
-        }
     }
 
     private fun animasiMembal(view: View) {
@@ -258,13 +248,6 @@ class ProfilFragment : Fragment() {
             setOptionSelected(binding.btnImperial, binding.tvImperial, binding.btnMetric, binding.tvMetric)
         } else {
             setOptionSelected(binding.btnMetric, binding.tvMetric, binding.btnImperial, binding.tvImperial)
-        }
-
-        val savedTemp = sharedPreferences.getString("temp_preference", "celcius")
-        if (savedTemp == "fahrenheit") {
-            setOptionSelected(binding.btnFahrenheit, binding.tvFahrenheit, binding.btnCelcius, binding.tvCelcius)
-        } else {
-            setOptionSelected(binding.btnCelcius, binding.tvCelcius, binding.btnFahrenheit, binding.tvFahrenheit)
         }
     }
 

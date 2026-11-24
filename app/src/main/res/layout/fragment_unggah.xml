@@ -10,7 +10,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="20dp"
+        android:paddingBottom="40dp">
 
         <!-- Header Judul Halaman -->
         <LinearLayout
@@ -18,97 +19,519 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:layout_marginBottom="20dp">
+            android:layout_marginBottom="16dp">
 
             <ImageView
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:src="@drawable/bakery_mark" />
+                android:src="@drawable/bakery_mark"
+                android:contentDescription="Logo Bakerys" />
 
-            <TextView
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
-                android:text="Unggah Postingan"
-                android:textColor="#791E2A"
-                android:textSize="22sp"
-                android:textStyle="bold" />
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvJudulHalamanUnggah"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Unggah"
+                    android:textColor="#802C3E"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvSubJudulHalamanUnggah"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bagikan kreasi resep atau postingan kuliner Anda"
+                    android:textColor="#8D6E63"
+                    android:textSize="11sp" />
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- Area Upload Foto -->
+        <!-- Switcher Segmented Button: Unggah Resep vs Unggah Postingan -->
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/btnUploadFoto"
             android:layout_width="match_parent"
-            android:layout_height="220dp"
-            android:layout_marginBottom="24dp"
+            android:layout_height="50dp"
+            android:layout_marginBottom="20dp"
             app:cardBackgroundColor="#FCEAE6"
-            app:cardCornerRadius="16dp"
-            app:strokeColor="#791E2A"
+            app:cardCornerRadius="25dp"
+            app:cardElevation="0dp"
+            app:strokeColor="#EED5CE"
             app:strokeWidth="1dp">
 
-            <ImageView
-                android:id="@+id/ivPreviewFoto"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="center"
-                android:src="@android:drawable/ic_menu_camera"
-                app:tint="#791E2A" />
+                android:orientation="horizontal"
+                android:padding="4dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTabUnggahResep"
+                    style="@style/Widget.Material3.Button.UnelevatedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:backgroundTint="#802C3E"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="Unggah Resep"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="21dp"
+                    app:elevation="0dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTabUnggahPostingan"
+                    style="@style/Widget.Material3.Button.UnelevatedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:backgroundTint="#FCEAE6"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="Unggah Postingan"
+                    android:textAllCaps="false"
+                    android:textColor="#802C3E"
+                    android:textSize="12sp"
+                    app:cornerRadius="21dp"
+                    app:elevation="0dp" />
+            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Label Caption -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Caption Postingan *"
-            android:textColor="#791E2A"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
-
-        <!-- Input Caption tunggal -->
-        <EditText
-            android:id="@+id/etCaption"
-            android:layout_width="match_parent"
-            android:layout_height="140dp"
-            android:background="@drawable/bg_input_field"
-            android:gravity="top|start"
-            android:hint="Tuliskan caption postingan kamu..."
-            android:inputType="textMultiLine"
-            android:padding="12dp"
-            android:textColor="#3E2723"
-            android:textColorHint="#BCAAA4"
-            android:textSize="14sp" />
-
-        <!-- Tombol Aksi (Draft & Publikasikan) -->
+        <!-- ============================================================= -->
+        <!-- 1. KONTAINER FORM UNGGAH RESEP (BARU)                          -->
+        <!-- ============================================================= -->
         <LinearLayout
+            android:id="@+id/layoutUnggahResep"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:visibility="visible">
 
-            <Button
-                android:id="@+id/btnSimpanDraft"
-                android:layout_width="0dp"
+            <!-- Area Upload Foto Resep -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnUploadFotoResep"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginBottom="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="#FCEAE6"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="#EED5CE"
+                app:strokeWidth="1dp">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/ivPreviewFotoResep"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="center"
+                        android:src="@android:drawable/ic_menu_camera"
+                        app:tint="#802C3E"
+                        android:contentDescription="Upload Foto Resep" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="14dp"
+                        android:text="Sentuh untuk memilih foto resep *"
+                        android:textColor="#802C3E"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Judul Resep -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Judul Resep *"
+                android:textColor="#802C3E"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="6dp" />
+
+            <EditText
+                android:id="@+id/etJudulResep"
+                android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:backgroundTint="#FCEAE6"
-                android:text="Simpan Draft"
+                android:background="@drawable/bg_input_field"
+                android:hint="Contoh: Dubai Chewy Cookies"
+                android:inputType="textCapWords"
+                android:paddingHorizontal="14dp"
+                android:textColor="#3E2723"
+                android:textColorHint="#BCAAA4"
+                android:textSize="13sp"
+                android:layout_marginBottom="14dp" />
+
+            <!-- Kategori Resep -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kategori Resep *"
+                android:textColor="#802C3E"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="6dp" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="14dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#EED5CE"
+                app:strokeWidth="1dp">
+
+                <Spinner
+                    android:id="@+id/spinnerKategoriResep"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingHorizontal="8dp" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Baris: Waktu Panggang & Porsi -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="14dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Waktu (Menit)"
+                        android:textColor="#802C3E"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp" />
+
+                    <EditText
+                        android:id="@+id/etWaktuPanggang"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_input_field"
+                        android:hint="Contoh: 45"
+                        android:inputType="number"
+                        android:paddingHorizontal="14dp"
+                        android:textColor="#3E2723"
+                        android:textColorHint="#BCAAA4"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Porsi Sajian"
+                        android:textColor="#802C3E"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp" />
+
+                    <EditText
+                        android:id="@+id/etPorsiResep"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_input_field"
+                        android:hint="Contoh: 4 Porsi"
+                        android:inputType="text"
+                        android:paddingHorizontal="14dp"
+                        android:textColor="#3E2723"
+                        android:textColorHint="#BCAAA4"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Deskripsi Resep -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Deskripsi Resep"
+                android:textColor="#802C3E"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="6dp" />
+
+            <EditText
+                android:id="@+id/etDeskripsiResep"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:background="@drawable/bg_input_field"
+                android:gravity="top|start"
+                android:hint="Ceritakan singkat keistimewaan dan aroma resep ini..."
+                android:inputType="textMultiLine"
+                android:padding="12dp"
+                android:textColor="#3E2723"
+                android:textColorHint="#BCAAA4"
+                android:textSize="13sp"
+                android:layout_marginBottom="14dp" />
+
+            <!-- Bahan Utama -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bahan Utama (1 Bahan Per Baris) *"
+                android:textColor="#802C3E"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="6dp" />
+
+            <EditText
+                android:id="@+id/etBahanUtama"
+                android:layout_width="match_parent"
+                android:layout_height="90dp"
+                android:background="@drawable/bg_input_field"
+                android:gravity="top|start"
+                android:hint="Kunafa panggang&#10;Pasta pistachio&#10;Cokelat putih couverture"
+                android:inputType="textMultiLine"
+                android:padding="12dp"
+                android:textColor="#3E2723"
+                android:textColorHint="#BCAAA4"
+                android:textSize="13sp"
+                android:layout_marginBottom="14dp" />
+
+            <!-- Takaran Gram -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Takaran Gram (Sejajar Per Baris)"
+                android:textColor="#802C3E"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="6dp" />
+
+            <EditText
+                android:id="@+id/etTakaranGram"
+                android:layout_width="match_parent"
+                android:layout_height="75dp"
+                android:background="@drawable/bg_input_field"
+                android:gravity="top|start"
+                android:hint="150 gr&#10;100 gr&#10;200 gr"
+                android:inputType="textMultiLine"
+                android:padding="12dp"
+                android:textColor="#3E2723"
+                android:textColorHint="#BCAAA4"
+                android:textSize="13sp"
+                android:layout_marginBottom="14dp" />
+
+            <!-- Takaran Sendok -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Takaran Sendok (Opsional)"
+                android:textColor="#802C3E"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="6dp" />
+
+            <EditText
+                android:id="@+id/etTakaranSendok"
+                android:layout_width="match_parent"
+                android:layout_height="75dp"
+                android:background="@drawable/bg_input_field"
+                android:gravity="top|start"
+                android:hint="1 1/2 cangkir&#10;2 sdm&#10;3 sdm"
+                android:inputType="textMultiLine"
+                android:padding="12dp"
+                android:textColor="#3E2723"
+                android:textColorHint="#BCAAA4"
+                android:textSize="13sp"
+                android:layout_marginBottom="14dp" />
+
+            <!-- Bahan Pengganti -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bahan Pengganti (Opsional)"
+                android:textColor="#802C3E"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="6dp" />
+
+            <EditText
+                android:id="@+id/etBahanPengganti"
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:background="@drawable/bg_input_field"
+                android:gravity="top|start"
+                android:hint="Kataifi panggang&#10;Selai kacang"
+                android:inputType="textMultiLine"
+                android:padding="12dp"
+                android:textColor="#3E2723"
+                android:textColorHint="#BCAAA4"
+                android:textSize="13sp"
+                android:layout_marginBottom="14dp" />
+
+            <!-- Langkah Memasak -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Langkah Memasak (1 Langkah Per Baris) *"
+                android:textColor="#802C3E"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="6dp" />
+
+            <EditText
+                android:id="@+id/etLangkahMemasak"
+                android:layout_width="match_parent"
+                android:layout_height="110dp"
+                android:background="@drawable/bg_input_field"
+                android:gravity="top|start"
+                android:hint="1. Lelehkan cokelat putih couverture...&#10;2. Bentuk bulat adonan isi...&#10;3. Masak marshmallow sampai kenyal..."
+                android:inputType="textMultiLine"
+                android:padding="12dp"
+                android:textColor="#3E2723"
+                android:textColorHint="#BCAAA4"
+                android:textSize="13sp"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Tombol Aksi Resep -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnSimpanDraftResep"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="#FCEAE6"
+                    android:text="Simpan Draft"
+                    android:textColor="#802C3E"
+                    android:textStyle="bold"
+                    app:cornerRadius="24dp" />
+
+                <Button
+                    android:id="@+id/btnPublikasikanResep"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="#802C3E"
+                    android:text="Publikasikan Resep"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    app:cornerRadius="24dp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- ============================================================= -->
+        <!-- 2. KONTAINER FORM UNGGAH POSTINGAN (KOMPONEN ASLI/YANG ADA)    -->
+        <!-- ============================================================= -->
+        <LinearLayout
+            android:id="@+id/layoutUnggahPostingan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- Area Upload Foto Postingan -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnUploadFoto"
+                android:layout_width="match_parent"
+                android:layout_height="220dp"
+                android:layout_marginBottom="24dp"
+                app:cardBackgroundColor="#FCEAE6"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="#791E2A"
+                app:strokeWidth="1dp">
+
+                <ImageView
+                    android:id="@+id/ivPreviewFoto"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="center"
+                    android:src="@android:drawable/ic_menu_camera"
+                    app:tint="#791E2A"
+                    android:contentDescription="Foto Postingan" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Label Caption -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Caption Postingan *"
                 android:textColor="#791E2A"
+                android:textSize="14sp"
                 android:textStyle="bold"
-                app:cornerRadius="24dp" />
+                android:layout_marginBottom="8dp" />
 
-            <Button
-                android:id="@+id/btnPublikasikan"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:backgroundTint="#791E2A"
-                android:text="Publikasikan"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold"
-                app:cornerRadius="24dp" />
+            <!-- Input Caption tunggal -->
+            <EditText
+                android:id="@+id/etCaption"
+                android:layout_width="match_parent"
+                android:layout_height="140dp"
+                android:background="@drawable/bg_input_field"
+                android:gravity="top|start"
+                android:hint="Tuliskan caption postingan kamu..."
+                android:inputType="textMultiLine"
+                android:padding="12dp"
+                android:textColor="#3E2723"
+                android:textColorHint="#BCAAA4"
+                android:textSize="14sp" />
+
+            <!-- Tombol Aksi (Draft & Publikasikan) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnSimpanDraft"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="#FCEAE6"
+                    android:text="Simpan Draft"
+                    android:textColor="#791E2A"
+                    android:textStyle="bold"
+                    app:cornerRadius="24dp" />
+
+                <Button
+                    android:id="@+id/btnPublikasikan"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="#791E2A"
+                    android:text="Publikasikan"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    app:cornerRadius="24dp" />
+            </LinearLayout>
+
         </LinearLayout>
 
     </LinearLayout>
