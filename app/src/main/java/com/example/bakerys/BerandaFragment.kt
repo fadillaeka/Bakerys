@@ -248,7 +248,9 @@ class BerandaFragment : Fragment() {
             val dataKue = daftarSemuaResep.filter {
                 it.judul.contains("Cake", ignoreCase = true) ||
                         it.judul.contains("Brownies", ignoreCase = true) ||
-                        it.judul.contains("Cheesecake", ignoreCase = true)
+                        it.judul.contains("Cheesecake", ignoreCase = true) ||
+                        it.judul.contains("Ciskek", ignoreCase = true) ||
+                        it.judul.contains("Kue", ignoreCase = true)
             }
             updateDataResep(dataKue)
         }
@@ -401,24 +403,36 @@ class BerandaFragment : Fragment() {
                 val resepDb = BakeryStorageManager.ambilResepBerandaDariSupabase()
                 if (resepDb.isNotEmpty()) {
                     val hasilGabung = mutableListOf<ResepModel>()
-                    // Untuk setiap resep dari database Supabase, pastikan fotonya sesuai
-                    for (dbItem in resepDb) {
-                        val localMatch = semuaDataResep.find { it.judul.equals(dbItem.judul, ignoreCase = true) }
-                        val itemFinal = if (localMatch != null && dbItem.fotoUrl.isNullOrEmpty() && dbItem.imageUri == null) {
-                            dbItem.copy(gambar = localMatch.gambar)
-                        } else if (dbItem.gambar == null || dbItem.gambar == R.drawable.dubai) {
+
+                    // 1. Resep buatan pengguna yang baru dipublikasikan: tampil paling atas di bawah Bake of the Day
+                    val resepUserPublikasi = resepDb.filter { dbItem ->
+                        semuaDataResep.none { it.judul.equals(dbItem.judul, ignoreCase = true) }
+                    }
+                    for (dbItem in resepUserPublikasi) {
+                        val itemFinal = if (dbItem.gambar == null || dbItem.gambar == R.drawable.dubai) {
                             dbItem.copy(gambar = dapatkanGambarResepSesuai(dbItem.judul, dbItem.gambar))
                         } else {
                             dbItem
                         }
                         hasilGabung.add(itemFinal)
                     }
-                    // Tambahkan sisa resep lokal yang belum ada di database
+
+                    // 2. Resep katalog bawaan (dimulai dari San Francisco Sourdough)
+                    // Jika ada data di Supabase untuk resep katalog, perbarui detailnya
                     for (item in semuaDataResep) {
-                        if (hasilGabung.none { it.judul.equals(item.judul, ignoreCase = true) }) {
-                            hasilGabung.add(item)
+                        val dbMatch = resepDb.find { it.judul.equals(item.judul, ignoreCase = true) }
+                        val itemFinal = if (dbMatch != null) {
+                            if (dbMatch.fotoUrl.isNullOrEmpty() && dbMatch.imageUri == null) {
+                                dbMatch.copy(gambar = item.gambar)
+                            } else {
+                                dbMatch
+                            }
+                        } else {
+                            item
                         }
+                        hasilGabung.add(itemFinal)
                     }
+
                     daftarSemuaResep.clear()
                     daftarSemuaResep.addAll(hasilGabung)
                     if (::adapterResep.isInitialized) {

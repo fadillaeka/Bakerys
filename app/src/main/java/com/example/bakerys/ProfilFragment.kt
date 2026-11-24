@@ -96,11 +96,32 @@ class ProfilFragment : Fragment() {
                 .commit()
         }
 
-        // 3B. Listener Tombol Panel Moderator
+        // 3B. Listener Tombol Panel Moderator (Hanya untuk Admin: belanjasapi & wapa)
+        val savedNameInit = sharedPreferences.getString("profile_name", "") ?: ""
+        val savedRoleInit = sharedPreferences.getString("profile_role", "") ?: ""
+        val isInitialAdmin = sharedPreferences.getBoolean("is_admin", false) ||
+                             savedRoleInit.equals("admin", ignoreCase = true) ||
+                             savedNameInit.equals("belanjasapi", ignoreCase = true) ||
+                             savedNameInit.equals("wapa", ignoreCase = true)
+
+        binding.btnModeratorPanel.visibility = if (isInitialAdmin) View.VISIBLE else View.GONE
+        binding.dividerModerator.visibility = if (isInitialAdmin) View.VISIBLE else View.GONE
+
         binding.btnModeratorPanel.setOnClickListener {
-            val intent = Intent(requireContext(), AdminActivity::class.java)
-            startActivity(intent)
-            activity?.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            val currentName = sharedPreferences.getString("profile_name", "") ?: ""
+            val currentRole = sharedPreferences.getString("profile_role", "") ?: ""
+            val isAdmin = sharedPreferences.getBoolean("is_admin", false) ||
+                          currentRole.equals("admin", ignoreCase = true) ||
+                          currentName.equals("belanjasapi", ignoreCase = true) ||
+                          currentName.equals("wapa", ignoreCase = true)
+
+            if (isAdmin) {
+                val intent = Intent(requireContext(), AdminActivity::class.java)
+                startActivity(intent)
+                activity?.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            } else {
+                Toast.makeText(requireContext(), "⚠️ Akses ditolak: Hanya admin (belanjasapi & wapa) yang dapat mengakses Panel Moderator!", Toast.LENGTH_LONG).show()
+            }
         }
 
         // 4. Listener Log Out
@@ -178,6 +199,21 @@ class ProfilFragment : Fragment() {
                     val dbBio = userObj["bio"]?.jsonPrimitive?.content
                     if (!dbBio.isNullOrEmpty()) {
                         bioText = dbBio
+                    }
+
+                    val dbRole = userObj["role"]?.jsonPrimitive?.content ?: "user"
+                    val isAdmin = dbRole.equals("admin", ignoreCase = true) ||
+                                  username.equals("belanjasapi", ignoreCase = true) ||
+                                  username.equals("wapa", ignoreCase = true)
+
+                    sharedPreferences.edit()
+                        .putBoolean("is_admin", isAdmin)
+                        .putString("profile_role", dbRole)
+                        .apply()
+
+                    if (_binding != null) {
+                        binding.btnModeratorPanel.visibility = if (isAdmin) View.VISIBLE else View.GONE
+                        binding.dividerModerator.visibility = if (isAdmin) View.VISIBLE else View.GONE
                     }
 
                     val dbFoto = userObj["foto_profil"]?.jsonPrimitive?.content

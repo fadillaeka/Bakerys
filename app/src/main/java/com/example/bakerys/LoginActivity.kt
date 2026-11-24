@@ -96,12 +96,28 @@ class LoginActivity : AppCompatActivity() {
                         }
                     }.decodeList<JsonObject>()
 
-                    val userRole = userCheck.firstOrNull()?.get("role")?.jsonPrimitive?.content
+                    val userObj = userCheck.firstOrNull()
+                    val userRole = userObj?.get("role")?.jsonPrimitive?.content ?: "user"
+                    val dbUsername = userObj?.get("username")?.jsonPrimitive?.content ?: ""
+
                     if (userRole.equals("blocked", ignoreCase = true) || userRole.equals("nonaktif", ignoreCase = true)) {
                         SupabaseClient.instance.auth.signOut()
                         Toast.makeText(this@LoginActivity, "Akun Anda telah dinonaktifkan / diblokir oleh Moderator.", Toast.LENGTH_LONG).show()
                         return@launch
                     }
+
+                    // Tentukan hak akses admin
+                    val isAdmin = userRole.equals("admin", ignoreCase = true) ||
+                                  dbUsername.equals("belanjasapi", ignoreCase = true) ||
+                                  dbUsername.equals("wapa", ignoreCase = true) ||
+                                  usernameInput.equals("belanjasapi", ignoreCase = true) ||
+                                  usernameInput.equals("wapa", ignoreCase = true)
+
+                    val sharedPref = getSharedPreferences("BakerysPrefs", Context.MODE_PRIVATE)
+                    sharedPref.edit()
+                        .putBoolean("is_admin", isAdmin)
+                        .putString("profile_role", userRole)
+                        .apply()
                 } catch (eCheck: Exception) {
                     android.util.Log.e("LOGIN_BLOCK_CHECK", "Gagal cek status role: ${eCheck.message}")
                 }

@@ -80,6 +80,10 @@ object RecipeRepository {
         recipeList.add(0, recipe) // Masukkan postingan baru ke paling atas Jelajah
     }
 
+    fun hapusPostingan(id: Int, title: String? = null) {
+        recipeList.removeAll { it.id == id || (!title.isNullOrEmpty() && it.title.equals(title, ignoreCase = true)) }
+    }
+
     fun tambahDraft(recipe: Recipe) {
         draftList.add(0, recipe)
     }

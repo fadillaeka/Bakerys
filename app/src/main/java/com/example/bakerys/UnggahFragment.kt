@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -41,6 +42,8 @@ class UnggahFragment : Fragment() {
     // --- State Unggah Resep (Baru) ---
     private var resepImageUri: Uri? = null
     private var listKategori = listOf<Kategori>()
+    private var draftResepIdEdit: String? = null
+    private var draftResepJudulAsal: String? = null
 
     private lateinit var ivPreviewFotoResep: ImageView
     private lateinit var btnUploadFotoResep: MaterialCardView
@@ -354,6 +357,16 @@ class UnggahFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             val newId = BakeryStorageManager.publikasikanResep(resepBaru, listBahan, listLangkah)
             if (newId != null && newId > 0) {
+                // Hapus draft resep dari database Supabase jika berasal dari draft atau ada draft yang sama
+                try {
+                    BakeryStorageManager.hapusDraftResep(draftResepIdEdit, draftResepJudulAsal ?: judul)
+                    if (draftResepJudulAsal != null && !draftResepJudulAsal.equals(judul, ignoreCase = true)) {
+                        BakeryStorageManager.hapusDraftResep(null, judul)
+                    }
+                } catch (e: Exception) {
+                    Log.e("UNGGAH_RESEP", "Gagal hapus draft resep setelah publikasi: ${e.message}")
+                }
+
                 NotifikasiBottomSheet.tambahNotif("Resep '${judul}' berhasil dipublikasikan ke Beranda!")
                 Toast.makeText(requireContext(), "Resep berhasil dipublikasikan!", Toast.LENGTH_SHORT).show()
                 resetFormResep()
@@ -414,6 +427,8 @@ class UnggahFragment : Fragment() {
     }
 
     private fun resetFormResep() {
+        draftResepIdEdit = null
+        draftResepJudulAsal = null
         etJudulResep.setText("")
         etWaktuPanggang.setText("")
         etPorsiResep.setText("")
@@ -471,18 +486,6 @@ class UnggahFragment : Fragment() {
             ) { berhasil, errorMsg ->
                 activity?.runOnUiThread {
                     if (berhasil) {
-                        val newId = draftIdEdit ?: (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
-
-                        val postinganBaru = Recipe(
-                            id = newId,
-                            title = caption,
-                            description = "",
-                            imageUri = imageUri,
-                            imageResId = if (imageUri == null) (draftImageRes ?: R.drawable.dubai) else null
-                        )
-
-                        RecipeRepository.tambahPostingan(postinganBaru)
-
                         // Jika postingan berasal dari draft, hapus draft dari lokal & Supabase
                         draftIdEdit?.let { id ->
                             RecipeRepository.draftList.removeAll { it.id == id }
@@ -556,9 +559,12 @@ class UnggahFragment : Fragment() {
             // =====================================================================
             // DRAFT RESEP — dari DraftResepActivity via Intent extras
             // =====================================================================
-            bundle.containsKey("EXTRA_DRAFT_RESEP_JUDUL") -> {
+            bundle.containsKey("EXTRA_DRAFT_RESEP_JUDUL") || bundle.containsKey("EXTRA_DRAFT_RESEP_ID") -> {
                 isTabResep = true
                 updateSwitcherView()
+
+                draftResepIdEdit = bundle.getString("EXTRA_DRAFT_RESEP_ID")
+                draftResepJudulAsal = bundle.getString("EXTRA_DRAFT_RESEP_JUDUL")
 
                 etJudulResep.setText(bundle.getString("EXTRA_DRAFT_RESEP_JUDUL", ""))
                 etDeskripsiResep.setText(bundle.getString("EXTRA_DRAFT_RESEP_DESKRIPSI", ""))
@@ -592,6 +598,10 @@ class UnggahFragment : Fragment() {
                         if (idx >= 0) spinnerKategoriResep.setSelection(idx + 1)
                     }
                 }
+
+                // Bersihkan argumen agar tidak terpanggil ulang secara tidak sengaja
+                arguments?.remove("EXTRA_DRAFT_RESEP_ID")
+                arguments?.remove("EXTRA_DRAFT_RESEP_JUDUL")
             }
 
             // =====================================================================

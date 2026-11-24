@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -976,34 +977,53 @@ object BakeryStorageManager {
 
     suspend fun hapusDraftResep(draftId: String?, draftJudul: String? = null): Boolean {
         return withContext(Dispatchers.IO) {
+            var anySuccess = false
+            // 1. Coba hapus dari draft_resep
             try {
                 if (!draftId.isNullOrEmpty()) {
-                    try {
-                        SupabaseClient.instance.from("draft_resep").delete {
-                            filter { eq("id", draftId) }
-                        }
-                    } catch (e: Exception) {
-                        SupabaseClient.instance.from("draft_resep_admin").delete {
-                            filter { eq("id", draftId) }
-                        }
+                    SupabaseClient.instance.from("draft_resep").delete {
+                        filter { eq("id", draftId) }
                     }
-                } else if (!draftJudul.isNullOrEmpty()) {
-                    try {
-                        SupabaseClient.instance.from("draft_resep").delete {
-                            filter { eq("judul", draftJudul) }
-                        }
-                    } catch (e: Exception) {
-                        SupabaseClient.instance.from("draft_resep_admin").delete {
-                            filter { eq("judul", draftJudul) }
-                        }
-                    }
+                    anySuccess = true
                 }
-                Log.d("SUPABASE_DRAFT", "Berhasil hapus draft_resep: id=$draftId, judul=$draftJudul")
-                true
             } catch (e: Exception) {
-                Log.e("SUPABASE_DRAFT", "Gagal hapus draft_resep: ${e.message}")
-                false
+                Log.d("SUPABASE_DRAFT", "Hapus draft_resep id: ${e.message}")
             }
+            try {
+                if (!draftJudul.isNullOrEmpty()) {
+                    SupabaseClient.instance.from("draft_resep").delete {
+                        filter { eq("judul", draftJudul) }
+                    }
+                    anySuccess = true
+                }
+            } catch (e: Exception) {
+                Log.d("SUPABASE_DRAFT", "Hapus draft_resep judul: ${e.message}")
+            }
+
+            // 2. Coba hapus dari draft_resep_admin (fallback / tabel utama admin)
+            try {
+                if (!draftId.isNullOrEmpty()) {
+                    SupabaseClient.instance.from("draft_resep_admin").delete {
+                        filter { eq("id", draftId) }
+                    }
+                    anySuccess = true
+                }
+            } catch (e: Exception) {
+                Log.d("SUPABASE_DRAFT", "Hapus draft_resep_admin id: ${e.message}")
+            }
+            try {
+                if (!draftJudul.isNullOrEmpty()) {
+                    SupabaseClient.instance.from("draft_resep_admin").delete {
+                        filter { eq("judul", draftJudul) }
+                    }
+                    anySuccess = true
+                }
+            } catch (e: Exception) {
+                Log.d("SUPABASE_DRAFT", "Hapus draft_resep_admin judul: ${e.message}")
+            }
+
+            Log.d("SUPABASE_DRAFT", "Selesai proses hapus draft: id=$draftId, judul=$draftJudul")
+            anySuccess
         }
     }
 
@@ -1017,7 +1037,9 @@ object BakeryStorageManager {
             val hasil = mutableListOf<ResepModel>()
             try {
                 val listData = SupabaseClient.instance.from("resep")
-                    .select()
+                    .select {
+                        order("id", Order.DESCENDING)
+                    }
                     .decodeList<JsonObject>()
 
                 for (item in listData) {
@@ -1195,6 +1217,17 @@ object BakeryStorageManager {
                         }
                     }
                     "POSTINGAN" -> {
+                        try {
+                            SupabaseClient.instance.from("suka").delete {
+                                filter { eq("resep_id", targetId) }
+                            }
+                        } catch (e: Exception) { /* ignore */ }
+                        try {
+                            SupabaseClient.instance.from("komentar").delete {
+                                filter { eq("resep_id", targetId) }
+                            }
+                        } catch (e: Exception) { /* ignore */ }
+
                         SupabaseClient.instance.from("postingan_users").delete {
                             filter { eq("id", targetId) }
                         }

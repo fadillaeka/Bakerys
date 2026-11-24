@@ -11,6 +11,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Order
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.intOrNull
@@ -20,6 +22,7 @@ class JelajahFragment : Fragment() {
 
     private lateinit var rvJelajah: RecyclerView
     private lateinit var jelajahAdapter: JelajahAdapter
+    private var loadJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,8 +44,6 @@ class JelajahFragment : Fragment() {
 
         rvJelajah.adapter = jelajahAdapter
         rvJelajah.scheduleLayoutAnimation()
-
-        muatPostinganDariDatabase()
     }
 
     override fun onResume() {
@@ -54,21 +55,28 @@ class JelajahFragment : Fragment() {
     }
 
     private fun muatPostinganDariDatabase() {
-        viewLifecycleOwner.lifecycleScope.launch {
+        loadJob?.cancel()
+        loadJob = viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val listData = SupabaseClient.instance.from("postingan_users")
-                    .select()
+                    .select {
+                        order("id", Order.DESCENDING)
+                    }
                     .decodeList<JsonObject>()
 
-                val ctx = context
+                val ctx = context ?: return@launch
 
-                // Bersihkan list lama (hanya postingan dari postingan_users, bukan resep hardcoded)
-                // Kita gunakan in-memory list dari RecipeRepository.postinganList (pisah dari recipeList hardcoded)
+                val listUserPosts = mutableListOf<Recipe>()
+                val seenIds = mutableSetOf<Int>()
 
                 for (item in listData) {
                     val id = item["id"]?.jsonPrimitive?.content?.toIntOrNull()
                         ?: item["id"]?.jsonPrimitive?.intOrNull
                         ?: continue
+
+                    if (seenIds.contains(id)) continue
+                    seenIds.add(id)
+
                     val caption = item["caption"]?.jsonPrimitive?.content ?: continue
                     val fotoUrl = item["foto_url"]?.jsonPrimitive?.content
                         ?: item["gambar_url"]?.jsonPrimitive?.content
@@ -76,28 +84,27 @@ class JelajahFragment : Fragment() {
                         try { Uri.parse(fotoUrl) } catch (e: Exception) { null }
                     } else null
 
-                    val existingRecipe = RecipeRepository.recipeList.find { it.id == id }
-
                     val likeCount = BakeryStorageManager.ambilJumlahSuka(id.toLong())
                     val isLiked = BakeryStorageManager.cekUserMenyukaiPostingan(ctx, id.toLong())
 
-                    if (existingRecipe != null) {
-                        existingRecipe.likeCount = likeCount
-                        existingRecipe.isLiked = isLiked
-                    } else {
-                        val newRecipe = Recipe(
-                            id = id,
-                            title = caption,
-                            description = "",
-                            imageUri = uri,
-                            imageResId = if (uri == null) R.drawable.cookies else null,
-                            isLiked = isLiked,
-                            isBookmarked = false,
-                            likeCount = likeCount
-                        )
-                        RecipeRepository.tambahPostingan(newRecipe)
-                    }
+                    val postRecipe = Recipe(
+                        id = id,
+                        title = caption,
+                        description = "",
+                        imageUri = uri,
+                        imageResId = if (uri == null) R.drawable.cookies else null,
+                        isLiked = isLiked,
+                        isBookmarked = false,
+                        likeCount = likeCount
+                    )
+                    listUserPosts.add(postRecipe)
                 }
+
+                // Bersihkan postingan user lama dari memory list, hanya pertahankan 5 resep bawaan (ID 1..5)
+                RecipeRepository.recipeList.removeAll { it.id !in 1..5 }
+
+                // Masukkan postingan terbaru dari database Supabase di paling atas
+                RecipeRepository.recipeList.addAll(0, listUserPosts)
 
                 if (::jelajahAdapter.isInitialized) {
                     jelajahAdapter.notifyDataSetChanged()
